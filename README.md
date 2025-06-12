@@ -1,6 +1,6 @@
 # mam-vpn-ip-updater
 
-A simple service to update a seedbox IP for MaM when your seedbox IP can change.
+A background service to update a seedbox IP for MaM when your seedbox IP can change.
 
 This can be helpful if you are using a VPN to seed (where IP addresses are not
 often stable) or if you are using a seedbox that does not have a static IP
