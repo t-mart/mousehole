@@ -62,7 +62,7 @@ services:
     restart: unless-stopped
 ```
 
-## Bootstrapping
+## First-time setup (or if cookie gets out of sync)
 
 When running this service for the first time (or if the cookie gets out of
 sync), you need to set the seedbox cookie manually:
@@ -111,3 +111,6 @@ sync), you need to set the seedbox cookie manually:
    ```
 
    The response will indicate its success or failure.
+
+5. Voila! Your seedbox IP address is now set up and will be updated every 61
+   minutes automatically.
