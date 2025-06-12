@@ -1,0 +1,21 @@
+{
+  "name": "mam-vpn-ip-updater",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/bun": "latest",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-perfectionist": "^4.14.0",
+    "eslint-plugin-unicorn": "^59.0.1",
+    "typescript-eslint": "^8.34.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "temporal-polyfill": "^0.3.0",
+    "tough-cookie": "^5.1.2"
+  }
+}
