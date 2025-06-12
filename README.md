@@ -49,7 +49,7 @@ Run the server with:
 bun run src/index.ts
 ```
 
-Or, with Docker Compose:
+Or, with Docker Compose with the [Docker Hub image](https://hub.docker.com/r/tmmrtn/mam-vpn-ip-updater):
 
 ```yaml
 services:
