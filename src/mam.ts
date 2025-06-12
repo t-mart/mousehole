@@ -55,7 +55,7 @@ export async function setMamSeedboxIp() {
     }
 
     await writeCookieValue(nextCookieValue);
-    const attempt = {
+    const partialAttempt = {
       success: true,
       message: "Seedbox IP updated successfully.",
       publicIp: await fetchPublicIp(),
@@ -63,7 +63,7 @@ export async function setMamSeedboxIp() {
       newCookieValue: nextCookieValue,
       responseJson: json,
     };
-    await writeLastAttempt(attempt);
+    const attempt = await writeLastAttempt(partialAttempt);
     return attempt;
   } else {
     await writeLastAttempt({

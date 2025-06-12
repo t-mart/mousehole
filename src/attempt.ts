@@ -32,6 +32,8 @@ export async function writeLastAttempt(attemptData: Omit<Attempt, "datetime">) {
       { cause: error }
     );
   }
+
+  return attempt;
 }
 
 export async function readLastAttempt() {
