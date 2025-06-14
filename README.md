@@ -78,8 +78,10 @@ services:
       # anything that wants to use the wireguard network must expose ports here
       # bittorrent port, webui port, and mam-vpn-ip-updater http port
       - "5010:5010" # mam-vpn-ip-updater HTTP port
+      # - <bittorrent port>:<bittorrent port>
+      # - <webui port>:<webui port>
 
-    # optional healthcheck to ensure the VPN is up. replace 'airvpn' with your VPN interface name
+    # optional healthcheck to ensure the VPN is up. replace `airvpn` with your VPN interface name
     healthcheck:
       test: ["CMD-SHELL", "wg show airvpn | grep -q 'latest handshake'"]
 

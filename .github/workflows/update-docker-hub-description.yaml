@@ -1,11 +1,11 @@
 name: Update Docker Hub Description
+
 on:
   push:
-    branches:
-      - master
     paths:
       - README.md
       - update-docker-hub-description.yaml
+
 jobs:
   dockerHubDescription:
     runs-on: ubuntu-latest
@@ -16,7 +16,7 @@ jobs:
       uses: peter-evans/dockerhub-description@v4
       with:
         username: ${{ vars.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
         repository: ${{ vars.IMAGE_TAG }}
         short-description: ${{ github.event.repository.description }}
         enable-url-completion: true
