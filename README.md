@@ -65,7 +65,7 @@ If you are running this service in a container alongside a VPN container to
 tunnel your connection, it is imperative that you run mam-vpn-ip-updater
 in the same network as the VPN container.
 
-Example with WireGuard and qBittorrent:
+Example with WireGuard and qBittorrent Docker Compose stack:
 
 ```yaml
 services:
