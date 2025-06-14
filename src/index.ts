@@ -67,6 +67,7 @@ export const setCookiePath = "/setCookie";
 Bun.serve({
   port: config.port,
   routes: {
+    "/": Response.redirect(statusPath),
     [statusPath]: handleStatus,
     [updateIpPath]: {
       POST: handleUpdateIp,
