@@ -11,8 +11,7 @@ is not stable.
 This server does two things:
 
 - Every 61 minutes, call the MaM API to set your current IP address. (The
-  minimum frequency for this is 60 minutes, so we add a minute to avoid hitting
-  the API at the exact same time every hour.)
+  maximum frequency for this is 60 minutes, so we add a minute to avoid races.)
 - Provide an HTTP server with management endpoints:
 
   - `PUT` `/setCookie`: Updates the seedbox cookie with a new value. Useful when
@@ -320,7 +319,7 @@ sync), you need to set the seedbox cookie manually:
 
 0. Start the server so that it can listen for requests (see "Usage" above).
 
-1. Create a new MaM session for the seed.
+1. Create a new MaM session.
 
    Go to the
    [MaM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security).
