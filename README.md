@@ -1,10 +1,10 @@
 # mam-vpn-ip-updater
 
-A background service to update a seedbox IP for MaM when your seedbox IP can change.
+A background service to update a seedbox IP for MaM when your seedbox IP can
+change and an HTTP server to manage it.
 
-This can be helpful if you are using a VPN to seed (where IP addresses are not
-often stable) or if you are using a seedbox that does not have a static IP
-address.
+This can be helpful if you are using a VPN/seedbox to seed and your IP address
+is not stable.
 
 This server does two things:
 
@@ -57,9 +57,54 @@ services:
     image: tmmrtn/mam-vpn-ip-updater:latest
     ports:
       - "5010:5010"
-    volumes:
-      - "<some local path>:/mam-vpn-ip-updater/state"
-    restart: unless-stopped
+```
+
+### With a VPN Container
+
+If you are running this service in a container alongside a VPN container to
+tunnel your connection, it is imperative that you run mam-vpn-ip-updater
+in the same network as the VPN container.
+
+Example with WireGuard and qBittorrent:
+
+```yaml
+services:
+  wireguard:
+    image: lscr.io/linuxserver/wireguard:latest
+
+    # configure as necessary, see https://docs.linuxserver.io/images/docker-wireguard
+
+    ports:
+      # anything that wants to use the wireguard network must expose ports here
+      # bittorrent port, webui port, and mam-vpn-ip-updater http port
+      - "5010:5010" # mam-vpn-ip-updater HTTP port
+
+    # optional healthcheck to ensure the VPN is up. replace 'airvpn' with your VPN interface name
+    healthcheck:
+      test: ["CMD-SHELL", "wg show airvpn | grep -q 'latest handshake'"]
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    
+    # configure as necessary, see https://docs.linuxserver.io/images/docker-qbittorrent
+
+    # CRITICAL: Use wireguard container's network stack
+    network_mode: "service:wireguard"
+
+    # optional: only run qbittorrent after wireguard is healthy
+    depends_on:
+      wireguard:
+        condition: service_healthy
+
+  mam-vpn-ip-updater:
+    image: tmmrtn/mam-vpn-ip-updater:latest
+    
+    # CRITICAL: Use wireguard container's network stack
+    network_mode: "service:wireguard"
+    
+    depends_on:
+      wireguard:
+        condition: service_healthy
 ```
 
 ## First-time setup (or if cookie gets out of sync)
@@ -114,3 +159,8 @@ sync), you need to set the seedbox cookie manually:
 
 5. Voila! Your seedbox IP address is now set up and will be updated every 61
    minutes automatically.
+
+## Links
+
+- [Repository](https://github.com/t-mart/mam-vpn-ip-updater)
+- [Docker Hub image](https://hub.docker.com/r/tmmrtn/mam-vpn-ip-updater)
