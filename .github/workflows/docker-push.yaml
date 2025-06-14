@@ -25,6 +25,9 @@ jobs:
           push: true
           tags: ${{ vars.IMAGE_TAG }}
 
+      
+      - uses: actions/checkout@v4
+
       - name: Update repo description
         uses: peter-evans/dockerhub-description@v4
         with:
