@@ -161,7 +161,7 @@ sync), you need to set the seedbox cookie manually:
 
    The response will indicate its success or failure.
 
-5. Voila! Your seedbox IP address is now set up and will be updated every 61
+5. Et voilà! Your seedbox IP address is now set up and will be updated every 61
    minutes automatically. At any time, you can check the status of the last
    update or manually trigger an update using the `/status` and `/update-ip`
    endpoints, respectively.
