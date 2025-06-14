@@ -54,7 +54,7 @@ async function handleSetCookie(request: Request): Promise<Response> {
 
   const response: SetCookieResponse = {
     success: true,
-    message: "Cookie value updated successfully",
+    message: "Cookie value updated",
   };
 
   return Response.json(response);
