@@ -11,7 +11,7 @@ This server does two things:
 - Every 61 minutes, call the MaM API to set your current IP address. (The
   minimum frequency for this is 60 minutes, so we add a minute to avoid hitting
   the API at the exact same time every hour.)
-- Provide an HTTP server:
+- Provide an HTTP server with management endpoints:
 
   - `GET` `/update-ip`: Manually triggers an update of the IP address.
 
@@ -22,7 +22,7 @@ This server does two things:
     ```
 
   - `GET` `/status`: Returns information about the last update to your IP
-    address. The return code reflect the success of the last update:
+    address. The return code reflects the success of the last update:
 
     Example `curl`:
 
@@ -32,8 +32,9 @@ This server does two things:
 
   - `PUT` `/set-cookie`: Updates the seedbox cookie with a new value. Useful
     when bootstrapping the service or when things get out of sync. Get this
-    value from your
-    [MaM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security).
+    value from your [MaM Security Settings
+    page](https://www.myanonamouse.net/preferences/index.php?view=security)
+    and/or see the tutorial below for how to get one.
 
     Example `curl`:
 
@@ -61,9 +62,9 @@ services:
 
 ### With a VPN Container
 
-If you are running this service in a container alongside a VPN container to
-tunnel your connection, it is imperative that you run mam-vpn-ip-updater
-in the same network as the VPN container.
+If you intend to run this service alongside a VPN container to tunnel your
+connection, it is imperative that you run mam-vpn-ip-updater in the same network
+as the VPN container.
 
 Example with WireGuard and qBittorrent Docker Compose stack:
 
@@ -75,13 +76,13 @@ services:
     # configure as necessary, see https://docs.linuxserver.io/images/docker-wireguard
 
     ports:
-      # anything that wants to use the wireguard network must expose ports here
+      # anything that wants to use the wireguard network must expose ports here, such as
       # bittorrent port, webui port, and mam-vpn-ip-updater http port
       - "5010:5010" # mam-vpn-ip-updater HTTP port
       # - <bittorrent port>:<bittorrent port>
       # - <webui port>:<webui port>
 
-    # optional healthcheck to ensure the VPN is up. replace `airvpn` with your VPN interface name
+    # optional - healthcheck to ensure the VPN is up. replace `airvpn` with your VPN interface name
     healthcheck:
       test: ["CMD-SHELL", "wg show airvpn | grep -q 'latest handshake'"]
 
@@ -90,23 +91,24 @@ services:
     
     # configure as necessary, see https://docs.linuxserver.io/images/docker-qbittorrent
 
-    # CRITICAL: Use wireguard container's network stack
+    # CRITICAL - Use wireguard container's network stack
     network_mode: "service:wireguard"
 
-    # optional: only run qbittorrent after wireguard is healthy
-    depends_on:
-      wireguard:
-        condition: service_healthy
+    # optional - only run after wireguard is healthy
+    # depends_on:
+    #   wireguard:
+    #     condition: service_healthy
 
   mam-vpn-ip-updater:
     image: tmmrtn/mam-vpn-ip-updater:latest
     
-    # CRITICAL: Use wireguard container's network stack
+    # CRITICAL - Use wireguard container's network stack
     network_mode: "service:wireguard"
     
-    depends_on:
-      wireguard:
-        condition: service_healthy
+    # optional - only run after wireguard is healthy
+    # depends_on:
+    #   wireguard:
+    #     condition: service_healthy
 ```
 
 ## First-time setup (or if cookie gets out of sync)
@@ -160,7 +162,9 @@ sync), you need to set the seedbox cookie manually:
    The response will indicate its success or failure.
 
 5. Voila! Your seedbox IP address is now set up and will be updated every 61
-   minutes automatically.
+   minutes automatically. At any time, you can check the status of the last
+   update or manually trigger an update using the `/status` and `/update-ip`
+   endpoints, respectively.
 
 ## Links
 
