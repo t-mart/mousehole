@@ -1,6 +1,6 @@
 FROM oven/bun:debian
 
-WORKDIR /mam-vpn-ip-updater
+WORKDIR /mousehole
 
 RUN apt-get update && \
     apt-get install -y curl --no-install-recommends && \

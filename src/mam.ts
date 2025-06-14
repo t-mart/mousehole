@@ -1,105 +1,165 @@
+import path from "node:path";
 import { Temporal } from "temporal-polyfill";
 import { Cookie } from "tough-cookie";
 
-import { writeLastAttempt } from "./attempt.js";
+import type { UpdateIpResponse } from "./response.js";
+
 import { config } from "./config.js";
 import { readCookieValue, writeCookieValue } from "./cookie-file.js";
+import { makeDatetime } from "./datetime.js";
+import { updateIpPath } from "./index.js";
 
-export async function setMamSeedboxIp() {
+const endpointUrl = new URL(
+  "https://t.myanonamouse.net/json/dynamicSeedbox.php"
+);
+const cookieKey = "mam_id";
+const latestUpdateIpResponsePath = path.join(
+  config.stateDirPath,
+  "latest-update-ip-response.json"
+);
+
+type GlobalData = {
+  nextAutoUpdateZdt: Temporal.ZonedDateTime | undefined;
+};
+
+export const globalData: GlobalData = {
+  nextAutoUpdateZdt: undefined,
+};
+
+export type MamApiResponse = {
+  Success: boolean;
+  msg: string;
+  ip: string;
+  ASN: number;
+  AS: string;
+};
+
+export type MamApiResponseWithMetadata = {
+  response: MamApiResponse;
+  metadata: {
+    request: {
+      datetime: string;
+      timestampMilliseconds: number;
+      cookieValue: string;
+    };
+    response: {
+      httpStatus: number;
+      cookieValue: string | undefined;
+    };
+  };
+};
+
+export async function updateMamIp(): Promise<UpdateIpResponse> {
   const currentCookiedValue = await readCookieValue();
 
   const cookie = new Cookie({
-    key: config.mamCookieName,
+    key: cookieKey,
     value: currentCookiedValue,
   });
 
   const headers = {
+    // Identify us to the MaM API if they care
     "User-Agent": config.userAgent,
     Cookie: cookie.cookieString(),
   };
 
-  let response;
-  try {
-    // by making this GET request, we update the seedbox IP on MaM. The IP address
-    // is determined by the server from the request.
-    response = await fetch(config.mamSetSeedboxIpUrl, {
-      headers,
-    });
-  } catch (error) {
-    await writeLastAttempt({
-      success: false,
-      message: `Error updating seedbox IP: ${String(error)}`,
-    });
-    throw error;
-  }
+  const requestZdt = Temporal.Now.zonedDateTimeISO(config.localTimezone);
+  const datetime = makeDatetime(requestZdt);
 
-  const json = await response.json();
+  // interesting that this is a GET request. Also note: the IP address is
+  // determined by the server from the request.
+  const response = await fetch(endpointUrl, {
+    headers,
+  });
 
-  if (response.ok) {
-    let nextCookieValue;
-    for (const [headerName, headerValue] of response.headers.entries()) {
-      if (headerName.toLowerCase() === "set-cookie") {
-        const headerCookie = Cookie.parse(headerValue);
-        if (headerCookie && headerCookie.key === config.mamCookieName) {
-          nextCookieValue = headerCookie.value;
-          writeCookieValue(headerCookie.value);
-          break;
-        }
-      }
-    }
-    if (!nextCookieValue) {
-      console.warn(
-        `No Set-Cookie header found for ${config.mamCookieName}. Cookie may not have been updated.`
-      );
-      nextCookieValue = currentCookiedValue; // fallback to current value
-    }
+  const responseJson = (await response.json()) as MamApiResponse;
+  const nextCookieValue = getNextCookieValue(response);
 
+  if (nextCookieValue) {
     await writeCookieValue(nextCookieValue);
-    const partialAttempt = {
-      success: true,
-      message: "Seedbox IP updated successfully.",
-      publicIp: await fetchPublicIp(),
-      oldCookieValue: currentCookiedValue,
-      newCookieValue: nextCookieValue,
-      responseJson: json,
-    };
-    const attempt = await writeLastAttempt(partialAttempt);
-    return attempt;
-  } else {
-    await writeLastAttempt({
-      success: false,
-      message: `Failed to update seedbox IP: ${response.status} ${response.statusText} ${JSON.stringify(json)}`,
-      responseJson: json,
-    });
-    throw new Error(
-      `Failed to update seedbox IP: ${response.status} ${response.statusText} ${JSON.stringify(json)}`
-    );
+  } else if (response.ok) {
+    console.warn("No new cookie value provided in response headers");
   }
+
+  const responseWithMetadata: MamApiResponseWithMetadata = {
+    response: responseJson,
+    metadata: {
+      request: {
+        ...datetime,
+        cookieValue: currentCookiedValue,
+      },
+      response: {
+        httpStatus: response.status,
+        cookieValue: nextCookieValue,
+      },
+    },
+  };
+  await writeLatestUpdateIpResponse(responseWithMetadata);
+
+  const message = response.ok
+    ? "IP updated successfully"
+    : "Failed to update IP";
+  console.log(message);
+
+  return {
+    success: response.ok,
+    message,
+    responseWithMetadata,
+  } as UpdateIpResponse;
 }
 
 export function setNowAndScheduleNext() {
-  setMamSeedboxIp()
-    .then(({ publicIp }) => {
-      console.log(`IP updated successfully to ${publicIp}`);
-    })
+  updateMamIp()
     .catch((error) => {
       console.error("Error:", error);
     })
     .finally(() => {
       // Schedule the next update
-      setTimeout(setNowAndScheduleNext, config.setIntervalMilliseconds);
-      const nextUpdateTime = Temporal.Now.zonedDateTimeISO(
+      setTimeout(setNowAndScheduleNext, config.updateIntervalMilliseconds);
+
+      // this calculation will be slightly off because of the of the time it
+      // takes to execute these statements, but it's close enough
+      globalData.nextAutoUpdateZdt = Temporal.Now.zonedDateTimeISO(
         config.localTimezone
-      ).add({ milliseconds: config.setIntervalMilliseconds });
-      console.log(`Next update scheduled for ${nextUpdateTime.toString()}`);
+      ).add({ milliseconds: config.updateIntervalMilliseconds });
+
+      console.log(
+        `Next update scheduled for ${globalData.nextAutoUpdateZdt.toString()}`
+      );
     });
 }
 
-async function fetchPublicIp() {
-  const response = await fetch(config.ipServiceUrl);
-  if (!response.ok) {
-    return "<failed to fetch public IP>";
+function getNextCookieValue(response: Response): string | undefined {
+  for (const [headerName, headerValue] of response.headers.entries()) {
+    if (headerName.toLowerCase() === "set-cookie") {
+      const cookie = Cookie.parse(headerValue);
+      if (cookie && cookie.key === cookieKey) {
+        return cookie.value;
+      }
+    }
   }
-  const publicIp = await response.text();
-  return publicIp.trim();
+  return undefined;
+}
+
+async function writeLatestUpdateIpResponse(
+  response: MamApiResponseWithMetadata
+) {
+  const lastResponseFile = Bun.file(latestUpdateIpResponsePath);
+  await lastResponseFile.write(JSON.stringify(response, undefined, 2));
+}
+
+export async function readLatestUpdateIpResponse(): Promise<MamApiResponseWithMetadata> {
+  const lastResponseFile = Bun.file(latestUpdateIpResponsePath);
+  let contents;
+  try {
+    contents = await lastResponseFile.text();
+  } catch (error) {
+    throw new Error(
+      `Error reading latest update IP response file at ${latestUpdateIpResponsePath}: ${String(
+        error
+      )}. Have you made a request to update the IP with the ${updateIpPath} endpoint yet?`,
+      { cause: error }
+    );
+  }
+  return JSON.parse(contents) as MamApiResponseWithMetadata;
 }

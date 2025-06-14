@@ -1,5 +1,5 @@
 {
-  "name": "mam-vpn-ip-updater",
+  "name": "mousehole",
   "type": "module",
   "private": true,
   "devDependencies": {
