@@ -18,7 +18,7 @@ export const config = {
     "MOUSEHOLE_USER_AGENT",
     "mousehole-by-timtimtim"
   ),
-  stateDirPath: environmentOrFallback("MOUSEHOLE_STATE_DIR_PATH", "./state"),
+  stateDirPath: environmentOrFallback("MOUSEHOLE_STATE_DIR_PATH", "/srv/mousehole"),
   updateIntervalMilliseconds: environmentOrFallback(
     "MOUSEHOLE_UPDATE_INTERVAL_MILLISECONDS",
     61 * 60 * 1000,

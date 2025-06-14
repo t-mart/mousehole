@@ -25,7 +25,7 @@ This server does two things:
 
     <summary>Successful Response</summary>
 
-    
+
 
     </details>
 
@@ -65,7 +65,7 @@ services:
       - "5010:5010"
     # persist cookie data across container restarts
     volumes:
-      - mousehole:/mousehole/state
+      - mousehole:/srv/mousehole
     restart: unless-stopped
 
 volumes:
@@ -119,7 +119,7 @@ services:
 
     # persist cookie data across container restarts
     volumes:
-      - mousehole:/mousehole/state
+      - mousehole:/srv/mousehole
     restart: unless-stopped
 
     # optional - only run after wireguard is healthy
