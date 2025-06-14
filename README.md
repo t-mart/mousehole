@@ -3,6 +3,8 @@
 A background service to update a seedbox IP for MaM when your seedbox IP on a
 schedule and an HTTP server to manage it.
 
+![Mousehole Overview](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/overview.png)
+
 This can be helpful if you are using a VPN/seedbox to seed and your IP address
 is not stable.
 
@@ -25,8 +27,6 @@ This server does two things:
 
     <summary>Successful Response</summary>
 
-
-
     </details>
 
   - `GET` `/status`: Returns information about the latest update to your IP
@@ -38,9 +38,9 @@ This server does two things:
     curl http://localhost:5010/status
     ```
 
-  - `PUT` `/setCookie`: Updates the seedbox cookie with a new value. Useful
-    when bootstrapping the service or when things get out of sync. Get this
-    value from your
+  - `PUT` `/setCookie`: Updates the seedbox cookie with a new value. Useful when
+    bootstrapping the service or when things get out of sync. Get this value
+    from your
     [MaM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security)
     and/or see the tutorial below for how to get one.
 
@@ -53,9 +53,6 @@ This server does two things:
 ## Usage
 
 ### Docker Compose
-
-Or, with Docker Compose with the
-[Docker Hub image](https://hub.docker.com/r/tmmrtn/mousehole):
 
 ```yaml
 services:
@@ -72,11 +69,9 @@ volumes:
   mousehole:
 ```
 
-### Docker Compose with a VPN Container
-
 If you intend to run this service alongside a VPN container to tunnel your
-connection, it is imperative that you run mousehole in the same network
-as the VPN container.
+connection, it is imperative that you run mousehole in the same network as the
+VPN container.
 
 Example with WireGuard and qBittorrent Docker Compose stack:
 
@@ -138,6 +133,17 @@ Run the server with:
 ```bash
 bun run src/index.ts
 ```
+
+## Environment Variables
+
+- `MOUSEHOLE_PORT`:  *(Default `5010`)* The port on which the HTTP server will listen.
+- `MOUSEHOLE_STATE_DIR_PATH`: *(Default `/srv/mousehole`)* The directory where the service will store its
+  data.
+- `MOUSEHOLE_USER_AGENT`: *(Default `mousehole-by-timtimtim`)* The user agent to use for requests to MaM.
+- `MOUSEHOLE_UPDATE_INTERVAL_MILLISECONDS`: *(Default `3660000`)* The interval in milliseconds at
+  which the service will update the IP address.
+- `MOUSEHOLE_TZ`: *(Default `UTC`)* The timezone to use for the service. This
+  is used to format the datetimes in endpoint responses and logs.
 
 ## First-time setup (or if cookie gets out of sync)
 
