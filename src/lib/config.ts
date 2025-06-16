@@ -21,7 +21,7 @@ export const config = {
   stateDirPath: environmentOrFallback("MOUSEHOLE_STATE_DIR_PATH", "/srv/mousehole"),
   updateIntervalMilliseconds: environmentOrFallback(
     "MOUSEHOLE_UPDATE_INTERVAL_MILLISECONDS",
-    61 * 60 * 1000,
+    60 * 60 * 1000,
     (value) => Number.parseInt(value)
   ),
   localTimezone: environmentOrFallback("MOUSEHOLE_TZ", "UTC"),

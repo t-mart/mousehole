@@ -1,6 +1,6 @@
 # Mousehole, a Seedbox IP Updater for MaM
 
-A background service to update a seedbox IP for MaM on a schedule and an HTTP
+A background service to update a seedbox IP for MaM on an hourly schedule and an HTTP
 server to manage it.
 
 ![Mousehole Overview](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/overview.png)
@@ -10,8 +10,7 @@ is not stable.
 
 This server does two things:
 
-- Every 61 minutes, call the MaM API to set your current IP address. (The
-  maximum frequency for this is 60 minutes, so we add a minute to avoid races.)
+- Every hour, call the MaM API to set your current IP address.
 - Provide an HTTP server with management endpoints:
 
   - `PUT` `/setCookie`: Updates the seedbox cookie with a new value. Useful when
@@ -371,3 +370,8 @@ sync), you need to set the seedbox cookie manually:
 
 - [Repository](https://github.com/t-mart/mousehole)
 - [Docker Hub image](https://hub.docker.com/r/tmmrtn/mousehole)
+
+
+## Attribution
+
+Mouse Hole by Sergey Demushkin from [Noun Project](https://thenounproject.com/term/mouse-hole/) (CC BY 3.0)

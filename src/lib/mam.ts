@@ -2,12 +2,12 @@ import path from "node:path";
 import { Temporal } from "temporal-polyfill";
 import { Cookie } from "tough-cookie";
 
-import type { UpdateIpResponse } from "./response.js";
+import type { PostIpResponse } from "./response.ts";
 
 import { config } from "./config.js";
-import { readCookieValue, writeCookieValue } from "./cookie-file.js";
+import { readCookieValue, writeCookieValue } from "./cookie.js";
 import { makeDatetime } from "./datetime.js";
-import { updateIpPath } from "./index.js";
+import { NoLatestUpdateError } from "./error.js";
 
 const endpointUrl = new URL(
   "https://t.myanonamouse.net/json/dynamicSeedbox.php"
@@ -49,7 +49,7 @@ export type MamApiResponseWithMetadata = {
   };
 };
 
-export async function updateMamIp(): Promise<UpdateIpResponse> {
+export async function updateMamIp(): Promise<PostIpResponse> {
   const currentCookiedValue = await readCookieValue();
 
   const cookie = new Cookie({
@@ -105,7 +105,7 @@ export async function updateMamIp(): Promise<UpdateIpResponse> {
     success: response.ok,
     message,
     responseWithMetadata,
-  } as UpdateIpResponse;
+  } as PostIpResponse;
 }
 
 export function setNowAndScheduleNext() {
@@ -154,12 +154,10 @@ export async function readLatestUpdateIpResponse(): Promise<MamApiResponseWithMe
   try {
     contents = await lastResponseFile.text();
   } catch (error) {
-    throw new Error(
-      `Error reading latest update IP response file at ${latestUpdateIpResponsePath}: ${String(
-        error
-      )}. Have you made a request to update the IP with the ${updateIpPath} endpoint yet?`,
-      { cause: error }
-    );
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      throw new NoLatestUpdateError();
+    }
+    throw error;
   }
   return JSON.parse(contents) as MamApiResponseWithMetadata;
 }

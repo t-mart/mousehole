@@ -6,12 +6,15 @@ export type MouseholeResponse = {
   message: string;
 };
 
-export type UpdateIpResponse = MouseholeResponse & {
+export type PostIpResponse = MouseholeResponse & {
   responseWithMetadata: MamApiResponseWithMetadata;
 };
 
-export type StatusResponse = UpdateIpResponse & {
+export type GetStatusResponse = PostIpResponse & {
   nextAutoUpdate: Datetime | undefined;
 };
 
-export type SetCookieResponse = MouseholeResponse;
+export type PutCookieResponse = MouseholeResponse;
+export type GetCookieResponse = MouseholeResponse & {
+  cookieValue: string;
+};
