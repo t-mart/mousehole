@@ -41,6 +41,8 @@ services:
     volumes:
       - mousehole:/srv/mousehole
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1" ]
 
 volumes:
   mousehole:
@@ -93,6 +95,8 @@ services:
     volumes:
       - mousehole:/srv/mousehole
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1" ]
 
     # optional - only run after wireguard is healthy
     # depends_on:
