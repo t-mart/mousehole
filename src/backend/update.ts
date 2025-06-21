@@ -156,6 +156,8 @@ export async function updateAndReschedule(options?: UpdateOptions) {
     notifyWebSocketClients();
 
     return newState;
+  } catch (error) {
+    console.error(error);
   } finally {
     reschedule();
   }
