@@ -1,83 +1,29 @@
 import Negotiator from "negotiator";
 
-import type {
-  MouseholeResponse,
-  PutCookieResponse,
-  GetStatusResponse,
-  PostIpResponse,
-} from "./lib/response.js";
+import type { JSONResponseArgs } from "#backend/types.ts";
 
-import index from "./index.html";
-import { config } from "./lib/config.js";
-import { readCookieValue, writeCookieValue } from "./lib/cookie.js";
-import { makeDatetime } from "./lib/datetime.js";
+import { config } from "#backend/config.ts";
+import { toJSONResponseArgs } from "#backend/error.ts";
+import { handleGetOk } from "#backend/handlers/ok.ts";
 import {
-  updateMamIp,
-  setNowAndScheduleNext,
-  globalData,
-  readLatestUpdateIpResponse,
-} from "./lib/mam.js";
+  handleGetState,
+  handlePutState,
+} from "#backend/handlers/state.ts";
+import { handlePostUpdate } from "#backend/handlers/update.ts";
+import { startBackgroundUpdateTask } from "#backend/update.ts";
+import index from "#frontend/index.html";
 
-async function handleGetStatus(): Promise<Response> {
-  const latestResponse = await readLatestUpdateIpResponse();
+import { version } from "../package.json";
 
-  const response: GetStatusResponse = {
-    success: latestResponse.response.Success,
-    message: `Latest update request was ${
-      latestResponse.response.Success ? "successful" : "unsuccessful"
-    }`,
-    responseWithMetadata: latestResponse,
-    nextAutoUpdate: globalData.nextAutoUpdateZdt
-      ? makeDatetime(globalData.nextAutoUpdateZdt)
-      : undefined,
-  };
+export const updateEndpointPath = "/update";
+export const stateEndpointPath = "/state";
+export const okEndpointPath = "/ok";
 
-  return Response.json(response, {
-    status: latestResponse.metadata.response.httpStatus,
-  });
+export const wsTopic = "mousehole";
+
+function makeJSONResponse<T>({ body, init }: JSONResponseArgs<T>): Response {
+  return Response.json(body, init);
 }
-
-async function handlePostIp(): Promise<Response> {
-  const updateResponse: PostIpResponse = await updateMamIp();
-  return Response.json(updateResponse, {
-    status: updateResponse.responseWithMetadata.metadata.response.httpStatus,
-  });
-}
-
-async function handlePutCookie(request: Request): Promise<Response> {
-  const cookieValue = await request.text();
-  if (!cookieValue) {
-    const response: PutCookieResponse = {
-      success: false,
-      message: "Cookie value is required",
-    };
-    return Response.json(response, { status: 400 });
-  }
-  await writeCookieValue(cookieValue);
-
-  const response: PutCookieResponse = {
-    success: true,
-    message: "Cookie value updated",
-  };
-
-  return Response.json(response);
-}
-
-async function handleGetCookie(): Promise<Response> {
-  const cookieValue = await readCookieValue();
-  return Response.json(
-    {
-      success: true,
-      message: "Cookie value retrieved",
-      cookieValue,
-    },
-    { status: 200 }
-  );
-}
-
-export const statusEndpointPath = "/status";
-export const ipEndpointPath = "/ip";
-export const cookieEndpointPath = "/cookie";
 
 const server = Bun.serve({
   port: config.port,
@@ -93,35 +39,50 @@ const server = Bun.serve({
       if (mediaType === "text/html") {
         return Response.redirect("/web");
       }
-      return Response.redirect(statusEndpointPath);
+      return Response.redirect(okEndpointPath);
     },
-    [statusEndpointPath]: handleGetStatus,
-    [ipEndpointPath]: {
-      POST: handlePostIp,
+    [updateEndpointPath]: {
+      POST: async (request) =>
+        makeJSONResponse(await handlePostUpdate(request)),
     },
-    [cookieEndpointPath]: {
-      PUT: handlePutCookie,
-      GET: handleGetCookie,
+    [stateEndpointPath]: {
+      GET: async () => makeJSONResponse(await handleGetState()),
+      PUT: async (request) => makeJSONResponse(await handlePutState(request)),
+    },
+    [okEndpointPath]: {
+      GET: async () => makeJSONResponse(await handleGetOk()),
     },
     "/web": index,
+    "/web/ws": (request, server) => {
+      const success = server.upgrade(request);
+      return success
+        ? undefined
+        : new Response("WebSocket upgrade error", { status: 400 });
+    },
   },
 
   fetch() {
-    const response: MouseholeResponse = {
-      success: false,
-      message: `Not found. Use the GET ${statusEndpointPath}, POST ${ipEndpointPath}, or PUT ${cookieEndpointPath} endpoints.`,
-    };
-    return Response.json(response, { status: 404 });
+    return makeJSONResponse({
+      body: {
+        type: "not-found",
+        message: "Not Found",
+      },
+      init: { status: 404 },
+    });
   },
 
-  error(error) {
-    const response: MouseholeResponse = {
-      success: false,
-      message: `An error occurred: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    };
-    return Response.json(response, { status: 500 });
+  error(error: unknown) {
+    return makeJSONResponse(toJSONResponseArgs(error));
+  },
+
+  websocket: {
+    open(ws) {
+      ws.subscribe(wsTopic);
+    },
+    message() {},
+    close(ws) {
+      ws.unsubscribe(wsTopic);
+    },
   },
 
   development: process.env.NODE_ENV !== "production" && {
@@ -132,7 +93,10 @@ const server = Bun.serve({
     console: true,
   },
 });
-console.log(`Server running at ${server.url}`);
 
-console.log("Starting background task to update IP on a schedule...");
-setNowAndScheduleNext();
+console.log(`Mousehole v${version} running at ${server.url}`);
+startBackgroundUpdateTask();
+
+export function notifyWebSocketClients(): void {
+  server.publish(wsTopic, "state-update");
+}

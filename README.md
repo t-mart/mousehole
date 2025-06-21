@@ -1,218 +1,31 @@
-# Mousehole, a Seedbox IP Updater for MaM
+# Mousehole, a Seedbox IP Updater for MAM
 
-A background service to update a seedbox IP for MaM on an hourly schedule and an HTTP
-server to manage it.
+A background service to update a seedbox IP for MaM and an HTTP server to manage
+it.
 
-![Mousehole Overview](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/overview.png)
+![Mousehole Demo](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/demo.webp)
 
 This can be helpful if you are using a VPN/seedbox to seed and your IP address
 is not stable.
 
-This server does two things:
+Mousehole does the following:
 
-- Every hour, call the MaM API to set your current IP address.
-- Provide an HTTP server with management endpoints:
+- Regularly updates MAM with the IP address of the host.
 
-  - `PUT` `/setCookie`: Updates the seedbox cookie with a new value. Useful when
-    bootstrapping the service or when things get out of sync. Get this value
-    from your
-    [MaM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security)
-    and/or see the tutorial below for how to get one.
+  Before an update, Mousehole checks that it actually needs to communicate with
+  MAM by fetching the host's current IP address and comparing with the last MAM
+  response.
 
-    Example `curl`:
+- Provides a frontend website to manage the service, allowing:
 
-    ```bash
-    curl -X PUT http://localhost:5010/setCookie -d "new_cookie_value"
-    ```
+  - Setting of the MAM cookie
+  - Displaying of status information
+  - Manual triggering of checks
 
-    Example responses:
+- Provide an HTTP server with management endpoints
 
-    <details>
-
-      <summary>Success Response</summary>
-
-      ```json
-      {
-        "success": true,
-        "message": "Cookie value updated"
-      }
-      ```
-
-    </details>
-
-    <details>
-
-      <summary>Missing Cookie Response</summary>
-
-      ```json
-      {
-        "success": false,
-        "message": "Cookie value is required"
-      }
-      ```
-
-    </details>
-
-  - `POST` `/updateIp`: Manually triggers an update of the IP address.
-
-    Example `curl`:
-
-    ```
-    curl -X POST http://localhost:5010/updateIp
-    ```
-
-    Example responses:
-    
-    <details>
-
-      <summary>Success Response</summary>
-
-      ```json
-      {
-        "success": true,
-        "message": "IP updated successfully",
-        "responseWithMetadata": {
-          "response": {
-            "Success": true,
-            "msg": "Completed",
-            "ip": "123.123.123.123",
-            "ASN": 12345,
-            "AS": "MegaCorp"
-          },
-          "metadata": {
-            "request": {
-              "datetime": "2025-06-14T09:19:46.311+00:00[UTC]",
-              "timestampMilliseconds": 1749892786311,
-              "cookieValue": "<redacted>"
-            },
-            "response": {
-              "httpStatus": 429,
-              "cookieValue": "<redacted>"
-            }
-          }
-        }
-      }
-      ```
-
-    </details>
-
-    <details>
-
-      <summary>Last change too recent</summary>
-
-      ```json
-      {
-        "success": false,
-        "message": "Failed to update IP",
-        "responseWithMetadata": {
-          "response": {
-            "Success": false,
-            "msg": "Last change too recent",
-            "ip": "123.123.123.123",
-            "ASN": 12345,
-            "AS": "MegaCorp"
-          },
-          "metadata": {
-            "request": {
-              "datetime": "2025-06-14T09:19:46.311+00:00[UTC]",
-              "timestampMilliseconds": 1749892786311,
-              "cookieValue": "<redacted>"
-            },
-            "response": {
-              "httpStatus": 429,
-              "cookieValue": "<redacted>"
-            }
-          }
-        }
-      }
-      ```
-
-    </details>
-
-  - `GET` `/status`: Returns information about the latest update to your IP
-    address. The return code reflects the success of the latest update:
-
-    Example `curl`:
-
-    ```
-    curl http://localhost:5010/status
-    ```
-
-    Example responses:
-
-    <details>
-
-      <summary>Success Response</summary>
-
-      ```json
-      {
-        "success": true,
-        "message": "Latest update was successful",
-        "responseWithMetadata": {
-          "response": {
-            "Success": true,
-            "msg": "Completed",
-            "ip": "123.123.123.123",
-            "ASN": 12345,
-            "AS": "MegaCorp"
-          },
-          "metadata": {
-            "request": {
-              "datetime": "2025-06-14T09:19:46.311+00:00[UTC]",
-              "timestampMilliseconds": 1749892786311,
-              "cookieValue": "<redacted>"
-            },
-            "response": {
-              "httpStatus": 429,
-              "cookieValue": "<redacted>"
-            }
-          }
-        },
-        "nextAutoUpdate": {
-          "datetime": "2025-06-14T10:19:46.311+00:00[UTC]",
-          "timestampMilliseconds": 1749892786311
-        }
-      }
-      ```
-
-    </details>
-
-    <details>
-
-      <summary>ASN Mismatch</summary>
-
-      ```json
-      {
-        "success": false,
-        "message": "Failed to update IP",
-        "responseWithMetadata": {
-          "response": {
-            "Success": false,
-            "msg": "Invalid session - ASN mismatch",
-            "ip": "123.123.123.123",
-            "ASN": 12345,
-            "AS": "MegaCorp"
-          },
-          "metadata": {
-            "request": {
-              "datetime": "2025-06-14T09:19:46.311+00:00[UTC]",
-              "timestampMilliseconds": 1749892786311,
-              "cookieValue": "<redacted>"
-            },
-            "response": {
-              "httpStatus": 429,
-              "cookieValue": "<redacted>"
-            }
-          }
-        },
-        "nextAutoUpdate": {
-          "datetime": "2025-06-14T10:19:46.311+00:00[UTC]",
-          "timestampMilliseconds": 1749892786311
-        }
-      }
-      ```
-
-    </details>    
+  See [API.md](https://github.com/t-mart/mousehole/blob/master/docs/API.md) for
+  details.
 
 ## Usage
 
@@ -304,12 +117,18 @@ bun run src/index.ts
   listen.
 - `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/srv/mousehole`)_ The directory where
   the service will store its data.
-- `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim`)_ The user agent to
-  use for requests to MaM.
-- `MOUSEHOLE_UPDATE_INTERVAL_MILLISECONDS`: _(Default `3660000`)_ The interval
-  in milliseconds at which the service will update the IP address.
-- `MOUSEHOLE_TZ`: _(Default `UTC`)_ The timezone to use for the service. This is
-  used to format the datetimes in endpoint responses and logs.
+- `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
+  user agent to use for requests to MaM.
+- `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
+  in seconds between checks. Checks are done locally before talking with MAM.
+- `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
+  seconds after which a response is considered stale. This is used to determine
+  if the last update was successful or not. This ensures that we're still
+  talking with MAM at some regular interval and can detect out-of-band changes
+  to the cookie.
+- `MOUSEHOLE_GET_HOST_IP_URL`: _(Default `https://api.ipify.org?format=json`)_
+  The URL to use to get the current IP address of the seedbox. This is used
+  during checks to ensure we actually need to update the IP address with MAM.
 
 ## First-time setup (or if cookie gets out of sync)
 
@@ -339,39 +158,29 @@ sync), you need to set the seedbox cookie manually:
 
 2. On the next page, copy the value of the cookie shown.
 
-3. Issue an HTTP `PUT` request to the `/setCookie` endpoint with the value of
-   the cookie you copied in the previous step.
+3. Go to the Mousehole web interface (likely at <http://localhost:5010>) and
+   submit this cookie value in the form.
 
-   Example `curl`:
+   ![Enter cookie into the form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/enter-cookie-form.png)
 
-   ```bash
-   curl -X PUT http://localhost:5010/setCookie -d "your_cookie_value"
-   ```
+   If you don't see the form, use the "Set Cookie" button.
 
-   The response should be `{"success":true,"message":"Cookie value updated"}`.
+4. Press the "Check now" button to trigger an immediate check.
 
-4. Now you can trigger a manual update of the IP address by issuing an HTTP
-   `POST` request to the `/updateIp` endpoint.
+    ![Check now](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/check-now-button.png)
 
-   Example `curl`:
+5. Et voilà! You should now see the current state of the service, and it
+   will continue to update the IP address with MaM automatically.
 
-   ```bash
-   curl -X POST http://localhost:5010/updateIp
-   ```
-
-   The response will indicate its success or failure.
-
-5. Et voilà! Your seedbox IP address is now set up and will be updated every 61
-   minutes automatically. At any time, you can check the status of the last
-   update or manually trigger an update using the `/status` and `/updateIp`
-   endpoints, respectively.
+   You don't need to do anything else! You can close the page.
 
 ## Links
 
 - [Repository](https://github.com/t-mart/mousehole)
 - [Docker Hub image](https://hub.docker.com/r/tmmrtn/mousehole)
-
+- [Forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257)
 
 ## Attribution
 
-Mouse Hole by Sergey Demushkin from [Noun Project](https://thenounproject.com/term/mouse-hole/) (CC BY 3.0)
+Mouse Hole by Sergey Demushkin from
+[Noun Project](https://thenounproject.com/term/mouse-hole/) (CC BY 3.0)
