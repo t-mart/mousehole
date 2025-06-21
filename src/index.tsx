@@ -5,13 +5,11 @@ import type { JSONResponseArgs } from "#backend/types.ts";
 import { config } from "#backend/config.ts";
 import { toJSONResponseArgs } from "#backend/error.ts";
 import { handleGetOk } from "#backend/handlers/ok.ts";
-import {
-  handleGetState,
-  handlePutState,
-} from "#backend/handlers/state.ts";
+import { handleGetState, handlePutState } from "#backend/handlers/state.ts";
 import { handlePostUpdate } from "#backend/handlers/update.ts";
 import { startBackgroundUpdateTask } from "#backend/update.ts";
 import index from "#frontend/index.html";
+import logoSvg from "#frontend/logo.svg?raw";
 
 import { version } from "../package.json";
 
@@ -52,6 +50,8 @@ const server = Bun.serve({
     [okEndpointPath]: {
       GET: async () => makeJSONResponse(await handleGetOk()),
     },
+    "/logo.svg": () =>
+      new Response(logoSvg, { headers: { "Content-Type": "image/svg+xml" } }),
     "/web": index,
     "/web/ws": (request, server) => {
       const success = server.upgrade(request);
