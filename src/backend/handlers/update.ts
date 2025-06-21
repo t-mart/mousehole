@@ -20,6 +20,11 @@ export async function handlePostUpdate(
   }
 
   const state = await updateAndReschedule(updateOptions);
+
+  if (state instanceof Error) {
+    throw state;
+  }
+
   const serializedState = serializeState(state);
   const update = serializedState.lastUpdate!;
 

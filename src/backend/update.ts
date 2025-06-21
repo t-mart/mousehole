@@ -9,7 +9,7 @@ import type {
 } from "./types.ts";
 
 import { config } from "./config.ts";
-import { NoCookieError } from "./error.ts";
+import { MouseholeError, NoCookieError } from "./error.ts";
 import { getHostIp } from "./external-api/host-ip.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { stateFile } from "./store.ts";
@@ -157,7 +157,11 @@ export async function updateAndReschedule(options?: UpdateOptions) {
 
     return newState;
   } catch (error) {
-    console.error(error);
+    if (error instanceof Error) {
+      console.log(error);
+      return error;
+    }
+    throw error;
   } finally {
     reschedule();
   }
