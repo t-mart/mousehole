@@ -1,0 +1,60 @@
+name: Tag
+
+on:
+  push:
+    branches:
+      - "master"
+    paths:
+      - "package.json"
+
+# Prevents race conditions by ensuring only one instance of this workflow runs at a time for this group
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Needed to push tags
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Get new tag from package.json
+        run: |
+          NEW_TAG="v$(jq -r '.version' package.json)"
+          echo "new_tag=${NEW_TAG}" >> "$GITHUB_ENV"
+          echo "Identified potential new tag: ${NEW_TAG}"
+
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          # If the tag exists, exit gracefully.
+          if git rev-parse "${NEW_TAG}" >/dev/null 2>&1; then
+            echo "Tag ${NEW_TAG} already exists. Nothing to do."
+            # Set an output to skip subsequent steps
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure git
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        run: |          
+          git config --global user.name "GitHub Action"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Create and push tag
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        # This step needs the GITHUB_TOKEN with write permissions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag -a "${new_tag}" -m "Release ${new_tag}"
+          git push origin "${new_tag}"
+          echo "Tag ${new_tag} created and pushed."
