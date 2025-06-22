@@ -42,7 +42,7 @@ services:
       - "mousehole:/srv/mousehole"
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1" ]
+      test: ["CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1"]
 
 volumes:
   mousehole:
@@ -96,7 +96,7 @@ services:
       - "mousehole:/srv/mousehole"
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1" ]
+      test: ["CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1"]
 
     # optional - only run after wireguard is healthy
     # depends_on:
@@ -112,7 +112,7 @@ volumes:
 Run the server with:
 
 ```bash
-bun run src/index.ts
+bun run start
 ```
 
 ## Environment Variables
@@ -130,8 +130,8 @@ bun run src/index.ts
   we're still talking with MAM at some regular interval and ensures we can
   detect out-of-band changes to the cookie.
 - `MOUSEHOLE_GET_HOST_IP_URL`: _(Default `https://api.ipify.org?format=json`)_
-  The URL to use to get the current IP address of the host. This is used
-  during checks to ensure we actually need to update the IP address with MAM.
+  The URL to use to get the current IP address of the host. This is used during
+  checks to ensure we actually need to update the IP address with MAM.
 
 ## First-time setup (or if cookie gets out of sync)
 
@@ -170,10 +170,10 @@ sync), you need to set the Mousehole's cookie manually:
 
 4. Press the "Check now" button to trigger an immediate check.
 
-    ![Check now](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/check-now-button.png)
+   ![Check now](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/check-now-button.png)
 
-5. Et voilà! You should now see the current state of the service, and it
-   will continue to update the IP address with MaM automatically.
+5. Et voilà! You should now see the current state of the service, and it will
+   continue to update the IP address with MaM automatically.
 
    You don't need to do anything else! You can close the page.
 
@@ -182,6 +182,18 @@ sync), you need to set the Mousehole's cookie manually:
 - [Repository](https://github.com/t-mart/mousehole)
 - [Docker Hub image](https://hub.docker.com/r/tmmrtn/mousehole)
 - [Forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257)
+
+## Development
+
+- Start the dev server with:
+
+  ```bash
+  bun run dev
+  ```
+
+- New versions can be tagged, released and pushed to Docker Hub by simply
+  changing the version in `package.json` and pushing to GitHub. The CI workflows
+  will take care of the rest.
 
 ## Attribution
 
