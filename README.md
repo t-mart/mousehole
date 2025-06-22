@@ -39,7 +39,7 @@ services:
       - "5010:5010"
     # persist cookie data across container restarts
     volumes:
-      - mousehole:/srv/mousehole
+      - "mousehole:/srv/mousehole"
     restart: unless-stopped
     healthcheck:
       test: [ "CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1" ]
@@ -93,7 +93,7 @@ services:
 
     # persist cookie data across container restarts
     volumes:
-      - mousehole:/srv/mousehole
+      - "mousehole:/srv/mousehole"
     restart: unless-stopped
     healthcheck:
       test: [ "CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1" ]
