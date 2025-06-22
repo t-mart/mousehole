@@ -53,7 +53,7 @@ jobs:
         if: steps.check_tag.outputs.tag_exists == 'false'
         # This step needs the GITHUB_TOKEN with write permissions
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CI_PAT }}
         run: |
           git tag -a "${new_tag}" -m "Release ${new_tag}"
           git push origin "${new_tag}"
