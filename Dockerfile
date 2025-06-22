@@ -1,4 +1,4 @@
-FROM oven/bun
+FROM oven/bun:debian
 
 WORKDIR /mousehole
 
