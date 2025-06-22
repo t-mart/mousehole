@@ -34,10 +34,8 @@ jobs:
       - name: Check if tag already exists
         id: check_tag
         run: |
-          # If the tag exists, exit gracefully.
-          if git rev-parse "${NEW_TAG}" >/dev/null 2>&1; then
-            echo "Tag ${NEW_TAG} already exists. Nothing to do."
-            # Set an output to skip subsequent steps
+          if git rev-parse "$new_tag" >/dev/null 2>&1; then
+            echo "Tag $new_tag already exists. Nothing to do."
             echo "tag_exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "tag_exists=false" >> "$GITHUB_OUTPUT"
