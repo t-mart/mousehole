@@ -84,7 +84,7 @@ function StateSections() {
       return body as GetStateResponseBody;
     },
   });
-  useReactQuerySubscription();
+  useInvalidateOnUpdate();
 
   if (stateQuery.isPending) {
     return (
@@ -158,18 +158,10 @@ function Center({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
   return <div {...props} className="flex items-center justify-center" />;
 }
 
-const useReactQuerySubscription = () => {
+const useInvalidateOnUpdate = () => {
   const queryClient = useQueryClient();
   useEffect(() => {
-    // if https, use wss, else use ws
-    const proto = globalThis.location.protocol === "https:" ? "wss" : "ws";
-    const websocket = new WebSocket(
-      `${proto}://${globalThis.location.host}/web/ws`
-    );
-
-    websocket.addEventListener("open", () => {
-      console.log("connected");
-    });
+    const websocket = new WebSocket("/web/ws");
 
     websocket.addEventListener("message", () => {
       queryClient.invalidateQueries({ queryKey: stateQueryKey });
