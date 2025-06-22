@@ -5,8 +5,8 @@ it.
 
 ![Mousehole Demo](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/demo.webp)
 
-This can be helpful if you are using a VPN/seedbox to seed and your IP address
-is not stable.
+This can be helpful if you are using a host/VPN/seedbox to seed and its IP
+address is not stable.
 
 Mousehole does the following:
 
@@ -126,18 +126,17 @@ bun run src/index.ts
 - `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
   in seconds between checks. Checks are done locally before talking with MAM.
 - `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
-  seconds after which a response is considered stale. This is used to determine
-  if the last update was successful or not. This ensures that we're still
-  talking with MAM at some regular interval and can detect out-of-band changes
-  to the cookie.
+  seconds after which a MAM response is considered stale. This ensures that
+  we're still talking with MAM at some regular interval and ensures we can
+  detect out-of-band changes to the cookie.
 - `MOUSEHOLE_GET_HOST_IP_URL`: _(Default `https://api.ipify.org?format=json`)_
-  The URL to use to get the current IP address of the seedbox. This is used
+  The URL to use to get the current IP address of the host. This is used
   during checks to ensure we actually need to update the IP address with MAM.
 
 ## First-time setup (or if cookie gets out of sync)
 
 When running this service for the first time (or if the cookie gets out of
-sync), you need to set the seedbox cookie manually:
+sync), you need to set the Mousehole's cookie manually:
 
 0. Start the server so that it can listen for requests (see "Usage" above).
 
@@ -151,12 +150,12 @@ sync), you need to set the seedbox cookie manually:
 
    In the "Create session" section, enter the following values:
 
-   - **IP**: Set to the current IP address of your seedbox.
+   - **IP**: Set to the current IP address of your seedbox host.
    - **IP vs ASN locked session**: `ASN`, this allows your IP to change.
    - **Allow Session to set Dynamic Seedbox**: `Yes`, this allows the service to
      update your IP through MaM's API.
-   - **Session Label/note**: Set to something that identifies the seedbox, e.g.
-     "My Seedbox".
+   - **Session Label/note**: Set to something that identifies the seedbox host,
+     e.g. "My Seedbox - Mousehole".
 
    Then, click "Submit changes!".
 
