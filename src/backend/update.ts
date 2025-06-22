@@ -9,7 +9,7 @@ import type {
 } from "./types.ts";
 
 import { config } from "./config.ts";
-import { MouseholeError, NoCookieError } from "./error.ts";
+import { NoCookieError } from "./error.ts";
 import { getHostIp } from "./external-api/host-ip.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { stateFile } from "./store.ts";
