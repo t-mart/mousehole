@@ -122,7 +122,7 @@ function reschedule() {
 
   // Schedule the next run.
   const timeoutId = setTimeout(
-    updateAndReschedule,
+    () => updateAndReschedule(undefined, true),
     config.checkIntervalSeconds * 1000
   );
 
@@ -140,28 +140,34 @@ function reschedule() {
   console.log(`Next automatic update scheduled for: ${nextUpdateAt}`);
 }
 
+type UpdateAndRescheduleReturn<JustLogError extends boolean = false> =
+  JustLogError extends true ? void : State;
+
 /**
  * Manually update the IP and resets the automatic update schedule.
  * This is the function to call when a user initiates the update.
  * @returns The result of the MAM update.
  */
-export async function updateAndReschedule(options?: UpdateOptions) {
+export async function updateAndReschedule<JustLogError extends boolean = false>(
+  options?: UpdateOptions,
+  justLogError: JustLogError = false as JustLogError
+): Promise<UpdateAndRescheduleReturn<JustLogError>> {
   try {
     const newState = await update(options);
 
     // write, but also return to callers (such as API handlers)
     await stateFile.write(newState);
 
-    // notify websocket clients
     notifyWebSocketClients();
 
-    return newState;
+    return newState as UpdateAndRescheduleReturn<JustLogError>;
   } catch (error) {
-    if (error instanceof Error) {
-      console.log(error);
-      return error;
+    if (justLogError) {
+      console.error(error);
+      return undefined as UpdateAndRescheduleReturn<JustLogError>;
+    } else {
+      throw error;
     }
-    throw error;
   } finally {
     reschedule();
   }
@@ -174,7 +180,7 @@ export async function updateAndReschedule(options?: UpdateOptions) {
 export function startBackgroundUpdateTask() {
   console.log("Starting background update task...");
   // We run the update once immediately, then schedule the next one.
-  updateAndReschedule();
+  updateAndReschedule(undefined, true);
 }
 
 export function getNextUpdateAt() {
