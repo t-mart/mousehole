@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write # Required to create a release
 
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_PAT }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,7 +18,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_PAT }}
         run: |
           gh release create "${{ github.ref_name }}" --generate-notes
