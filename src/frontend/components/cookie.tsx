@@ -85,7 +85,7 @@ export function Cookie({
 function CookieTutorial() {
   return (
     <div className="space-y-4 mt-4">
-      <ol className="list-decimal list-outside ml-4 space-y-2">
+      <ol className="list-decimal list-outside ml-4 space-y-6">
         <li>
           Go to the{" "}
           <Link
@@ -96,7 +96,7 @@ function CookieTutorial() {
           </Link>
           .
         </li>
-        <li className="space-y-2">
+        <li className="space-y-4">
           <p>Make a session.</p>
 
           <p className="italic">
@@ -109,7 +109,7 @@ function CookieTutorial() {
           <img
             src="/images/mam-session-form.png"
             alt="MAM Session Form"
-            className="w-full max-w-md border-2 border-border"
+            className="w-full border-2 border-border"
           />
 
           <table className="border-collapse border border-border mt-4">
@@ -152,13 +152,13 @@ function CookieTutorial() {
             button
           </p>
         </li>
-        <li className="space-y-2">
+        <li className="space-y-4">
           <p>Copy the cookie value on the shown page.</p>
 
           <img
             src="/images/mam-cookie.png"
             alt="MAM cookie"
-            className="w-full max-w-md border-2 border-border"
+            className="w-full border-2 border-border"
           />
         </li>
         <li>
