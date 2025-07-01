@@ -3,11 +3,11 @@ import { Cookie } from "tough-cookie";
 import { config } from "#backend/config.ts";
 import { SchemaError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
-import { getNowZdt } from "#backend/time.ts";
 import {
   mamUpdateDynamicSeedboxResponseBodySchema,
   type MamResponse,
 } from "#backend/types.ts";
+import { getNowZdt } from "#shared/time.ts";
 
 const endpointUrl = new URL(
   "https://t.myanonamouse.net/json/dynamicSeedbox.php"

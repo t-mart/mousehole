@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ComponentPropsWithRef } from "react";
+import { Temporal } from "temporal-polyfill";
 
 import type {
   ErrorResponseBody,
@@ -123,7 +124,12 @@ function StateSections() {
           />
         ) : (
           <>
-            <Timer data={data} key={`timer-${data.lastUpdate?.at}`} />
+            {data.nextUpdateAt && (
+              <Timer
+                nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
+                key={`timer-${data.lastUpdate?.at}`}
+              />
+            )}
             <div className="flex items-center justify-center gap-4">
               <ButtonLink
                 onClick={() => setUserWantsInputCookie(true)}

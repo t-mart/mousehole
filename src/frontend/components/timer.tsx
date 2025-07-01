@@ -1,34 +1,23 @@
 import { useEffect, useState } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import type { GetStateResponseBody } from "#backend/types.ts";
-
 import { formatMillisecondsAsDuration } from "#frontend/lib/format.ts";
+import { getNowZdt } from "#shared/time.ts";
 
 import { Section } from "./section";
 
-export function Timer({ data }: Readonly<{ data: GetStateResponseBody }>) {
-  const nextUpdateAt = data?.nextUpdateAt;
-  const nextUpdateAtZdt = nextUpdateAt
-    ? Temporal.ZonedDateTime.from(nextUpdateAt)
-    : undefined;
-
-  const [timeLeftMilliseconds, setTimeLeftMilliseconds] = useState<
-    number | undefined
-  >();
+export function Timer({ nextUpdateAt }: Readonly<{ nextUpdateAt: Temporal.ZonedDateTime }>) {
+  const [now, setNow] = useState<Temporal.ZonedDateTime>(() => getNowZdt());
 
   useEffect(() => {
-    if (nextUpdateAtZdt) {
-      setTimeLeftMilliseconds(getDifferenceMilliseconds(nextUpdateAtZdt));
+    const interval = setInterval(() => {
+      setNow(getNowZdt());
+    }, 1000);
 
-      const interval = setInterval(() => {
-        setTimeLeftMilliseconds(getDifferenceMilliseconds(nextUpdateAtZdt));
-      }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-      return () => clearInterval(interval);
-    }
-    setTimeLeftMilliseconds(undefined);
-  }, [nextUpdateAtZdt]);
+  const timeLeftMilliseconds = nextUpdateAt.epochMilliseconds - now.epochMilliseconds;
 
   return (
     <Section className="flex-col">
@@ -45,11 +34,4 @@ export function Timer({ data }: Readonly<{ data: GetStateResponseBody }>) {
       )}
     </Section>
   );
-}
-
-function getDifferenceMilliseconds(
-  nextUpdateAt: Temporal.ZonedDateTime
-): number {
-  const now = Temporal.Now.instant();
-  return nextUpdateAt.epochMilliseconds - now.epochMilliseconds;
 }

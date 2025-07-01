@@ -1,4 +1,5 @@
 import { notifyWebSocketClients } from "#index.tsx";
+import { getNowZdt } from "#shared/time.ts";
 
 import type {
   BackgroundTask,
@@ -13,7 +14,6 @@ import { NoCookieError } from "./error.ts";
 import { getHostIp } from "./external-api/host-ip.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { stateFile } from "./store.ts";
-import { getNowZdt } from "./time.ts";
 
 let currentBackgroundTask: BackgroundTask | undefined;
 
