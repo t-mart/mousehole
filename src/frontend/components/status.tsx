@@ -1,3 +1,5 @@
+import type { ComponentPropsWithRef } from "react";
+
 import type { GetStateResponseBody } from "#backend/types.ts";
 
 import { cn } from "#frontend/lib/cn.ts";
@@ -9,16 +11,24 @@ export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
     <Section className="space-y-2">
       <h2 className="sr-only">Status</h2>
       <dl className="w-full space-y-2">
-        <div className="flex gap-4 items-center w-full">
-          <dt className="mr-auto">Status</dt>
-          <dd className="ml-auto font-bold">
+        <DLRow>
+          <DT>Status</DT>
+          <DD>
             <StatusContent data={data} />
-          </dd>
-        </div>
-        <div className="flex gap-4 items-center w-full">
-          <dt className="mr-auto">Host IP</dt>
-          <dd className="ml-auto font-bold">{data.hostIp}</dd>
-        </div>
+          </DD>
+        </DLRow>
+        <DLRow>
+          <DT>Host IP</DT>
+          <DD>{data.host.ip}</DD>
+        </DLRow>
+        <DLRow>
+          <DT>Host ASN</DT>
+          <DD>{data.host.asn}</DD>
+        </DLRow>
+        <DLRow>
+          <DT>Host AS</DT>
+          <DD>{data.host.as}</DD>
+        </DLRow>
       </dl>
       <details className="text-center w-full">
         <summary className="cursor-pointer hover:text-primary-2 text-muted-foreground">
@@ -32,6 +42,18 @@ export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
       </details>
     </Section>
   );
+}
+
+function DLRow({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
+  return <div className="flex gap-4 items-center w-full" {...props} />;
+}
+
+function DT({ ...props }: Readonly<ComponentPropsWithRef<"dt">>) {
+  return <dt className="mr-auto" {...props} />;
+}
+
+function DD({ ...props }: Readonly<ComponentPropsWithRef<"dd">>) {
+  return <dd className="ml-auto font-bold" {...props} />;
 }
 
 function StatusContent({ data }: Readonly<{ data: GetStateResponseBody }>) {

@@ -1,5 +1,5 @@
 import { SchemaError } from "#backend/error.ts";
-import { getHostIp } from "#backend/external-api/host-ip.ts";
+import { getHostIpInfo } from "#backend/external-api/host-ip.ts";
 import { parseRequestJson } from "#backend/json.ts";
 import { serializeState } from "#backend/serde.ts";
 import { stateFile } from "#backend/store.ts";
@@ -16,13 +16,13 @@ import { notifyWebSocketClients } from "#index.tsx";
 export async function handleGetState(): Promise<
   JSONResponseArgs<GetStateResponseBody>
 > {
-  const { ip: hostIp } = await getHostIp();
+  const host = await getHostIpInfo();
   const state = await stateFile.readIfExists();
   const nextUpdateAt = getNextUpdateAt();
 
   return {
     body: {
-      hostIp,
+      host,
       nextUpdateAt: nextUpdateAt?.toString(),
       ...(state ? serializeState(state) : {}),
     },

@@ -62,17 +62,6 @@ export const config = {
   ),
 
   /**
-   * The URL to use for fetching the host's IP address. Must return a JSON response
-   * with a property "ip" containing the IP address.
-   *
-   * Defaults to "https://api.ipify.org?format=json".
-   */
-  getHostIpUrl: environmentOrFallback(
-    "MOUSEHOLE_GET_HOST_IP_URL",
-    "https://api.ipify.org?format=json"
-  ),
-
-  /**
    * The port on which the Mousehole server will listen.
    *
    * Defaults to 5010.

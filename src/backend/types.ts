@@ -22,6 +22,8 @@ export type MamUpdateDynamicSeedboxResponseBody = z.infer<
 
 export const ipResponseBodySchema = z.object({
   ip: z.ipv4(),
+  ASN: z.number(),
+  AS: z.string(),
 });
 
 //
@@ -98,10 +100,14 @@ export type SerializedUpdate = z.infer<typeof serializedUpdateSchema>;
 
 export type GetStateResponseBody = {
   /**
-   * This is provided as a convenience. It may be different from the mam ip or
-   * update ip.
+   * This is the current host IP (et al) as determined by the ip endpoint. It
+   * may be different than the IP of the last update if the host IP has changed.
    */
-  hostIp: string;
+  host: {
+    ip: string;
+    asn: number;
+    as: string;
+  };
 
   /**
    * Only known at runtime

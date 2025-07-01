@@ -11,7 +11,7 @@ import type {
 
 import { config } from "./config.ts";
 import { NoCookieError } from "./error.ts";
-import { getHostIp } from "./external-api/host-ip.ts";
+import { getHostIpInfo } from "./external-api/host-ip.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { stateFile } from "./store.ts";
 
@@ -45,7 +45,7 @@ async function update(options?: UpdateOptions): Promise<State> {
   const force = options?.force ?? false;
 
   const state = await stateFile.readIfExists();
-  const { ip: hostIp } = await getHostIp();
+  const { ip: hostIp } = await getHostIpInfo();
 
   if (!state?.currentCookie) {
     throw new NoCookieError();

@@ -129,9 +129,6 @@ bun run start
   seconds after which a MAM response is considered stale. This ensures that
   we're still talking with MAM at some regular interval and ensures we can
   detect out-of-band changes to the cookie.
-- `MOUSEHOLE_GET_HOST_IP_URL`: _(Default `https://api.ipify.org?format=json`)_
-  The URL to use to get the current IP address of the host. This is used during
-  checks to ensure we actually need to update the IP address with MAM.
 
 ## First-time setup (or if cookie gets out of sync)
 

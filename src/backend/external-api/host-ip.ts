@@ -1,24 +1,31 @@
-import { config } from "#backend/config.ts";
 import { SchemaError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import { ipResponseBodySchema } from "#backend/types.ts";
 
-export async function getHostIp() {
-  const response = await fetch(config.getHostIpUrl);
+const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
+
+export async function getHostIpInfo() {
+  const response = await fetch(endpointUrl);
 
   if (!response.ok) {
     throw new Error(
-      `Failed to fetch host IP from ${config.getHostIpUrl}: ${response.status}`
+      `Failed to fetch host IP from ${endpointUrl}: ${response.status}`
     );
   }
 
   const body = await parseJsonResponse(response);
 
-  const { data: ip, error } = ipResponseBodySchema.safeParse(body);
+  const { data, error } = ipResponseBodySchema.safeParse(body);
 
   if (error) {
-    throw SchemaError.fromExternalSource(config.getHostIpUrl, { cause: error });
+    throw SchemaError.fromExternalSource(endpointUrl.toString(), {
+      cause: error,
+    });
   }
 
-  return ip;
+  return {
+    ip: data.ip,
+    asn: data.ASN,
+    as: data.AS,
+  };
 }
