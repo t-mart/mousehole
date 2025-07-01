@@ -8,7 +8,7 @@ it.
 This can be helpful if you are using a host/VPN/seedbox to seed and its IP
 address is not stable.
 
-Mousehole does the following:
+Features:
 
 - Regularly updates MAM with the IP address of the host.
 
@@ -18,8 +18,8 @@ Mousehole does the following:
 
 - Provides a frontend website to manage the service, allowing:
 
-  - Setting of the MAM cookie
-  - Displaying of status information
+  - Setting your MAM cookie
+  - Displaying status information
   - Manual triggering of checks
 
 - Provide an HTTP server with management endpoints
