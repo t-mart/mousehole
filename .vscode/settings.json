@@ -1,3 +1,4 @@
 {
-  "tailwindCSS.classFunctions": ["cva"]
+  "tailwindCSS.classFunctions": ["cva"],
+  "eslint.runtime": "node"
 }

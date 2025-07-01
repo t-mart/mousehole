@@ -5,6 +5,11 @@ import prettier from "eslint-config-prettier/flat";
 import perfectionist from "eslint-plugin-perfectionist";
 import unicornPlugin from "eslint-plugin-unicorn";
 import tseslint from "typescript-eslint";
+import eslintReact from "@eslint-react/eslint-plugin";
+import eslintPluginReact from "eslint-plugin-react";
+import globals from "globals";
+import * as reactHooks from "eslint-plugin-react-hooks";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 
 export default tseslint.config(
   {
@@ -12,6 +17,9 @@ export default tseslint.config(
 
     plugins: {
       perfectionist,
+      eslintPluginReact,
+      "react-hooks": reactHooks,
+      "jsx-a11y": jsxA11y,
     },
 
     languageOptions: {
@@ -20,6 +28,13 @@ export default tseslint.config(
         ecmaVersion: "latest",
         sourceType: "module",
         projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...globals.browser,
       },
     },
 
@@ -27,6 +42,7 @@ export default tseslint.config(
       eslint.configs.recommended,
       tseslint.configs.recommended,
       unicornPlugin.configs.recommended,
+      eslintReact.configs["recommended-typescript"],
     ],
   },
   {
@@ -73,5 +89,5 @@ export default tseslint.config(
         },
       ],
     },
-  },
+  }
 );
