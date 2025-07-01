@@ -161,8 +161,25 @@ function CookieTutorial() {
             className="w-full border-2 border-border"
           />
         </li>
-        <li>
-          <p>Paste the cookie here into Mousehole.</p>
+        <li className="space-y-4">
+          <p>
+            Paste the cookie here into Mousehole and click the "Set" button.
+          </p>
+
+          <img
+            src="/images/cookie-form.png"
+            alt="Mousehole cookie form"
+            className="w-full border-2 border-border"
+          />
+        </li>
+        <li className="space-y-4">
+          <p>Click the "Check Now" button.</p>
+
+          <img
+            src="/images/check-now-button.png"
+            alt="Mousehole check now button"
+            className="w-full border-2 border-border"
+          />
         </li>
         <li>
           <p>

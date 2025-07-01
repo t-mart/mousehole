@@ -133,46 +133,15 @@ bun run start
 ## First-time setup (or if cookie gets out of sync)
 
 When running this service for the first time (or if the cookie gets out of
-sync), you need to set the Mousehole's cookie manually:
+sync), you need to set the Mousehole's cookie manually.
 
-0. Start the server so that it can listen for requests (see "Usage" above).
+On navigating to the Mousehole web interface, you will see a form to set the
+cookie.
 
-1. Create a new MAM session.
+![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/cookie-form.webp)
 
-   Go to the
-   [MAM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security).
-
-   (If you already have a session you want to use here, click "View ASN locked
-   session cookie" and proceed to the next step.)
-
-   In the "Create session" section, enter the following values:
-
-   - **IP**: Set to the current IP address of your seedbox host.
-   - **IP vs ASN locked session**: `ASN`, this allows your IP to change.
-   - **Allow Session to set Dynamic Seedbox**: `Yes`, this allows the service to
-     update your IP through MAM's API.
-   - **Session Label/note**: Set to something that identifies the seedbox host,
-     e.g. "My Seedbox - Mousehole".
-
-   Then, click "Submit changes!".
-
-2. On the next page, copy the value of the cookie shown.
-
-3. Go to the Mousehole web interface (likely at <http://localhost:5010>) and
-   submit this cookie value in the form.
-
-   ![Enter cookie into the form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/enter-cookie-form.png)
-
-   If you don't see the form, use the "Set Cookie" button.
-
-4. Press the "Check now" button to trigger an immediate check.
-
-   ![Check now](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/check-now-button.png)
-
-5. Et voilà! You should now see the current state of the service, and it will
-   continue to update the IP address with MAM automatically.
-
-   You don't need to do anything else! You can close the page.
+If you need help getting the cookie, click the "What do I enter here?" button
+for a tutorial.
 
 ## Links
 

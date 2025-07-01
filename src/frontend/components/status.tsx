@@ -19,11 +19,13 @@ export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
         </DLRow>
         <DLRow>
           <DT>Host IP</DT>
-          <DD><span className="font-mono">{data.host.ip}</span></DD>
+          {/* <DD><span className="font-mono">{data.host.ip}</span></DD> */}
+          <DD><span className="font-mono">123.123.123.123</span></DD>
         </DLRow>
         <DLRow>
           <DT>Host AS</DT>
-          <DD><span className="font-mono">{data.host.asn}</span>, {data.host.as}</DD>
+          {/* <DD><span className="font-mono">{data.host.asn}</span>, {data.host.as}</DD> */}
+          <DD><span className="font-mono">12345</span>, MegaCorp Networks</DD>
         </DLRow>
       </dl>
     </Section>
@@ -48,7 +50,7 @@ function StatusContent({ data }: Readonly<{ data: GetStateResponseBody }>) {
   } else if (data.lastMam) {
     const success = data.lastMam.response.body.Success;
     const state = success ? "ok" : "error";
-    const text = success? "Ok": data.lastMam.response.body.msg
+    const text = success? "OK": data.lastMam.response.body.msg
     return (
       <StatusLine
         state={state}
