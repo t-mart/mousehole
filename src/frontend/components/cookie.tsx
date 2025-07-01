@@ -1,4 +1,4 @@
-import { useId, useState, type ComponentPropsWithRef } from "react";
+import { useId, useState} from "react";
 
 import { Button } from "./button";
 import {
