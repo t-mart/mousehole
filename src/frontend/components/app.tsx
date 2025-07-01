@@ -163,14 +163,17 @@ const useInvalidateOnUpdate = () => {
   useEffect(() => {
     const websocket = new WebSocket("/web/ws");
 
-    websocket.addEventListener("message", () => {
+    const handleMessage = () => {
       queryClient.invalidateQueries({ queryKey: stateQueryKey });
-    });
+    };
+
+    websocket.addEventListener("message", handleMessage);
 
     return () => {
       websocket.close();
+      websocket.removeEventListener("message", handleMessage);
     };
-  }, []);
+  }, [queryClient]);
 };
 
 export default App;
