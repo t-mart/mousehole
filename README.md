@@ -36,7 +36,7 @@ services:
   mousehole:
     image: tmmrtn/mousehole:latest
     ports:
-      - "5010:5010"
+      - "127.0.0.1:5010:5010"  # or just "5010:5010" if you want it accessible to the outside world too
     # persist cookie data across container restarts
     volumes:
       - "mousehole:/srv/mousehole"
@@ -64,7 +64,7 @@ services:
     ports:
       # anything that wants to use the wireguard network must expose ports here, such as
       # bittorrent port, webui port, and mousehole http port
-      - "5010:5010"
+      - "127.0.0.1:5010:5010"  # or just "5010:5010" if you want it accessible to the outside world too
       # - <bittorrent port>:<bittorrent port>
       # - <webui port>:<webui port>
 
