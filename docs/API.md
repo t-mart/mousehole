@@ -21,7 +21,7 @@ Example response bodies:
 
 - ```json
   {
-    "hostIp": "123.123.123.123",
+    "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
     "nextUpdateAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]",
     "currentCookie": "<some-cookie>",
     "lastMam": {
@@ -87,7 +87,7 @@ Example response bodies:
 
 - ```json
   {
-    "hostIp": "123.123.123.123",
+    "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
     "mamUpdated": true,
     "mamUpdateReason": "forced",
     "at": "2025-06-21T14:45:16.576-05:00[America/Chicago]"
@@ -96,7 +96,7 @@ Example response bodies:
 
 - ```json
   {
-    "hostIp": "123.123.123.123",
+    "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
     "mamUpdated": true,
     "mamUpdateReason": "last-response-error",
     "at": "2025-06-21T14:45:16.576-05:00[America/Chicago]"
@@ -105,7 +105,7 @@ Example response bodies:
 
 - ```json
   {
-    "hostIp": "123.123.123.123",
+    "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
     "mamUpdated": true,
     "mamUpdateReason": "last-response-error",
     "at": "2025-06-21T14:45:16.576-05:00[America/Chicago]"
@@ -123,13 +123,14 @@ Example response bodies:
 
 - ```json
   {
-    "ok": true
+    "ok": true,
+    "reason": "no-update-needed"
   }
   ```
 
 - ```json
   {
     "ok": false,
-    "updateReason": "no-last-response"
+    "reason": "no-last-response"
   }
   ```
