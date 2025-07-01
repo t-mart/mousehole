@@ -8,7 +8,7 @@ import tseslint from "typescript-eslint";
 import eslintReact from "@eslint-react/eslint-plugin";
 import eslintPluginReact from "eslint-plugin-react";
 import globals from "globals";
-import * as reactHooks from "eslint-plugin-react-hooks";
+import reactHooks from "eslint-plugin-react-hooks";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 
 export default tseslint.config(
@@ -18,8 +18,6 @@ export default tseslint.config(
     plugins: {
       perfectionist,
       eslintPluginReact,
-      "react-hooks": reactHooks,
-      "jsx-a11y": jsxA11y,
     },
 
     languageOptions: {
@@ -44,13 +42,7 @@ export default tseslint.config(
       unicornPlugin.configs.recommended,
       eslintReact.configs["recommended-typescript"],
     ],
-  },
-  {
-    ignores: ["dist/**", "node_modules/**"],
-  },
-  prettier,
-  // rules last to ensure application
-  {
+
     rules: {
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": "warn",
@@ -89,5 +81,11 @@ export default tseslint.config(
         },
       ],
     },
-  }
+  },
+  {
+    ignores: ["dist/**", "node_modules/**"],
+  },
+  prettier,
+  reactHooks.configs["recommended-latest"],
+  jsxA11y.flatConfigs.recommended
 );
