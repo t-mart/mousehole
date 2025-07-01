@@ -124,7 +124,7 @@ bun run start
 - `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
   user agent to use for requests to MAM.
 - `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
-  in seconds between checks. Checks are done locally before talking with MAM.
+  in seconds between checks.
 - `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
   seconds after which a MAM response is considered stale. This ensures that
   we're still talking with MAM at some regular interval and ensures we can
