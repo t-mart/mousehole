@@ -19,13 +19,11 @@ export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
         </DLRow>
         <DLRow>
           <DT>Host IP</DT>
-          {/* <DD><span className="font-mono">{data.host.ip}</span></DD> */}
-          <DD><span className="font-mono">123.123.123.123</span></DD>
+          <DD><span className="font-mono">{data.host.ip}</span></DD>
         </DLRow>
         <DLRow>
           <DT>Host AS</DT>
-          {/* <DD><span className="font-mono">{data.host.asn}</span>, {data.host.as}</DD> */}
-          <DD><span className="font-mono">12345</span>, MegaCorp Networks</DD>
+          <DD><span className="font-mono">{data.host.asn}</span>, {data.host.as}</DD>
         </DLRow>
       </dl>
     </Section>
