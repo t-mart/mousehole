@@ -1,4 +1,4 @@
-import type { ComponentPropsWithRef, PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
 import { motion } from "motion/react";
 
