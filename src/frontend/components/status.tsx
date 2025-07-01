@@ -10,7 +10,7 @@ export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
       <h2 className="sr-only">Status</h2>
       <dl className="w-full space-y-2">
         <div className="flex gap-4 items-center w-full">
-          <dt className="mr-auto">State</dt>
+          <dt className="mr-auto">Status</dt>
           <dd className="ml-auto font-bold">
             <StatusContent data={data} />
           </dd>
