@@ -9,7 +9,6 @@ import { handleGetState, handlePutState } from "#backend/handlers/state.ts";
 import { handlePostUpdate } from "#backend/handlers/update.ts";
 import { startBackgroundUpdateTask } from "#backend/update.ts";
 import index from "#frontend/index.html";
-import logoSvg from "#frontend/logo.svg?raw";
 
 import { version } from "../package.json";
 
@@ -50,8 +49,22 @@ const server = Bun.serve({
     [okEndpointPath]: {
       GET: async () => makeJSONResponse(await handleGetOk()),
     },
-    "/logo.svg": () =>
-      new Response(logoSvg, { headers: { "Content-Type": "image/svg+xml" } }),
+    "/logo.svg": async () =>
+      new Response(await Bun.file("./logo.svg").bytes(), {
+        headers: { "Content-Type": "image/svg+xml" },
+      }),
+    ...Object.fromEntries(
+      [...new Bun.Glob("*.png").scanSync("./src/frontend/images")].map(
+        (file) => [
+          `/images/${file}`,
+          async () =>
+            new Response(
+              await Bun.file(`./src/frontend/images/${file}`).bytes(),
+              { headers: { "Content-Type": "image/png" } }
+            ),
+        ]
+      )
+    ),
     "/web": index,
     "/web/ws": (request, server) => {
       const success = server.upgrade(request);

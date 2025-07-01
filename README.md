@@ -1,6 +1,6 @@
 # Mousehole, a Seedbox IP Updater for MAM
 
-A background service to update a seedbox IP for MaM and an HTTP server to manage
+A background service to update a seedbox IP for MAM and an HTTP server to manage
 it.
 
 ![Mousehole Demo](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/demo.webp)
@@ -122,7 +122,7 @@ bun run start
 - `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/srv/mousehole`)_ The directory where
   the service will store its data.
 - `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
-  user agent to use for requests to MaM.
+  user agent to use for requests to MAM.
 - `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
   in seconds between checks. Checks are done locally before talking with MAM.
 - `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
@@ -137,10 +137,10 @@ sync), you need to set the Mousehole's cookie manually:
 
 0. Start the server so that it can listen for requests (see "Usage" above).
 
-1. Create a new MaM session.
+1. Create a new MAM session.
 
    Go to the
-   [MaM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security).
+   [MAM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security).
 
    (If you already have a session you want to use here, click "View ASN locked
    session cookie" and proceed to the next step.)
@@ -150,7 +150,7 @@ sync), you need to set the Mousehole's cookie manually:
    - **IP**: Set to the current IP address of your seedbox host.
    - **IP vs ASN locked session**: `ASN`, this allows your IP to change.
    - **Allow Session to set Dynamic Seedbox**: `Yes`, this allows the service to
-     update your IP through MaM's API.
+     update your IP through MAM's API.
    - **Session Label/note**: Set to something that identifies the seedbox host,
      e.g. "My Seedbox - Mousehole".
 
@@ -170,7 +170,7 @@ sync), you need to set the Mousehole's cookie manually:
    ![Check now](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/check-now-button.png)
 
 5. Et voilà! You should now see the current state of the service, and it will
-   continue to update the IP address with MaM automatically.
+   continue to update the IP address with MAM automatically.
 
    You don't need to do anything else! You can close the page.
 
