@@ -3,6 +3,7 @@ import { getNowZdt } from "#shared/time.ts";
 
 import type {
   BackgroundTask,
+  HostInfo,
   MamResponse,
   ManualUpdateReason,
   State,
@@ -11,7 +12,7 @@ import type {
 
 import { config } from "./config.ts";
 import { NoCookieError } from "./error.ts";
-import { getHostIpInfo } from "./external-api/host-ip.ts";
+import { getHostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { stateFile } from "./store.ts";
 
@@ -23,16 +24,18 @@ type UpdateOptions = {
 
 export function getUpdateReason(
   state: State | undefined,
-  hostIp: string
-): UpdateReason {
+  hostInfo: HostInfo
+): UpdateReason | undefined {
   const lastMamResponse = state?.lastMam;
 
   if (!lastMamResponse) {
     return "no-last-response";
   } else if (lastMamResponse.response.httpStatus !== 200) {
     return "last-response-error";
-  } else if (hostIp !== lastMamResponse.response.body.ip) {
+  } else if (hostInfo.ip !== lastMamResponse.response.body.ip) {
     return "ip-changed";
+  } else if (hostInfo.asn !== lastMamResponse.response.body.ASN) {
+    return "asn-changed";
   } else if (responseIsStale(lastMamResponse)) {
     return "response-stale";
   }
@@ -45,15 +48,15 @@ async function update(options?: UpdateOptions): Promise<State> {
   const force = options?.force ?? false;
 
   const state = await stateFile.readIfExists();
-  const { ip: hostIp } = await getHostIpInfo();
+  const hostInfo = await getHostInfo();
 
   if (!state?.currentCookie) {
     throw new NoCookieError();
   }
 
-  const reason: ManualUpdateReason = force
+  const reason: ManualUpdateReason | undefined = force
     ? "forced"
-    : getUpdateReason(state, hostIp);
+    : getUpdateReason(state, hostInfo);
 
   if (!reason) {
     console.log("No update needed, current state is ok");
@@ -62,7 +65,7 @@ async function update(options?: UpdateOptions): Promise<State> {
       lastMam: state.lastMam,
       lastUpdate: {
         at: getNowZdt(),
-        hostIp,
+        host: hostInfo,
         mamUpdated: false,
         mamUpdateReason: reason,
       },
@@ -94,7 +97,7 @@ async function update(options?: UpdateOptions): Promise<State> {
     lastMam: mamResponse,
     lastUpdate: {
       at: getNowZdt(),
-      hostIp,
+      host: hostInfo,
       mamUpdated: true,
       mamUpdateReason: reason,
     },

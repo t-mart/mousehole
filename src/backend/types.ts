@@ -30,22 +30,34 @@ export const ipResponseBodySchema = z.object({
 // State types
 //
 
+export const hostInfoSchema = z.object({
+  ip: z.ipv4(),
+  asn: z.number(),
+  as: z.string(),
+});
+export type HostInfo = z.infer<typeof hostInfoSchema>;
+
 export type IpResponseBody = z.infer<typeof ipResponseBodySchema>;
 
 const updateReasons = [
   "no-last-response",
   "last-response-error",
   "ip-changed",
+  "asn-changed",
   "response-stale",
 ];
-export const updateReasonSchema = z.literal(updateReasons).optional();
+export const updateReasonSchema = z.literal(updateReasons);
 export type UpdateReason = z.infer<typeof updateReasonSchema>;
 
 const manualUpdateReasons = [...updateReasons, "forced"];
-export const manualUpdateReasonSchema = z
-  .literal(manualUpdateReasons)
-  .optional();
+export const manualUpdateReasonSchema = z.literal(manualUpdateReasons);
 export type ManualUpdateReason = z.infer<typeof manualUpdateReasonSchema>;
+
+const okResponseUpdateReasons = [...updateReasons, "no-update-needed"];
+export const okResponseUpdateReasonSchema = z.literal(okResponseUpdateReasons);
+export type OkResponseUpdateReason = z.infer<
+  typeof okResponseUpdateReasonSchema
+>;
 
 export type State = {
   currentCookie?: string;
@@ -62,7 +74,7 @@ export type State = {
   };
   lastUpdate?: {
     at: Temporal.ZonedDateTime;
-    hostIp: string;
+    host: HostInfo;
     mamUpdated: boolean;
     mamUpdateReason?: ManualUpdateReason;
   };
@@ -72,9 +84,9 @@ export type MamResponse = NonNullable<State["lastMam"]>;
 
 const serializedUpdateSchema = z.object({
   at: z.string(),
-  hostIp: z.string(),
+  host: hostInfoSchema,
   mamUpdated: z.boolean(),
-  mamUpdateReason: manualUpdateReasonSchema,
+  mamUpdateReason: manualUpdateReasonSchema.optional(),
 });
 
 export const serializedStateSchema = z.object({
@@ -103,11 +115,7 @@ export type GetStateResponseBody = {
    * This is the current host IP (et al) as determined by the ip endpoint. It
    * may be different than the IP of the last update if the host IP has changed.
    */
-  host: {
-    ip: string;
-    asn: number;
-    as: string;
-  };
+  host: HostInfo;
 
   /**
    * Only known at runtime
@@ -154,7 +162,7 @@ export type DeleteStateResponseBody = {
 
 export type GetOkResponseBody = {
   ok: boolean;
-  updateReason?: UpdateReason;
+  reason: OkResponseUpdateReason;
 };
 
 //

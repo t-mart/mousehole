@@ -4,7 +4,7 @@ import { ipResponseBodySchema } from "#backend/types.ts";
 
 const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
 
-export async function getHostIpInfo() {
+export async function getHostInfo() {
   const response = await fetch(endpointUrl);
 
   if (!response.ok) {

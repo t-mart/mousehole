@@ -1,6 +1,6 @@
 import type { GetOkResponseBody, JSONResponseArgs } from "#backend/types.ts";
 
-import { getHostIpInfo } from "#backend/external-api/host-ip.ts";
+import { getHostInfo } from "#backend/external-api/host-info.ts";
 import { stateFile } from "#backend/store.ts";
 import { getUpdateReason } from "#backend/update.ts";
 
@@ -8,15 +8,15 @@ export async function handleGetOk(): Promise<
   JSONResponseArgs<GetOkResponseBody>
 > {
   const state = await stateFile.readIfExists();
-  const { ip: hostIp } = await getHostIpInfo();
+  const hostInfo = await getHostInfo();
 
-  const updateReason = getUpdateReason(state, hostIp);
+  const updateReason = getUpdateReason(state, hostInfo);
   const ok = updateReason === undefined;
 
   return {
     body: {
       ok,
-      updateReason,
+      reason: ok ? "no-update-needed" : updateReason,
     },
     init: {
       status: ok ? 200 : 400,
