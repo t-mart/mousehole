@@ -74,7 +74,6 @@ export type State = {
   };
   lastUpdate?: {
     at: Temporal.ZonedDateTime;
-    host: HostInfo;
     mamUpdated: boolean;
     mamUpdateReason?: ManualUpdateReason;
   };
@@ -84,7 +83,6 @@ export type MamResponse = NonNullable<State["lastMam"]>;
 
 const serializedUpdateSchema = z.object({
   at: z.string(),
-  host: hostInfoSchema,
   mamUpdated: z.boolean(),
   mamUpdateReason: manualUpdateReasonSchema.optional(),
 });

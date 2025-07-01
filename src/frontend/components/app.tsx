@@ -11,6 +11,7 @@ import { version } from "../../../package.json";
 import { Cookie } from "./cookie";
 import { ButtonLink, Link } from "./link";
 import { Spinner } from "./spinner";
+import { StateResponse } from "./state-response";
 import { Status } from "./status";
 import { Timer } from "./timer";
 
@@ -18,8 +19,8 @@ export const stateQueryKey: readonly [string] = ["state"];
 
 export function App() {
   return (
-    <div className="mx-auto my-0 p-8 text-center relative z-10 space-y-8 max-w-prose">
-      <header className="space-y-2">
+    <div className="mx-auto my-0 p-8 text-center relative z-10 space-y-8 max-w-prose w-full">
+      <header className="space-y-2 w-full">
         <h1 className="font-bold text-5xl">Mousehole</h1>
         <p>
           Keep your{" "}
@@ -114,9 +115,14 @@ function StateSections() {
       data.lastMam?.response.body.msg !== "Last Change too recent");
 
   return (
-    <div className="space-y-8">
+    <>
       <main className="space-y-4">
+        {/* <p>text text text text text text text text text text text text text text text text text text text text </p> */}
         <Status data={data} key={`status-${data.lastUpdate?.at}`} />
+        <StateResponse
+          data={data}
+          key={`state-response-${data.lastUpdate?.at}`}
+        />
         {showCookieForm ? (
           <Cookie
             onUpdated={() => setUserWantsInputCookie(false)}
@@ -156,7 +162,7 @@ function StateSections() {
           </p>
         </aside>
       )}
-    </div>
+    </>
   );
 }
 

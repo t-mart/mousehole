@@ -20,7 +20,6 @@ export function serializeState(state: State): SerializedState {
       : undefined,
     lastUpdate: state.lastUpdate
       ? {
-          host: state.lastUpdate.host,
           mamUpdated: state.lastUpdate.mamUpdated,
           mamUpdateReason: state.lastUpdate.mamUpdateReason,
           at: state.lastUpdate.at.toString(),
@@ -48,7 +47,6 @@ export function deserializeState(ser: SerializedState): State {
     lastUpdate: ser.lastUpdate
       ? {
           at: Temporal.ZonedDateTime.from(ser.lastUpdate.at),
-          host: ser.lastUpdate.host,
           mamUpdated: ser.lastUpdate.mamUpdated,
           mamUpdateReason: ser.lastUpdate.mamUpdateReason,
         }

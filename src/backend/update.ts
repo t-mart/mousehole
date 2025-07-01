@@ -65,7 +65,6 @@ async function update(options?: UpdateOptions): Promise<State> {
       lastMam: state.lastMam,
       lastUpdate: {
         at: getNowZdt(),
-        host: hostInfo,
         mamUpdated: false,
         mamUpdateReason: reason,
       },
@@ -97,7 +96,6 @@ async function update(options?: UpdateOptions): Promise<State> {
     lastMam: mamResponse,
     lastUpdate: {
       at: getNowZdt(),
-      host: hostInfo,
       mamUpdated: true,
       mamUpdateReason: reason,
     },

@@ -30,22 +30,12 @@ export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
           <DD>{data.host.as}</DD>
         </DLRow>
       </dl>
-      <details className="text-center w-full">
-        <summary className="cursor-pointer hover:text-primary-2 text-muted-foreground">
-          Show State Response
-        </summary>
-        <div className="text-left max-h-30 overflow-y-auto p-2 border-2 rounded-md mt-2">
-          <pre className="whitespace-pre-wrap break-words">
-            {JSON.stringify(data, undefined, 2)}
-          </pre>
-        </div>
-      </details>
     </Section>
   );
 }
 
 function DLRow({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
-  return <div className="flex gap-4 items-center w-full" {...props} />;
+  return <div className="flex gap-4 items-center" {...props} />;
 }
 
 function DT({ ...props }: Readonly<ComponentPropsWithRef<"dt">>) {
@@ -53,17 +43,20 @@ function DT({ ...props }: Readonly<ComponentPropsWithRef<"dt">>) {
 }
 
 function DD({ ...props }: Readonly<ComponentPropsWithRef<"dd">>) {
-  return <dd className="ml-auto font-bold" {...props} />;
+  return <dd className="ml-auto font-bold text-right" {...props} />;
 }
 
 function StatusContent({ data }: Readonly<{ data: GetStateResponseBody }>) {
   if (!data.currentCookie) {
     return <StatusLine state="warn" text="No cookie set" />;
   } else if (data.lastMam) {
+    const success = data.lastMam.response.body.Success;
+    const state = success ? "ok" : "error";
+    const text = success? "Ok": data.lastMam.response.body.msg
     return (
       <StatusLine
-        state={data.lastMam.response.body.Success ? "ok" : "error"}
-        text={data.lastMam.response.body.msg}
+        state={state}
+        text={text}
       />
     );
   } else {
