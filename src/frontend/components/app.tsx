@@ -9,6 +9,14 @@ import type {
 
 import { version } from "../../../package.json";
 import { Cookie } from "./cookie";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./dialog";
 import { ButtonLink, Link } from "./link";
 import { Spinner } from "./spinner";
 import { StateResponse } from "./state-response";
@@ -67,8 +75,6 @@ export function App() {
 }
 
 function StateSections() {
-  // const queryClient = useQueryClient();
-
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
 
   const stateQuery = useQuery({
@@ -117,26 +123,22 @@ function StateSections() {
   return (
     <>
       <main className="space-y-4">
-        {/* <p>text text text text text text text text text text text text text text text text text text text text </p> */}
         <Status data={data} key={`status-${data.lastUpdate?.at}`} />
-        <StateResponse
-          data={data}
-          key={`state-response-${data.lastUpdate?.at}`}
-        />
-        {showCookieForm ? (
+        {showCookieForm && (
           <Cookie
             onUpdated={() => setUserWantsInputCookie(false)}
             currentCookie={data.currentCookie}
           />
-        ) : (
-          <>
-            {data.nextUpdateAt && (
-              <Timer
-                nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
-                key={`timer-${data.lastUpdate?.at}`}
-              />
-            )}
-            <div className="flex items-center justify-center gap-4">
+        )}
+        {!showCookieForm && data.nextUpdateAt && (
+          <Timer
+            nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
+            key={`timer-${data.lastUpdate?.at}`}
+          />
+        )}
+        <div className="flex items-center justify-center gap-4">
+          {!showCookieForm && (
+            <>
               <ButtonLink
                 onClick={() => setUserWantsInputCookie(true)}
                 variant={"muted-primary-2"}
@@ -149,9 +151,10 @@ function StateSections() {
               >
                 Check Now
               </ButtonLink>
-            </div>
-          </>
-        )}
+            </>
+          )}
+          <ShowStateResponse data={data} />
+        </div>
       </main>
 
       {!showCookieForm && (
@@ -170,7 +173,7 @@ function Center({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
   return <div {...props} className="flex items-center justify-center" />;
 }
 
-const useInvalidateOnUpdate = () => {
+function useInvalidateOnUpdate() {
   const queryClient = useQueryClient();
   useEffect(() => {
     const websocket = new WebSocket("/web/ws");
@@ -186,6 +189,24 @@ const useInvalidateOnUpdate = () => {
       websocket.removeEventListener("message", handleMessage);
     };
   }, [queryClient]);
-};
+}
+
+function ShowStateResponse({ data }: Readonly<{ data: GetStateResponseBody }>) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <ButtonLink variant={"muted-primary-2"}>
+          Show Mousehole Response
+        </ButtonLink>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Mousehole API Response</DialogTitle>
+        </DialogHeader>
+        <pre className="font-semibold">{JSON.stringify(data, undefined, 2)}</pre>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default App;
