@@ -136,9 +136,10 @@ When running this service for the first time (or if the cookie gets out of
 sync), you need to set the Mousehole's cookie manually.
 
 On navigating to the Mousehole web interface, you will see a form to set the
-cookie.
+cookie -- paste your cookie and click the "Set" button.
 
 ![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/cookie-form.png)
+
 
 If you need help getting the cookie, click the "What do I enter here?" button
 for a tutorial.
