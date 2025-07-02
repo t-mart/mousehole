@@ -35,8 +35,10 @@ Features:
 services:
   mousehole:
     image: tmmrtn/mousehole:latest
+    env:
+      TZ: Etc/UTC # Optional, but set to your timezone for localization of API times
     ports:
-      - "127.0.0.1:5010:5010"  # or just "5010:5010" if you want it accessible to the outside world too
+      - "127.0.0.1:5010:5010" # or just "5010:5010" if you want it accessible to the outside world too
     # persist cookie data across container restarts
     volumes:
       - "mousehole:/srv/mousehole"
@@ -64,9 +66,9 @@ services:
     ports:
       # anything that wants to use the wireguard network must expose ports here, such as
       # bittorrent port, webui port, and mousehole http port
-      - "127.0.0.1:5010:5010"  # or just "5010:5010" if you want it accessible to the outside world too
-      # - <bittorrent port>:<bittorrent port>
-      # - <webui port>:<webui port>
+      - "127.0.0.1:5010:5010" # or just "5010:5010" if you want it accessible to the outside world too
+      # - <qbittorrent port>:<qbittorrent port>
+      # - <qbittorrent webui port>:<qbittorrent webui port>
 
     # optional - healthcheck to ensure the VPN is up. replace `airvpn` with your VPN interface name
     healthcheck:
@@ -91,6 +93,8 @@ services:
     # CRITICAL - Use wireguard container's network stack
     network_mode: "service:wireguard"
 
+    env:
+      TZ: Etc/UTC # Optional, but set to your timezone for localization of API times
     # persist cookie data across container restarts
     volumes:
       - "mousehole:/srv/mousehole"
@@ -106,6 +110,14 @@ services:
 volumes:
   mousehole:
 ```
+
+### Proxying
+
+Mousehole works great with reverse proxies like
+[Nginx Proxy Manager](https://nginxproxymanager.com/).
+
+However, the Web UI makes use of WebSockets, so you need to ensure that your
+reverse proxy is configured to support them.
 
 ### Local
 
@@ -127,10 +139,10 @@ bun run start
   in seconds between checks.
 - `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
   seconds after which a MAM response is considered stale. This ensures that
-  we're still talking with MAM at some regular interval and ensures we can
-  detect out-of-band changes to the cookie.
+  we're still talking with MAM at some regular interval and are detecting
+  out-of-band changes to the cookie.
 
-## First-time setup (or if cookie gets out of sync)
+## First-time Setup (or if cookie gets out of sync)
 
 When running this service for the first time (or if the cookie gets out of
 sync), you need to set the Mousehole's cookie manually.
@@ -139,7 +151,6 @@ On navigating to the Mousehole web interface, you will see a form to set the
 cookie -- paste your cookie and click the "Set" button.
 
 ![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/cookie-form.png)
-
 
 If you need help getting the cookie, click the "What do I enter here?" button
 for a tutorial.
