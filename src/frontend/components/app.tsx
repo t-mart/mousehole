@@ -116,7 +116,7 @@ function StateSections() {
     userWantsInputCookie ||
     !data.currentCookie ||
     (data.lastMam?.response.body.Success === false &&
-      data.lastMam?.response.body.msg !== "Last Change too recent");
+      data.lastMam?.response.httpStatus !== 429);
 
   return (
     <>
