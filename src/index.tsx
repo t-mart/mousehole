@@ -50,7 +50,7 @@ const server = Bun.serve({
       GET: async () => makeJSONResponse(await handleGetOk()),
     },
     "/logo.svg": async () =>
-      new Response(await Bun.file("./logo.svg").bytes(), {
+      new Response(await Bun.file("./src/frontend/logo.svg").bytes(), {
         headers: { "Content-Type": "image/svg+xml" },
       }),
     ...Object.fromEntries(
