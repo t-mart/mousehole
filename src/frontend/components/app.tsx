@@ -12,14 +12,12 @@ import { Cookie } from "./cookie";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
 import { ButtonLink, Link } from "./link";
 import { Spinner } from "./spinner";
-import { StateResponse } from "./state-response";
 import { Status } from "./status";
 import { Timer } from "./timer";
 
@@ -141,12 +139,12 @@ function StateSections() {
             <>
               <ButtonLink
                 onClick={() => setUserWantsInputCookie(true)}
-                variant={"muted-primary-2"}
+                variant={"muted-primary-background-bright"}
               >
                 Set Cookie
               </ButtonLink>
               <ButtonLink
-                variant={"muted-primary-2"}
+                variant={"muted-primary-background-bright"}
                 onClick={() => fetch("/update", { method: "POST" })}
               >
                 Check Now
@@ -159,7 +157,7 @@ function StateSections() {
 
       {!showCookieForm && (
         <aside>
-          <p className="text-sm text-muted-foreground text-balance">
+          <p className="text-sm text-muted-text text-balance">
             You don't need to keep this window open! Automatic updates will
             occur on the server.
           </p>
@@ -195,15 +193,17 @@ function ShowStateResponse({ data }: Readonly<{ data: GetStateResponseBody }>) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <ButtonLink variant={"muted-primary-2"}>
+        <ButtonLink variant={"muted-primary-background-bright"}>
           Show Mousehole Response
         </ButtonLink>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Mousehole API Response</DialogTitle>
+          <DialogTitle>Mousehole State Response</DialogTitle>
         </DialogHeader>
-        <pre className="font-semibold">{JSON.stringify(data, undefined, 2)}</pre>
+        <pre className="font-semibold bg-background rounded-lg p-4 w-full overflow-auto">
+          {JSON.stringify(data, undefined, 2)}
+        </pre>
       </DialogContent>
     </Dialog>
   );

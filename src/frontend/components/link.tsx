@@ -9,9 +9,10 @@ const linkVariants = cva(
   {
     variants: {
       variant: {
-        default: "hover:text-primary-2",
-        "muted-destructive": "text-muted-foreground hover:text-destructive/80",
-        "muted-primary-2": "text-muted-foreground hover:text-primary-2",
+        default: "hover:text-primary-background-bright",
+        "muted-destructive": "text-muted-text hover:text-destructive/80",
+        "muted-primary-background-bright":
+          "text-muted-text hover:text-primary-background-bright",
       },
     },
     defaultVariants: {

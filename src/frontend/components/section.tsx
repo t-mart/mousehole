@@ -18,7 +18,7 @@ export function Section({
         scale: { type: "spring", visualDuration: 0.4, bounce: 0.5 },
       }}
       className={cn(
-        "flex flex-wrap bg-section py-3 px-5 rounded-xl border-2 border-[#fbf0df] transition-colors will-change-transform w-full",
+        "flex flex-wrap bg-background-dark py-3 px-5 rounded-xl border-2 border-[#fbf0df] transition-colors will-change-transform w-full",
         className
       )}
       {...props}

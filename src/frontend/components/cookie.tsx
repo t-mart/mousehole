@@ -1,4 +1,4 @@
-import { useId, useState} from "react";
+import { useId, useState } from "react";
 
 import { Button } from "./button";
 import {
@@ -62,7 +62,7 @@ export function Cookie({
 
       <Dialog>
         <DialogTrigger asChild>
-          <ButtonLink className="text-sm text-muted-foreground text-center mx-auto">
+          <ButtonLink className="text-sm text-muted-text text-center mx-auto">
             What do I enter here?
           </ButtonLink>
         </DialogTrigger>
@@ -183,9 +183,9 @@ function CookieTutorial() {
         </li>
         <li>
           <p>
-            Et voilà! You should now see the current state of the service, and
-            it will continue to update the IP address with MAM automatically.
-            You don't need to do anything else! You can close the page.
+            Et voilà! You should now see an OK status, and Mousehole keep your
+            IP updated with MAM automatically in the background. You don't need
+            to do anything else! You can close the page.
           </p>
         </li>
       </ol>
