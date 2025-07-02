@@ -34,7 +34,7 @@ Features:
 services:
   mousehole:
     image: tmmrtn/mousehole:latest
-    env:
+    environment:
       TZ: Etc/UTC # Optional, but set to your timezone for localization of API times
     ports:
       - "127.0.0.1:5010:5010" # or just "5010:5010" if you want it accessible to the outside world too
@@ -92,7 +92,7 @@ services:
     # CRITICAL - Use wireguard container's network stack
     network_mode: "service:wireguard"
 
-    env:
+    environment:
       TZ: Etc/UTC # Optional, but set to your timezone for localization of API times
     # persist cookie data across container restarts
     volumes:
