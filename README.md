@@ -82,9 +82,9 @@ services:
     network_mode: "service:wireguard"
 
     # optional - only run after wireguard is healthy
-    # depends_on:
-    #   wireguard:
-    #     condition: service_healthy
+    depends_on:
+      wireguard:
+        condition: service_healthy
 
   mousehole:
     image: tmmrtn/mousehole:latest
@@ -102,9 +102,9 @@ services:
       test: ["CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1"]
 
     # optional - only run after wireguard is healthy
-    # depends_on:
-    #   wireguard:
-    #     condition: service_healthy
+    depends_on:
+      wireguard:
+        condition: service_healthy
 
 volumes:
   mousehole:
