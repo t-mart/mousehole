@@ -1,5 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type ComponentPropsWithRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithRef,
+} from "react";
 import { Temporal } from "temporal-polyfill";
 
 import type {
@@ -22,6 +28,8 @@ import { Status } from "./status";
 import { Timer } from "./timer";
 
 export const stateQueryKey: readonly [string] = ["state"];
+const heartbeatIntervalMilliseconds = 30_000;
+const reconnectDelayMilliseconds = 3000;
 
 export function App() {
   return (
@@ -90,7 +98,7 @@ function StateSections() {
       return body as GetStateResponseBody;
     },
   });
-  useInvalidateOnUpdate();
+  useInvalidateOnStateUpdate();
 
   if (stateQuery.isPending) {
     return (
@@ -171,22 +179,88 @@ function Center({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
   return <div {...props} className="flex items-center justify-center" />;
 }
 
-function useInvalidateOnUpdate() {
+function useInvalidateOnStateUpdate() {
   const queryClient = useQueryClient();
-  useEffect(() => {
+  const websocketRef = useRef<WebSocket | undefined>(undefined);
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | undefined>(
+    undefined
+  );
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
+  const connect = useCallback(() => {
     const websocket = new WebSocket("/web/ws");
+    websocketRef.current = websocket;
 
-    const handleMessage = () => {
-      queryClient.invalidateQueries({ queryKey: stateQueryKey });
-    };
+    function handleOpen() {
+      console.log("WebSocket connected");
+      clearTimeout(reconnectTimeoutRef.current);
+      heartbeatRef.current = setInterval(() => {
+        if (websocket.readyState === WebSocket.OPEN) {
+          websocket.send("ping");
+        }
+      }, heartbeatIntervalMilliseconds);
+    }
 
+    function handleMessage(event: MessageEvent<string>) {
+      const { data } = event;
+      switch (data) {
+        case "pong": {
+          console.log("Received pong from server");
+          break;
+        }
+        case "state-update": {
+          console.log("Received state update from server");
+          queryClient.invalidateQueries({ queryKey: stateQueryKey });
+          break;
+        }
+        default: {
+          console.warn("Unknown message from WebSocket:", data);
+        }
+      }
+    }
+
+    function handleClose() {
+      console.log("WebSocket disconnected. Reconnecting...");
+      clearInterval(heartbeatRef.current);
+      reconnectTimeoutRef.current = setTimeout(
+        connect,
+        reconnectDelayMilliseconds
+      );
+    }
+
+    function handleError(event: Event) {
+      console.error("WebSocket error:", event);
+    }
+
+    websocket.addEventListener("open", handleOpen);
     websocket.addEventListener("message", handleMessage);
+    websocket.addEventListener("close", handleClose);
+    websocket.addEventListener("error", handleError);
 
     return () => {
-      websocket.close();
+      websocket.removeEventListener("open", handleOpen);
       websocket.removeEventListener("message", handleMessage);
+      websocket.removeEventListener("close", handleClose);
+      websocket.removeEventListener("error", handleError);
     };
   }, [queryClient]);
+
+  useEffect(() => {
+    const cleanup = connect();
+
+    return () => {
+      clearInterval(heartbeatRef.current);
+      clearTimeout(reconnectTimeoutRef.current);
+
+      const ws = websocketRef.current;
+      if (ws) {
+        cleanup();
+        ws.close();
+      }
+      websocketRef.current = undefined;
+    };
+  }, [connect, queryClient]);
 }
 
 function ShowStateResponse({ data }: Readonly<{ data: GetStateResponseBody }>) {

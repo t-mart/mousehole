@@ -92,7 +92,12 @@ const server = Bun.serve({
     open(ws) {
       ws.subscribe(wsTopic);
     },
-    message() {},
+    message(ws, message) {
+      if (typeof message !== "string" || message !== "ping") {
+        return;
+      }
+      ws.send("pong");
+    },
     close(ws) {
       ws.unsubscribe(wsTopic);
     },
