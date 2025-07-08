@@ -24,7 +24,7 @@ jobs:
           images: ${{ vars.IMAGE_REPOSITORY }}
           # generate Docker tags. only do semver types for when we're triggered by a release
           tags: |
-            type=ref,event=branch
+            type=edge
             type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{major}},enable=${{ github.event_name == 'release' }}
