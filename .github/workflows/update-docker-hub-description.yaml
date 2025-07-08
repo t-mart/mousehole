@@ -15,6 +15,6 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: ${{ vars.IMAGE_TAG }}
+          repository: ${{ vars.IMAGE_REPOSITORY }}
           short-description: ${{ github.event.repository.description }}
           enable-url-completion: true
