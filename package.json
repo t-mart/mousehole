@@ -1,6 +1,6 @@
 {
   "name": "mousehole",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "type": "module",
   "private": true,
   "main": "src/index.tsx",
