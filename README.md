@@ -127,7 +127,7 @@ Mousehole works great with reverse proxies like
 [Nginx Proxy Manager](https://nginxproxymanager.com/).
 
 However, the Web UI makes use of WebSockets, so you need to ensure that your
-reverse proxy is configured to support them.
+reverse proxy is configured to use them.
 
 ### Local
 
