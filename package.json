@@ -6,7 +6,7 @@
   "main": "src/index.tsx",
   "module": "src/index.tsx",
   "scripts": {
-    "dev": "bun --hot src/index.tsx",
+    "dev": "BUN_PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) bun --hot src/index.tsx",
     "start": "NODE_ENV=production bun src/index.tsx",
     "lint": "eslint src",
     "check-types": "tsc --noEmit"
@@ -22,6 +22,8 @@
     "@types/negotiator": "^0.6.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
+    "cross-env-shell": "^7.0.3",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",

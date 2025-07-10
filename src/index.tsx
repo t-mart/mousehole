@@ -9,6 +9,7 @@ import { handleGetState, handlePutState } from "#backend/handlers/state.ts";
 import { handlePostUpdate } from "#backend/handlers/update.ts";
 import { startBackgroundUpdateTask } from "#backend/update.ts";
 import index from "#frontend/index.html";
+import { gitHash } from "#shared/git-hash.ts";
 
 import { version } from "../package.json";
 
@@ -112,7 +113,7 @@ const server = Bun.serve({
   },
 });
 
-console.log(`Mousehole v${version} running at ${server.url}`);
+console.log(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
 startBackgroundUpdateTask();
 
 export function notifyWebSocketClients(): void {

@@ -13,6 +13,8 @@ import type {
   GetStateResponseBody,
 } from "#backend/types.ts";
 
+import { gitHash } from "#shared/git-hash.ts";
+
 import { version } from "../../../package.json";
 import { Cookie } from "./cookie";
 import {
@@ -70,13 +72,26 @@ export function App() {
           </li>
         </ol>
         <div>
-          Mousehole v{version} by{" "}
+          Mousehole v{version} <GitHashSpan /> by{" "}
           <Link href="https://www.myanonamouse.net/u/252061" target="_blank">
             timtimtim
           </Link>
         </div>
       </footer>
     </div>
+  );
+}
+
+function GitHashSpan() {
+  if (!gitHash) return;
+
+  return (
+    <>
+      {" "}
+      <span className="font-mono">
+        (<code>{gitHash}</code>)
+      </span>
+    </>
   );
 }
 
