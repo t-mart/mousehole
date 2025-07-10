@@ -110,6 +110,17 @@ volumes:
   mousehole:
 ```
 
+### Docker Tags
+
+Mousehole publishes several image tags to
+[Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole):
+
+- SemVer versions (`0`, `0.1`, `0.1.11`, etc)
+- `latest`, the latest released version
+- `edge`, the tip of `master` branch
+
+Choose `latest` if you do not know which to pick.
+
 ### Proxying
 
 Mousehole works great with reverse proxies like
