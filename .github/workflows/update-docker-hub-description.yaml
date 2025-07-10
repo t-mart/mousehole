@@ -4,6 +4,12 @@ on:
   release:
     types: [published]
 
+concurrency:
+  # key on workflow name. this is important so that there's no races when
+  # multiple releases are created. we want the latest description on Docker Hub
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   dockerHubDescription:
     runs-on: ubuntu-latest

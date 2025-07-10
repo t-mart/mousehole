@@ -10,6 +10,12 @@ on:
       - "master"
   workflow_dispatch:
 
+concurrency:
+  # key on workflow name. this is important so that there's no races when
+  # multiple releases are created. we want `latest` to actually be latest.
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -44,7 +50,8 @@ jobs:
 
       - name: Set short git sha
         id: vars
-        run: echo "short_sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
+        run: |
+          echo "short_sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v6

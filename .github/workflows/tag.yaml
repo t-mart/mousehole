@@ -7,7 +7,6 @@ on:
     paths:
       - "package.json"
 
-# Prevents race conditions by ensuring only one instance of this workflow runs at a time for this group
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
