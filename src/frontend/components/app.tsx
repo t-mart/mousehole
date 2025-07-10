@@ -193,7 +193,6 @@ function useInvalidateOnStateUpdate() {
     websocketRef.current = websocket;
 
     function handleOpen() {
-      console.log("WebSocket connected");
       clearTimeout(reconnectTimeoutRef.current);
       heartbeatRef.current = setInterval(() => {
         if (websocket.readyState === WebSocket.OPEN) {
@@ -206,11 +205,9 @@ function useInvalidateOnStateUpdate() {
       const { data } = event;
       switch (data) {
         case "pong": {
-          console.log("Received pong from server");
           break;
         }
         case "state-update": {
-          console.log("Received state update from server");
           queryClient.invalidateQueries({ queryKey: stateQueryKey });
           break;
         }
@@ -221,7 +218,6 @@ function useInvalidateOnStateUpdate() {
     }
 
     function handleClose() {
-      console.log("WebSocket disconnected. Reconnecting...");
       clearInterval(heartbeatRef.current);
       reconnectTimeoutRef.current = setTimeout(
         connect,
