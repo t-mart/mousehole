@@ -168,6 +168,8 @@ for a tutorial.
 ## Links
 
 - [Repository](https://github.com/t-mart/mousehole)
+- [Community Contributions](./contrib/)
+  - [Homepage Integration](./contrib/homepage/) - Configuration for integrating with Homepage dashboard
 - [Docker Hub image](https://hub.docker.com/r/tmmrtn/mousehole)
 - [Forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257)
 
