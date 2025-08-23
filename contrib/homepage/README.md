@@ -80,11 +80,11 @@ This affects the ability to monitor real-time service status and error condition
 ```yaml
 - Simple Status:
     icon: mdi-api
-    href: http://<mousehole-url>/ok
+    href: http://<mousehole-url>  # for example http://mousehole:5010
     description: Simple Status
     widget:
       type: customapi
-      url: http://<mousehole-url>/ok
+      url: http://<mousehole-url>/ok  # for example http://mousehole:5010/ok
       method: GET
       mappings:
         - field: ok
