@@ -165,11 +165,19 @@ cookie -- paste your cookie and click the "Set" button.
 If you need help getting the cookie, click the "What do I enter here?" button
 for a tutorial.
 
+## Community Contributions
+
+The following integrations and configurations are available:
+
+### Dashboard Integrations
+- [Homepage](./contrib/homepage/) - Display Mousehole status in your [Homepage](https://gethomepage.dev) dashboard
+
+Want to contribute? Check out our [contribution guidelines](./CONTRIBUTING.md) or browse existing contributions in the [`contrib`](./contrib/) directory.
+
 ## Links
 
 - [Repository](https://github.com/t-mart/mousehole)
 - [Community Contributions](./contrib/)
-  - [Homepage Integration](./contrib/homepage/) - Configuration for integrating with Homepage dashboard
 - [Docker Hub image](https://hub.docker.com/r/tmmrtn/mousehole)
 - [Forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257)
 

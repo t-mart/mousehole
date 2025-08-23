@@ -52,7 +52,7 @@ Monitors update timing:
 - Last update time
 - Next scheduled update time
 
-## API Endpoints
+## Used API Endpoints
 
 The following API endpoints are available and could be called by Homepage:
 
@@ -62,6 +62,8 @@ The following API endpoints are available and could be called by Homepage:
 ### `/ok`
 - Simple status check endpoint
 - **Note**: See [Known Limitations](#simple-status-endpoint-ok) regarding Homepage integration - currently not usable with Homepage
+
+For complete API documentation, see [API Reference](../../docs/API.md).
 
 ## Known Limitations
 
