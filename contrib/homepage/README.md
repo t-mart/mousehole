@@ -29,6 +29,9 @@ services:
           # ... rest of configuration
 ```
 
+![Homepage Widgets Example](./docs/homepage-widgets.png)
+
+
 ## Widget Types
 
 ### Host Details
@@ -49,6 +52,17 @@ Monitors update timing:
 - Last update time
 - Next scheduled update time
 
+## API Endpoints
+
+The following API endpoints are available and could be called by Homepage:
+
+### `/state`
+- Primary endpoint used by Homepage widgets to display host information, API responses, and timing data
+
+### `/ok`
+- Simple status check endpoint
+- **Note**: See [Known Limitations](#simple-status-endpoint-ok) regarding Homepage integration - currently not usable with Homepage
+
 ## Known Limitations
 
 ### Unsupported Endpoints
@@ -58,6 +72,7 @@ The `/ok` endpoint cannot be integrated with Homepage due to technical limitatio
 
 - **HTTP Error Status Codes**: The endpoint returns HTTP 400 status codes even when providing valid JSON response data (`{"ok":false,"reason":"error-message"}`)
 - **Homepage Restriction**: Homepage's `customapi` widget cannot process JSON responses from endpoints that return HTTP 4xx/5xx status codes, regardless of configuration options like `acceptErrors: true`
+- **Note**: An issue has been raised to address this limitation: [mousehole#12](https://github.com/t-mart/mousehole/issues/12)
 
 This affects the ability to monitor real-time service status and error conditions through the Homepage dashboard.
 
@@ -75,23 +90,18 @@ This affects the ability to monitor real-time service status and error condition
         - field: ok
           label: Status - OK?
           format: text
-          suffix: " check"
+          suffix: " "
         - field: reason
           label: Reason
           format: text
 ```
 
-**Note**: An issue has been raised to address this limitation: [mousehole#12](https://github.com/t-mart/mousehole/issues/12)
+![Simple Status Widget Example](./docs/homepage-simple-status.png)
 
 ### Other Technical Limitations
 
 - **Boolean Display**: Boolean values in API responses require a `suffix` parameter to display properly in Homepage widgets (affecting use of `/ok` endpoint)
-- **Datetime Formatting**: Temporal.ZonedDateTime format (containing timezone identifiers like `[Europe/London]`) displays as raw text rather than formatted dates
-
-## Links
-
-- [Homepage Documentation](https://gethomepage.dev)
-- [Mousehole Repository](https://github.com/t-mart/mousehole)
+- **Datetime Formatting**: Temporal.ZonedDateTime format (containing timezone identifiers like `[Europe/London]`) displays as raw text rather than formatted dates. See discussion in [mousehole#10](https://github.com/t-mart/mousehole/issues/10#issuecomment-3172929431)
 
 ## Links
 
