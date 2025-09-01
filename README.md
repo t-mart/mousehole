@@ -165,6 +165,13 @@ cookie -- paste your cookie and click the "Set" button.
 If you need help getting the cookie, click the "What do I enter here?" button
 for a tutorial.
 
+## Contributing
+
+Want to contribute? Check out the [contribution guidelines](./CONTRIBUTING.md).
+
+There is also a [`contrib`](./contrib/) directory with useful, supplementary
+functionality.
+
 ## Links
 
 - [Repository](https://github.com/t-mart/mousehole)

@@ -1,0 +1,56 @@
+- Mousehole MAM:
+    - Host Details:
+        icon: mdi-server
+        href: <mousehole-url> # NOTE: replace with actual URL, such as http://mousehole:5010
+        description: Host network information
+        widget:
+          type: customapi
+          url: <mousehole-url> # NOTE: replace with actual URL
+          method: GET
+          mappings:
+            - field: host.ip
+              label: IP Address
+              format: text
+            - field: host.asn
+              label: ASN
+              format: number
+            - field: host.as
+              label: Provider
+              format: text
+
+    - API Response:
+        icon: mdi-api
+        href: <mousehole-url> # NOTE: replace with actual URL
+        widget:
+          type: customapi
+          url: <mousehole-url> # NOTE: replace with actual URL
+          method: GET
+          mappings:
+            - field: lastMam.response.body.Success
+              label: Success
+              format: text
+            - field: lastMam.response.httpStatus
+              label: HTTP Code
+              format: number
+            - field: lastMam.response.body.msg
+              label: Response
+              format: text
+
+    - Timing Info:
+        icon: mdi-clock-outline
+        href: <mousehole-url> # NOTE: replace with actual URL
+        description: Update timing
+        widget:
+          type: customapi
+          url: <mousehole-url> # NOTE: replace with actual URL
+          method: GET
+          mappings:
+            - field: lastMam.request.at
+              label: Last Request
+              format: Date # Could use "relativeDate" here but Homepage doesnt seem to parse Temporal.ZonedDateTime format
+            - field: lastUpdate.at
+              label: Last Update
+              format: Date
+            - field: nextUpdateAt
+              label: Next Update
+              format: Date
