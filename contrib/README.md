@@ -1,14 +1,7 @@
 # Mousehole Community Contributions
 
-This directory contains community-contributed configurations and integrations for Mousehole.
+This directory contains community-contributed supplemental functionality.
 
-## Available Integrations
-
-### Dashboard Integrations
-- [Homepage](./homepage/) - Integration with [Homepage](https://gethomepage.dev) dashboard
+- [Homepage Integration](./homepage/)
   - Display network info, API status, and timing data
   - Custom widgets and API integration
-
-## Contributing
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on adding your own integration.

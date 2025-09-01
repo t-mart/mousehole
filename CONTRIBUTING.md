@@ -1,60 +1,20 @@
 # Contributing to Mousehole
 
-Thank you for your interest in contributing to Mousehole! This document provides guidelines and information about contributing.
+Thank you for your interest in contributing to Mousehole!
 
-## Types of Contributions
+Here are some things to keep in mind:
 
-### Community Integrations
-- Dashboard integrations (Homepage, Grafana, etc.)
-- Container orchestration configs (Docker Compose, K8s)
-- Monitoring solutions (Prometheus, etc.)
-
-### Core Development
-- Bug fixes
-- Feature additions
-- Documentation improvements
-- Test coverage
-
-## Adding a New Integration
-
-1. Create a new directory in `contrib/` with a descriptive name
-2. Include a README.md that explains:
-   - What the integration does
-   - Requirements
-   - Installation steps
-   - Configuration details
-   - Screenshots/examples
-3. Add any necessary configuration files
-4. Update the main contrib README.md to list your integration
-
-### Integration Structure Example
-```
-contrib/
-└── your-integration/
-    ├── README.md
-    ├── config.yaml
-    ├── docs/
-    │   └── screenshots.png
-    └── other-files...
-```
-
-## Development Guidelines
-
-### Code Style
+- No contribution is too small! Please submit as many fixes for typos and
+  grammar bloopers as you can.
+- Beginners are welcome. If you are new to programming, Git,
+  JavaScript/TypeScript, or anything related to the project, then I can help
+  you. Just ask.
+- Don't be afraid to open half-finished PRs, and ask questions if something is
+  unclear!
+- Pull requests should be made on their own separate branches.
+- Try to limit each pull request to _one_ idea only.
 - Follow existing code formatting
-- Use meaningful variable/function names
-- Add comments for complex logic
-- Include TypeScript types where applicable
-
-### Testing
-- Add tests for new features
-- Ensure existing tests pass
-- Run `bun test` before submitting
-
-### Documentation
-- Update README.md for feature changes
-- Document new configuration options
-- Include examples where helpful
+- Document user-facing changes
 
 ## Submitting Changes
 
@@ -70,5 +30,6 @@ contrib/
 ## Getting Help
 
 - Open an [issue](https://github.com/t-mart/mousehole/issues) for bugs
-- Start a [discussion](https://github.com/t-mart/mousehole/discussions) for questions
+- Start a [discussion](https://github.com/t-mart/mousehole/discussions) for
+  questions
 - Check existing issues/discussions before posting
