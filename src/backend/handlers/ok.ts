@@ -19,7 +19,7 @@ export async function handleGetOk(): Promise<
       reason: ok ? "no-update-needed" : updateReason,
     },
     init: {
-      status: ok ? 200 : 400,
+      status: ok ? 200 : 503,
     },
   };
 }
