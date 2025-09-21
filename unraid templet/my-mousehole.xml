@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Mousehole</Name>
+  <Repository>tmmrtn/mousehole:latest</Repository>
+  <Registry>https://hub.docker.com/r/tmmrtn/mousehole</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/tmmrtn/mousehole</Support>
+  <Project>https://github.com/tmmrtn/mousehole</Project>
+  <Overview>Mousehole is a lightweight web application for managing and tracking mouse activity or similar monitoring tasks. This container provides a simple web interface accessible via port 5010.</Overview>
+  <Category>Tools:</Category>
+  <WebUI>http://[IP]:[PORT:5010]</WebUI>
+  <TemplateURL/>
+  <Icon/>
+  <ExtraParams>--health-cmd="curl -fs http://localhost:5010/state || exit 1" --health-interval=30s --health-timeout=10s --health-retries=3</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1693180800</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="WebUI Port" Target="5010" Default="5010" Mode="tcp" Description="Port for accessing the Mousehole web interface" Type="Port" Display="always" Required="true" Mask="false">5010</Config>
+  <Config Name="Timezone" Target="TZ" Default="Etc/UTC" Mode="" Description="Timezone for localization of API times (e.g., America/New_York, Europe/London)" Type="Variable" Display="always" Required="false" Mask="false">Etc/UTC</Config>
+  <Config Name="Data Directory" Target="/srv/mousehole" Default="/mnt/user/appdata/mousehole" Mode="rw" Description="Directory to persist cookie data and application state" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mousehole</Config>
+</Container>
