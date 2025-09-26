@@ -39,12 +39,13 @@ Create a new XML file with a descriptive name:
 nano my-mousehole.xml
 ```
 Copy the XML template data from the provided file and paste it (right click - paste)
-Ctrl + x
-Y - yes
-Enter
+Ctrl + X - Exit
+Y - Save Changes
+Enter - Save File Name
 
-### Step 3: Add Contianer
-Go to the docker page and click Add Contianer. This will bring up a new container window, select the mousehole templete form the template drop down.
-Verify all seeting are correct for your set up
-Click Apply
-
+### Step 3: Add Container
+1. Go to the Docker page and click **Add Container**
+2. This will bring up a new container window
+3. Select the **mousehole** template from the template dropdown
+4. Verify all settings are correct for your setup
+5. Click **Apply**
