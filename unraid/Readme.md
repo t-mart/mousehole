@@ -30,7 +30,7 @@ cd /boot/config/plugins/dockerMan/templates-user/
 
 #### Option A: Download from Repository
 ```bash
-wget https://raw.githubusercontent.com/username/repository/main/template-name.xml
+wget https://raw.githubusercontent.com/t-mart/mousehole/master/unraid/my-mousehole.xml
 ```
 
 #### Option B: Create Template Manually
