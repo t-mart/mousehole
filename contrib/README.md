@@ -6,6 +6,6 @@ This directory contains community-contributed supplemental functionality.
   - Display network info, API status, and timing data
   - Custom widgets and API integration
 
--[Unraid Installation](./unraid/)
+- [Unraid Installation](./unraid/)
   - xml template for manual installation
   - README file with installation instructions
