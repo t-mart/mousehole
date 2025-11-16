@@ -49,3 +49,13 @@ Enter - Save File Name
 3. Select the **mousehole** template from the template dropdown
 4. Verify all settings are correct for your setup
 5. Click **Apply**
+
+## Running qBittorrent with VPN
+
+If you're running mousehole through qBittorrent's VPN connection using `network_mode: "service:qbittorrent"`, mousehole will share qBittorrent's network stack. This means:
+
+1. **Expose port 5010 through qBittorrent** - Add `-p 5010:5010` to qBittorrent's docker run command, or add `5010:5010` to qBittorrent's ports in docker-compose
+2. **Remove mousehole's port mapping** - Don't include `-p 5010:5010` on mousehole since it's using qBittorrent's network
+3. **Allow LAN access** - Add the environment variable to qBittorrent to expose the port on your local network (exact variable depends on your qBittorrent container image)
+
+Mousehole will be accessible at `http://localhost:5010`
