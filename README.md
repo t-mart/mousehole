@@ -3,7 +3,7 @@
 A background service to update a seedbox IP for MAM and an HTTP server to manage
 it.
 
-![Mousehole Demo](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/demo.webp)
+![Mousehole Demo](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/demo.webp)
 
 This can be helpful if you are using a host/VPN/seedbox to seed and its IP
 address is not stable.
@@ -160,7 +160,7 @@ sync), you need to set the Mousehole's cookie manually.
 On navigating to the Mousehole web interface, you will see a form to set the
 cookie -- paste your cookie and click the "Set" button.
 
-![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/cookie-form.png)
+![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/cookie-form.png)
 
 If you need help getting the cookie, click the "What do I enter here?" button
 for a tutorial.
