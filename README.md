@@ -43,98 +43,15 @@ process.
 
 See [Docker Tags](#docker-tags) section for available tags.
 
-If you intend to run Mousehole alongside a VPN container (sometimes called a
-"sidecar"), you need to ensure that:
+Starter Docker Compose examples:
 
-- Mousehole uses the VPN container's network stack
+- [Gluetun + qBittorrent + Mousehole](docs/docker-compose-examples/gluetun-qb.md)
+- [Wireguard + qBittorrent + Mousehole](docs/docker-compose-examples/wireguard-qb.md)
+- [Non-VPN Example](docs/docker-compose-examples/non-vpn.md)
 
-  With Docker Compose, this is done by setting
-  `network_mode: "service:<vpn-service-name>"`
-
-- The _VPN container_ exposes Mousehole's port (default `5010`). Don't expose it
-  on Mousehole itself!
-
-<details>
-
-<summary>Example with Wireguard + qBittorrent + Mousehole</summary>
-
-This example uses
-[LinuxServer.io's Wireguard](https://docs.linuxserver.io/images/docker-wireguard)
-and [qBittorrent](https://docs.linuxserver.io/images/docker-qbittorrent)
-containers.
-
-You will likely need more configuration than shown here for Wireguard and
-qBittorrent -- see these containers' documentation for details.
-
-```yaml
-services:
-  wireguard:
-    image: lscr.io/linuxserver/wireguard:latest
-    ports:
-      # IMPORTANT - expose Mousehole's port here
-      - "127.0.0.1:5010:5010" # or just "5010:5010" for access from beyond the local host
-      # List other ports here too, such as qBittorrent's port torrent port and web UI port
-
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-
-    # IMPORTANT - Use wireguard container's network
-    network_mode: "service:wireguard"
-
-    depends_on:
-      wireguard:
-        condition: service_started
-
-  mousehole:
-    image: tmmrtn/mousehole:latest
-
-    # IMPORTANT - Use wireguard container's network
-    network_mode: "service:wireguard"
-
-    environment:
-      TZ: Etc/UTC # Set to your timezone for localization
-
-    volumes:
-      # persist cookie data across container restarts
-      - "mousehole:/srv/mousehole"
-    restart: unless-stopped
-
-    depends_on:
-      wireguard:
-        condition: service_started
-
-volumes:
-  mousehole:
-```
-
-</details>
-
-<details>
-
-<summary>Non-VPN Example</summary>
-
-While this example is the simplest, it **will not** work with VPN containers,
-which is what most users will want. Skip this one if you are using a VPN
-container.
-
-```yaml
-services:
-  mousehole:
-    image: tmmrtn/mousehole:latest
-    environment:
-      TZ: Etc/UTC # Set to your timezone for localization
-    ports:
-      - "127.0.0.1:5010:5010" # or just "5010:5010" for access from beyond the local host
-    volumes:
-      # persist cookie data across container restarts
-      - "mousehole:/srv/mousehole"
-    restart: unless-stopped
-
-volumes:
-  mousehole:
-```
-
-</details>
+Any VPN setup can be adapted to include Mousehole as a sidecar. See
+[Using Mousehole as a Sidecar with Docker Compose](docs/sidecars.md) for
+details.
 
 #### Unraid
 
