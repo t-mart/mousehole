@@ -58,7 +58,32 @@ details.
 See the [Unraid Installation Guide](./contrib/unraid/README.md) for
 instructions.
 
-### Docker Tags
+#### Local
+
+Run the server with:
+
+```bash
+bun run start
+```
+
+### Setting Your MAM Cookie
+
+Once Mousehole is running, navigate to its web UI at `http://<host>:5010` in
+your browser. This is likely to be <http://localhost:5010> if you are running it
+locally.
+
+When running for the first time (or if the cookie gets out of sync), you need to
+set Mousehole's cookie manually.
+
+On navigating to the Mousehole web interface, you will see a form to set the
+cookie -- paste your cookie and click the "Set" button.
+
+![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/cookie-form.png)
+
+If you need help getting the cookie, click the "What do I enter here?" button
+for a tutorial.
+
+## Docker Tags
 
 Mousehole publishes several image tags to
 [Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole):
@@ -68,14 +93,6 @@ Mousehole publishes several image tags to
 - `edge`, the tip of `master` branch
 
 Choose `latest` if you do not know which to pick.
-
-### Local
-
-Run the server with:
-
-```bash
-bun run start
-```
 
 ## Environment Variables
 
@@ -92,27 +109,6 @@ bun run start
   Mousehole is still talking with MAM at some regular interval and is detecting
   out-of-band changes to the cookie.
 - `TZ`: _(Default `Etc/UTC`)_ The timezone for displaying localized times.
-
-## Setting Your MAM Cookie
-
-When running this service for the first time (or if the cookie gets out of
-sync), you need to set the Mousehole's cookie manually.
-
-On navigating to the Mousehole web interface, you will see a form to set the
-cookie -- paste your cookie and click the "Set" button.
-
-![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/cookie-form.png)
-
-If you need help getting the cookie, click the "What do I enter here?" button
-for a tutorial.
-
-## Proxying
-
-Mousehole works great with reverse proxies like
-[Nginx Proxy Manager](https://nginxproxymanager.com/).
-
-However, the Web UI makes use of WebSockets, so you need to ensure that your
-reverse proxy is configured to use them.
 
 ## Contributing
 
