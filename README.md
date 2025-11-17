@@ -26,89 +26,124 @@ Features:
   See [API.md](https://github.com/t-mart/mousehole/blob/master/docs/API.md) for
   details.
 
-## Usage
+## Getting Started
 
-### Docker Compose
+To use Mousehole, you need to:
+
+1. [Run the service](#running-the-service)
+2. [Set your MAM cookie via the web interface](#setting-your-mam-cookie)
+
+### Running the service
+
+#### Docker Compose (recommended)
+
+[Docker Compose](https://docs.docker.com/compose/) lets you define and run
+multi-container Docker applications from a single file. Mousehole releases
+Docker images to [Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole) as part
+of its CI process.
+
+See [Docker Tags](#docker-tags) section for available tags.
+
+##### Simple Mousehole-only Setup
+
+If you're running Mousehole on the host directly, you can use the following
+setup:
+
+<details>
+
+<summary>Example</summary>
 
 ```yaml
 services:
   mousehole:
     image: tmmrtn/mousehole:latest
     environment:
-      TZ: Etc/UTC # Optional, but set to your timezone for localization of API times
+      TZ: Etc/UTC # Set to your timezone for localization
     ports:
-      - "127.0.0.1:5010:5010" # or just "5010:5010" if you want it accessible to the outside world too
-    # persist cookie data across container restarts
+      - "127.0.0.1:5010:5010" # or just "5010:5010" for access from beyond the local host
     volumes:
+      # persist cookie data across container restarts
       - "mousehole:/srv/mousehole"
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1"]
 
 volumes:
   mousehole:
 ```
 
-If you intend to run this service alongside a VPN container to tunnel your
-connection, it is imperative that you run mousehole in the same network as the
-VPN container.
+</details>
 
-Example with WireGuard and qBittorrent Docker Compose stack:
+##### Using Mousehole with a VPN Container
+
+If you intend to run this service alongside a VPN container to tunnel your
+connection, you need to ensure that:
+
+- Mousehole uses the VPN container's network stack
+
+  With Docker Compose, this is done by setting
+  `network_mode: "service:<vpn-service-name>"`
+
+- The *VPN container* exposes Mousehole's port (default `5010`). Don't expose it
+  on Mousehole itself!
+
+<details>
+
+<summary>Example with Wireguard + qBittorrent + Mousehole</summary>
+
+This example uses
+[LinuxServer.io's Wireguard](https://docs.linuxserver.io/images/docker-wireguard)
+and
+[qBittorrent](https://docs.linuxserver.io/images/docker-qbittorrent) containers.
+
+You will likely need more configuration than shown here for Wireguard and
+qBittorrent -- see their documentation for details.
 
 ```yaml
 services:
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
-
-    # configure as necessary, see https://docs.linuxserver.io/images/docker-wireguard
-
     ports:
-      # anything that wants to use the wireguard network must expose ports here, such as
-      # bittorrent port, webui port, and mousehole http port
-      - "127.0.0.1:5010:5010" # or just "5010:5010" if you want it accessible to the outside world too
-      # - <qbittorrent port>:<qbittorrent port>
-      # - <qbittorrent webui port>:<qbittorrent webui port>
-
-    # optional - healthcheck to ensure the VPN is up. replace `airvpn` with your VPN interface name
-    healthcheck:
-      test: ["CMD-SHELL", "wg show airvpn | grep -q 'latest handshake'"]
+      # IMPORTANT - expose Mousehole's port here
+      - "127.0.0.1:5010:5010" # or just "5010:5010" for access from beyond the local host
+      # List other ports here too, such as qBittorrent's port torrent port and web UI port
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
 
-    # configure as necessary, see https://docs.linuxserver.io/images/docker-qbittorrent
-
-    # CRITICAL - Use wireguard container's network stack
+    # IMPORTANT - Use wireguard container's network
     network_mode: "service:wireguard"
 
-    # optional - only run after wireguard is healthy
     depends_on:
       wireguard:
-        condition: service_healthy
+        condition: service_started
 
   mousehole:
     image: tmmrtn/mousehole:latest
 
-    # CRITICAL - Use wireguard container's network stack
+    # IMPORTANT - Use wireguard container's network
     network_mode: "service:wireguard"
 
     environment:
-      TZ: Etc/UTC # Optional, but set to your timezone for localization of API times
-    # persist cookie data across container restarts
+      TZ: Etc/UTC # Set to your timezone for localization
+
     volumes:
+      # persist cookie data across container restarts
       - "mousehole:/srv/mousehole"
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1"]
 
-    # optional - only run after wireguard is healthy
     depends_on:
       wireguard:
-        condition: service_healthy
+        condition: service_started
 
 volumes:
   mousehole:
 ```
+
+</details>
+
+#### Unraid
+
+See the [Unraid Installation Guide](./contrib/unraid/README.md) for
+instructions.
 
 ### Docker Tags
 
@@ -149,10 +184,11 @@ bun run start
   in seconds between checks.
 - `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
   seconds after which a MAM response is considered stale. This ensures that
-  we're still talking with MAM at some regular interval and are detecting
+  Mousehole is still talking with MAM at some regular interval and is detecting
   out-of-band changes to the cookie.
+- `TZ`: _(Default `Etc/UTC`)_ The timezone for displaying localized times.
 
-## First-time Setup (or if cookie gets out of sync)
+## Setting Your MAM Cookie
 
 When running this service for the first time (or if the cookie gets out of
 sync), you need to set the Mousehole's cookie manually.
