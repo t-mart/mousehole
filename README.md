@@ -37,52 +37,21 @@ To use Mousehole, you need to:
 
 #### Docker Compose (recommended)
 
-[Docker Compose](https://docs.docker.com/compose/) lets you define and run
-multi-container Docker applications from a single file. Mousehole releases
-Docker images to [Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole) as part
-of its CI process.
+Mousehole releases Docker images to
+[Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole) as part of its CI
+process.
 
 See [Docker Tags](#docker-tags) section for available tags.
 
-##### Simple Mousehole-only Setup
-
-If you're running Mousehole on the host directly, you can use the following
-setup:
-
-<details>
-
-<summary>Example</summary>
-
-```yaml
-services:
-  mousehole:
-    image: tmmrtn/mousehole:latest
-    environment:
-      TZ: Etc/UTC # Set to your timezone for localization
-    ports:
-      - "127.0.0.1:5010:5010" # or just "5010:5010" for access from beyond the local host
-    volumes:
-      # persist cookie data across container restarts
-      - "mousehole:/srv/mousehole"
-    restart: unless-stopped
-
-volumes:
-  mousehole:
-```
-
-</details>
-
-##### Using Mousehole with a VPN Container
-
-If you intend to run this service alongside a VPN container to tunnel your
-connection, you need to ensure that:
+If you intend to run Mousehole alongside a VPN container (sometimes called a
+"sidecar"), you need to ensure that:
 
 - Mousehole uses the VPN container's network stack
 
   With Docker Compose, this is done by setting
   `network_mode: "service:<vpn-service-name>"`
 
-- The *VPN container* exposes Mousehole's port (default `5010`). Don't expose it
+- The _VPN container_ exposes Mousehole's port (default `5010`). Don't expose it
   on Mousehole itself!
 
 <details>
@@ -91,11 +60,11 @@ connection, you need to ensure that:
 
 This example uses
 [LinuxServer.io's Wireguard](https://docs.linuxserver.io/images/docker-wireguard)
-and
-[qBittorrent](https://docs.linuxserver.io/images/docker-qbittorrent) containers.
+and [qBittorrent](https://docs.linuxserver.io/images/docker-qbittorrent)
+containers.
 
 You will likely need more configuration than shown here for Wireguard and
-qBittorrent -- see their documentation for details.
+qBittorrent -- see these containers' documentation for details.
 
 ```yaml
 services:
@@ -140,6 +109,33 @@ volumes:
 
 </details>
 
+<details>
+
+<summary>Non-VPN Example</summary>
+
+While this example is the simplest, it **will not** work with VPN containers,
+which is what most users will want. Skip this one if you are using a VPN
+container.
+
+```yaml
+services:
+  mousehole:
+    image: tmmrtn/mousehole:latest
+    environment:
+      TZ: Etc/UTC # Set to your timezone for localization
+    ports:
+      - "127.0.0.1:5010:5010" # or just "5010:5010" for access from beyond the local host
+    volumes:
+      # persist cookie data across container restarts
+      - "mousehole:/srv/mousehole"
+    restart: unless-stopped
+
+volumes:
+  mousehole:
+```
+
+</details>
+
 #### Unraid
 
 See the [Unraid Installation Guide](./contrib/unraid/README.md) for
@@ -155,14 +151,6 @@ Mousehole publishes several image tags to
 - `edge`, the tip of `master` branch
 
 Choose `latest` if you do not know which to pick.
-
-### Proxying
-
-Mousehole works great with reverse proxies like
-[Nginx Proxy Manager](https://nginxproxymanager.com/).
-
-However, the Web UI makes use of WebSockets, so you need to ensure that your
-reverse proxy is configured to use them.
 
 ### Local
 
@@ -200,6 +188,14 @@ cookie -- paste your cookie and click the "Set" button.
 
 If you need help getting the cookie, click the "What do I enter here?" button
 for a tutorial.
+
+## Proxying
+
+Mousehole works great with reverse proxies like
+[Nginx Proxy Manager](https://nginxproxymanager.com/).
+
+However, the Web UI makes use of WebSockets, so you need to ensure that your
+reverse proxy is configured to use them.
 
 ## Contributing
 
