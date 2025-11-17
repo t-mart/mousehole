@@ -26,91 +26,64 @@ Features:
   See [API.md](https://github.com/t-mart/mousehole/blob/master/docs/API.md) for
   details.
 
-## Usage
+## Getting Started
 
-### Docker Compose
+To use Mousehole, you need to:
 
-```yaml
-services:
-  mousehole:
-    image: tmmrtn/mousehole:latest
-    environment:
-      TZ: Etc/UTC # Optional, but set to your timezone for localization of API times
-    ports:
-      - "127.0.0.1:5010:5010" # or just "5010:5010" if you want it accessible to the outside world too
-    # persist cookie data across container restarts
-    volumes:
-      - "mousehole:/srv/mousehole"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1"]
+1. [Run the service](#running-the-service)
+2. [Set your MAM cookie via the web interface](#setting-your-mam-cookie)
 
-volumes:
-  mousehole:
+### Running the service
+
+#### Docker Compose (recommended)
+
+Mousehole releases Docker images to
+[Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole) as part of its CI
+process.
+
+See [Docker Tags](#docker-tags) section for available tags.
+
+Starter Docker Compose examples:
+
+- [Gluetun + qBittorrent + Mousehole](docs/docker-compose-examples/gluetun-qb.md)
+- [Wireguard + qBittorrent + Mousehole](docs/docker-compose-examples/wireguard-qb.md)
+- [Non-VPN Example](docs/docker-compose-examples/non-vpn.md)
+
+Any VPN setup can be adapted to include Mousehole as a sidecar. See
+[Using Mousehole as a Sidecar with Docker Compose](docs/sidecars.md) for
+details.
+
+#### Unraid
+
+See the [Unraid Installation Guide](./contrib/unraid/README.md) for
+instructions.
+
+#### Local
+
+Run the server with:
+
+```bash
+bun run start
 ```
 
-If you intend to run this service alongside a VPN container to tunnel your
-connection, it is imperative that you run mousehole in the same network as the
-VPN container.
+### Setting Your MAM Cookie
 
-Example with WireGuard and qBittorrent Docker Compose stack:
+Once Mousehole is running, navigate to its web UI at `http://<host>:5010` in
+your browser. This is likely to be <http://localhost:5010> if you are running it
+locally.
 
-```yaml
-services:
-  wireguard:
-    image: lscr.io/linuxserver/wireguard:latest
+When running for the first time (or if the cookie gets out of sync), you need to
+set Mousehole's cookie manually.
 
-    # configure as necessary, see https://docs.linuxserver.io/images/docker-wireguard
+On navigating to the Mousehole web interface, you will see a form to set the
+cookie -- paste your cookie and click the "Set" button.
 
-    ports:
-      # anything that wants to use the wireguard network must expose ports here, such as
-      # bittorrent port, webui port, and mousehole http port
-      - "127.0.0.1:5010:5010" # or just "5010:5010" if you want it accessible to the outside world too
-      # - <qbittorrent port>:<qbittorrent port>
-      # - <qbittorrent webui port>:<qbittorrent webui port>
+![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/cookie-form.png)
 
-    # optional - healthcheck to ensure the VPN is up. replace `airvpn` with your VPN interface name
-    healthcheck:
-      test: ["CMD-SHELL", "wg show airvpn | grep -q 'latest handshake'"]
+If you need help getting the cookie, click the "What do I enter here?" button
+for a tutorial.
 
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-
-    # configure as necessary, see https://docs.linuxserver.io/images/docker-qbittorrent
-
-    # CRITICAL - Use wireguard container's network stack
-    network_mode: "service:wireguard"
-
-    # optional - only run after wireguard is healthy
-    depends_on:
-      wireguard:
-        condition: service_healthy
-
-  mousehole:
-    image: tmmrtn/mousehole:latest
-
-    # CRITICAL - Use wireguard container's network stack
-    network_mode: "service:wireguard"
-
-    environment:
-      TZ: Etc/UTC # Optional, but set to your timezone for localization of API times
-    # persist cookie data across container restarts
-    volumes:
-      - "mousehole:/srv/mousehole"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:5010/state || exit 1"]
-
-    # optional - only run after wireguard is healthy
-    depends_on:
-      wireguard:
-        condition: service_healthy
-
-volumes:
-  mousehole:
-```
-
-### Docker Tags
+## Docker Tags
 
 Mousehole publishes several image tags to
 [Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole):
@@ -120,22 +93,6 @@ Mousehole publishes several image tags to
 - `edge`, the tip of `master` branch
 
 Choose `latest` if you do not know which to pick.
-
-### Proxying
-
-Mousehole works great with reverse proxies like
-[Nginx Proxy Manager](https://nginxproxymanager.com/).
-
-However, the Web UI makes use of WebSockets, so you need to ensure that your
-reverse proxy is configured to use them.
-
-### Local
-
-Run the server with:
-
-```bash
-bun run start
-```
 
 ## Environment Variables
 
@@ -149,21 +106,9 @@ bun run start
   in seconds between checks.
 - `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
   seconds after which a MAM response is considered stale. This ensures that
-  we're still talking with MAM at some regular interval and are detecting
+  Mousehole is still talking with MAM at some regular interval and is detecting
   out-of-band changes to the cookie.
-
-## First-time Setup (or if cookie gets out of sync)
-
-When running this service for the first time (or if the cookie gets out of
-sync), you need to set the Mousehole's cookie manually.
-
-On navigating to the Mousehole web interface, you will see a form to set the
-cookie -- paste your cookie and click the "Set" button.
-
-![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/cookie-form.png)
-
-If you need help getting the cookie, click the "What do I enter here?" button
-for a tutorial.
+- `TZ`: _(Default `Etc/UTC`)_ The timezone for displaying localized times.
 
 ## Contributing
 
