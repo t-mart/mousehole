@@ -1,7 +1,7 @@
 # Non-VPN Docker Compose Example
 
-> [!WARNING] Most users will not want to use this example because it does not
-> use a VPN.
+> [!WARNING]
+> Most users will not want to use this example because it does not use a VPN.
 
 This example runs Mousehole without a VPN. Therefore, it is only suitable if you
 are running your bittorrent client on the host machine or in another container
