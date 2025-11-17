@@ -9,7 +9,7 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/tmmrtn/mousehole</Support>
   <Project>https://github.com/tmmrtn/mousehole</Project>
-  <Overview>Mousehole is a lightweight web application for managing and tracking mouse activity or similar monitoring tasks. This container provides a simple web interface accessible via port 5010.</Overview>
+  <Overview>Mousehole is a background service to update a seedbox IP for MAM and an HTTP server to manage it.</Overview>
   <Category>Tools:</Category>
   <WebUI>http://[IP]:[PORT:5010]</WebUI>
   <TemplateURL/>
