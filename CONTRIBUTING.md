@@ -1,7 +1,5 @@
 # Contributing to Mousehole
 
-Thank you for your interest in contributing to Mousehole!
-
 Here are some things to keep in mind:
 
 - No contribution is too small! Please submit as many fixes for typos and
@@ -30,6 +28,5 @@ Here are some things to keep in mind:
 ## Getting Help
 
 - Open an [issue](https://github.com/t-mart/mousehole/issues) for bugs
-- Start a [discussion](https://github.com/t-mart/mousehole/discussions) for
-  questions
-- Check existing issues/discussions before posting
+- Check existing issues before posting
+- Make a new issue instead of asking questions in closed ones.

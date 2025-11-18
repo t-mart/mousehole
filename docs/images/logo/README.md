@@ -8,7 +8,7 @@ The master logo is `logo.svg`. Other formats are generated from this with imagem
 magick \
   -background none \
   -density 1200 \
-  docs/images/logo.svg \
+  docs/images/logo/logo.svg \
   -resize 512 \
-  docs/images/logo.png
+  docs/images/logo/logo.png
 ```
