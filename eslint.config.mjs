@@ -18,6 +18,7 @@ export default tseslint.config(
     plugins: {
       perfectionist,
       eslintPluginReact,
+      "react-hooks": reactHooks,
     },
 
     languageOptions: {
@@ -80,12 +81,13 @@ export default tseslint.config(
           ],
         },
       ],
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
   {
     ignores: ["dist/**", "node_modules/**"],
   },
   prettier,
-  reactHooks.configs["recommended-latest"],
   jsxA11y.flatConfigs.recommended
 );
