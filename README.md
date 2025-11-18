@@ -91,6 +91,7 @@ Mousehole publishes several image tags to
 - SemVer versions (`0`, `0.1`, `0.1.11`, etc)
 - `latest`, the latest released version
 - `edge`, the tip of `master` branch
+- Pull requests targeting `master` for testing, tagged as `pr-<number>`
 
 Choose `latest` if you do not know which to pick.
 
