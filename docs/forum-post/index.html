@@ -1,0 +1,159 @@
+<div style="max-width: 70ch; margin-inline: auto; padding: 2rem">
+  <h1
+    id="mousehole-a-seedbox-ip-updater-for-mam"
+    style="margin-bottom: 1.5rem; font-size: 38px"
+  >
+    Mousehole, a Seedbox IP Updater for MAM
+  </h1>
+  <p style="margin-bottom: 1rem; font-size: 16px">
+    Quick Links:
+    <a
+      title="GitHub"
+      href="https://github.com/t-mart/mousehole"
+      target="_blank"
+      rel="noopener"
+      >GitHub</a
+    >,
+    <a
+      title="Docker Hub"
+      href="https://hub.docker.com/r/tmmrtn/mousehole"
+      target="_blank"
+      rel="noopener"
+      >Docker Hub</a
+    >
+  </p>
+  <p style="margin-bottom: 1rem; font-size: 16px">
+    A background service to update a seedbox IP for MaM and an HTTP server to
+    manage it.
+  </p>
+  <img
+    src="https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/demo.webp?cache=1"
+    alt="Mousehole Demo"
+    style="max-width: 100%; height: auto; margin-bottom: 1rem"
+  />
+  <p style="margin-bottom: 1rem; font-size: 16px">
+    This can be helpful if you are using a VPN/seedbox to seed and your IP
+    address is not stable.
+  </p>
+  <h2 style="font-size: 24px; margin-bottom: 1.25rem">Features</h2>
+  <ul>
+    <li>
+      <p style="margin-bottom: 1rem; font-size: 16px">
+        Background service that regularly updates MAM with the IP address of the
+        host. Set it and forget it!
+      </p>
+    </li>
+    <li>
+      <p style="margin-bottom: 1rem; font-size: 16px">
+        Convenient frontend website that can set your MAM cookie, show status,
+        and let you trigger updates manually.
+      </p>
+    </li>
+    <li>
+      <p style="margin-bottom: 1rem; font-size: 16px">
+        API server with management endpoints. See
+        <a
+          href="https://github.com/t-mart/mousehole/blob/master/docs/API.md"
+          target="_blank"
+          rel="noopener"
+          >API.md</a
+        >
+        for details.
+      </p>
+    </li>
+  </ul>
+  <h2 style="font-size: 24px; margin-bottom: 1.25rem">Setup</h2>
+  <ol>
+    <li>
+      <p style="margin-bottom: 1rem; font-size: 16px">
+        Bring up a Docker Compose stack with a <code>compose.yml</code> like
+        this:
+      </p>
+
+      <pre
+        style="
+          background-color: oklch(26.8% 0.007 34.298);
+          color: oklch(97% 0.001 106.424);
+          border-color: oklch(92.3% 0.003 48.717);
+          border-width: 1px;
+          border-style: solid;
+          border-radius: 0.5rem;
+          padding: 1rem;
+          overflow-x: auto;
+          width: fit-content;
+          font-size: 16px;
+        "
+      ><code>services:
+  mousehole:
+    image: tmmrtn/mousehole:latest
+    ports:
+      - "127.0.0.1:5010:5010"
+    volumes:
+      - mousehole:/srv/mousehole
+  
+volumes:
+  mousehole:</code></pre>
+
+      <div
+        style="
+          margin-bottom: 1rem;
+          border-left: 0.25rem solid #f85149;
+          padding-left: 0.75rem;
+          padding-block: 0.75rem;
+        "
+      >
+        <p style="font-size: 16px; margin-bottom: 0.5rem; color: #f85149">
+          Important
+        </p>
+        <p style="font-size: 16px">
+          Most users will need more configuration than this, especially if you
+          want to use a VPN!
+          <a
+            href="https://github.com/t-mart/mousehole?tab=readme-ov-file#docker-compose-recommended"
+            target="_blank"
+            rel="noopener"
+            >The GitHub Readme has better examples</a
+          >.
+        </p>
+      </div>
+    </li>
+    <li>
+      <p style="margin-bottom: 1rem; font-size: 16px">
+        Access the web interface at (most likely)
+        <a href="http://localhost:5010" target="_blank" rel="noopener"
+          ><code>http://localhost:5010</code></a
+        >
+        and set your MAM cookie.
+      </p>
+    </li>
+    <li>
+      <p style="margin-bottom: 1rem; font-size: 16px">
+        Get on with your life and let Mousehole keep your seedbox IP updated!
+      </p>
+    </li>
+  </ol>
+
+  <h2 style="font-size: 2rem; margin-bottom: 1.25rem">Links</h2>
+  <ul>
+    <li>
+      <p style="margin-bottom: 1rem; font-size: 16px">
+        <a
+          href="https://github.com/t-mart/mousehole"
+          target="_blank"
+          rel="noopener"
+          >GitHub Repository</a
+        >
+      </p>
+    </li>
+    <li>
+      <p style="margin-bottom: 1rem; font-size: 16px">
+        <a
+          href="https://hub.docker.com/r/tmmrtn/mousehole"
+          target="_blank"
+          rel="noopener"
+          >Docker Hub image</a
+        >
+      </p>
+    </li>
+  </ul>
+</div>
