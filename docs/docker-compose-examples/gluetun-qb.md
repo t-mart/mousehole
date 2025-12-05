@@ -25,7 +25,7 @@ services:
       - "6881:6881/udp" # qBittorrent UDP torrent port
     environment:
       VPN_SERVICE_PROVIDER: "your-vpn-provider"
-      FIREWALL_VPN_INPUT_PORTS: "6881" # qBittorrent TCP torrent
+      FIREWALL_VPN_INPUT_PORTS: "6881" # qBittorrent torrent
       # more is needed here -- see Gluetun documentation
       # https://github.com/qdm12/gluetun-wiki
       # https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers
