@@ -7,8 +7,9 @@ support for many providers. This example also uses
 This example uses [Mousehole as a sidecar](../sidecars.md).
 
 > [!IMPORTANT]  
-> This example is just a starting point. You will need to read documentation and
-> modify it to suit your needs.
+> This is just a starting point! Read documentation for the projects involved
+> and adapt this example to your needs. Ask for help from the
+> [forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257) or an LLM.
 
 ```yaml
 services:

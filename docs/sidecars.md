@@ -15,17 +15,15 @@ Mousehole as a sidecar.
 
 ## Non-Functional but Illustrative Example
 
-A **non-functional** example illustrating these points is shown below:
-
 ```yaml
 services:
-  vpn:
-    image: your-vpn-image:latest
-    ports:
-      - "5010:5010" # Point 2: Expose Mousehole's port here
-
   mousehole:
     image: tmmrtn/mousehole:latest
     network_mode: "service:vpn" # Point 1: Use VPN container's network
     restart: unless-stopped
+
+  vpn:
+    image: your-vpn-image:latest
+    ports:
+      - "5010:5010" # Point 2: Expose Mousehole's port here
 ```

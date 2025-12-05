@@ -37,15 +37,54 @@ To use Mousehole, you need to:
 
 #### Docker Compose (recommended)
 
-Mousehole releases Docker images to
-[Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole) as part of its CI
-process.
+```yaml
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "5010:5010" # Mousehole port
+      - "8080:8080" # qBittorrent Web UI port
+      - "6881:6881/tcp" # qBittorrent TCP torrent port
+      - "6881:6881/udp" # qBittorrent UDP torrent port
+    environment:
+      VPN_SERVICE_PROVIDER: "your-vpn-provider"
+      FIREWALL_VPN_INPUT_PORTS: "6881" # qBittorrent torrent
+      # more is needed here -- see Gluetun documentation
+      # https://github.com/qdm12/gluetun-wiki
+      # https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers
+    restart: unless-stopped
 
-See [Docker Tags](#docker-tags) section for available tags.
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    network_mode: "service:gluetun"
+    environment:
+      TZ: Etc/UTC # Set to your timezone for localization
+      WEBUI_PORT: 8080
+      TORRENTING_PORT: 6881
+    restart: unless-stopped
+
+  mousehole:
+    image: tmmrtn/mousehole:latest
+    network_mode: "service:gluetun"
+    environment:
+      TZ: Etc/UTC # Set to your timezone for localization
+    volumes:
+      # persist cookie data across container restarts
+      - "mousehole:/srv/mousehole"
+    restart: unless-stopped
+
+volumes:
+  mousehole:
+```
+
 
 Starter Docker Compose examples:
 
-- [Gluetun + qBittorrent + Mousehole](docs/docker-compose-examples/gluetun-qb.md)
+- ⭐ [Gluetun + qBittorrent + Mousehole](docs/docker-compose-examples/gluetun-qb.md)
 - [Wireguard + qBittorrent + Mousehole](docs/docker-compose-examples/wireguard-qb.md)
 - [Non-VPN Example](docs/docker-compose-examples/non-vpn.md)
 
