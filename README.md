@@ -32,6 +32,7 @@ To use Mousehole, you need to:
 
 1. [Run the service](#running-the-service)
 2. [Set your MAM cookie via the web interface](#setting-your-mam-cookie)
+3. [Handle MAM errors](#handling-errors) (if any)
 
 ### Running the service
 
@@ -121,6 +122,16 @@ cookie -- paste your cookie and click the "Set" button.
 
 If you need help getting the cookie, click the "What do I enter here?" button
 for a tutorial.
+
+
+### Handling Errors
+
+Even with Mousehole up and running, things can still go wrong that Mousehole
+cannot fix automatically. Here are some of the common ones:
+
+- ["Invalid session - ASN mismatch"](./docs/errors/asn-mismatch.md)
+- ["Invalid session - Invalid cookie"](./docs/errors/invalid-cookie.md)
+- ["Last Change too recent"](./docs/errors/last-change-too-recent.md)
 
 ## Docker Tags
 
