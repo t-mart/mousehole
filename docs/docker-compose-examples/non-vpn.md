@@ -8,8 +8,9 @@ are running your bittorrent client on the host machine or in another container
 without a VPN.
 
 > [!IMPORTANT]  
-> This example is just a starting point. You will need to read documentation and
-> modify it to suit your needs.
+> This is just a starting point! Read documentation for the projects involved
+> and adapt this example to your needs. Ask for help from the
+> [forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257) or an LLM.
 
 ```yaml
 services:
