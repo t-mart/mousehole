@@ -20,7 +20,8 @@ Here are some things to keep in mind:
 2. Create a feature branch
 3. Make your changes
 4. Test your changes
-5. Submit a Pull Request with:
+5. Add a line item to the changelog under "Unreleased" in `CHANGELOG.md`.
+6. Submit a Pull Request with:
    - Clear description of changes
    - Screenshots for UI changes
    - Related issue numbers
