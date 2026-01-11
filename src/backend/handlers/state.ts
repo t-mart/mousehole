@@ -39,7 +39,7 @@ export async function handlePutState(
     throw SchemaError.fromUserSource("request body", { cause: error });
   }
 
-  const state = { ...stateFile.readIfExists(), ...newState };
+  const state = { ...(await stateFile.readIfExists()), ...newState };
   await stateFile.write(state);
 
   // notify websocket clients
