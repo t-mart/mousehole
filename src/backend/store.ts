@@ -5,6 +5,7 @@ import { config } from "./config";
 import {
   FileReadError,
   FileWriteError,
+  DirectoryCreateError,
   JSONParseError,
   SchemaError,
 } from "./error";
@@ -20,19 +21,15 @@ class StateFileStore {
     try {
       contents = await file.text();
     } catch (error) {
-      if (error instanceof Error) {
-        throw new FileReadError(statePath, { cause: error });
-      }
-      throw error;
+      const cause = error instanceof Error ? error : new Error(String(error));
+      throw new FileReadError(statePath, { cause });
     }
     let json;
     try {
       json = JSON.parse(contents);
     } catch (error) {
-      if (error instanceof Error) {
-        throw JSONParseError.fromFile(statePath, { cause: error });
-      }
-      throw error;
+      const cause = error instanceof Error ? error : new Error(String(error));
+      throw JSONParseError.fromFile(statePath, { cause });
     }
     const { data: serializedState, error } =
       serializedStateSchema.safeParse(json);
@@ -59,29 +56,23 @@ class StateFileStore {
     try {
       contents = JSON.stringify(serializedState, undefined, 2);
     } catch (error) {
-      if (error instanceof Error) {
-        throw JSONParseError.fromFile(statePath, { cause: error });
-      }
-      throw error;
+      const cause = error instanceof Error ? error : new Error(String(error));
+      throw JSONParseError.fromFile(statePath, { cause });
     }
 
     try {
       await fs.mkdir(config.stateDirPath, { recursive: true });
     } catch (error) {
-      if (error instanceof Error) {
-        throw new FileWriteError(statePath, { cause: error });
-      }
-      throw error;
+      const cause = error instanceof Error ? error : new Error(String(error));
+      throw new DirectoryCreateError(config.stateDirPath, { cause });
     }
 
     const file = Bun.file(statePath);
     try {
       await file.write(contents);
     } catch (error) {
-      if (error instanceof Error) {
-        throw new FileWriteError(statePath, { cause: error });
-      }
-      throw error;
+      const cause = error instanceof Error ? error : new Error(String(error));
+      throw new FileWriteError(statePath, { cause });
     }
   }
 }
