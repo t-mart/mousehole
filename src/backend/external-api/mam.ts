@@ -65,12 +65,12 @@ export async function updateMamIp(
 }
 
 function getResponseCookieValue(response: Response): string | undefined {
-  for (const [headerName, headerValue] of response.headers.entries()) {
-    if (headerName.toLowerCase() === "set-cookie") {
-      const cookie = Cookie.parse(headerValue);
-      if (cookie && cookie.key === cookieKey) {
-        return cookie.value;
-      }
+  const setCookieHeaders = response.headers.getSetCookie();
+
+  for (const headerValue of setCookieHeaders) {
+    const cookie = Cookie.parse(headerValue);
+    if (cookie && cookie.key === cookieKey) {
+      return cookie.value;
     }
   }
   return undefined;
