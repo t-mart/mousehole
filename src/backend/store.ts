@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 
 import { config } from "./config";
@@ -63,6 +64,16 @@ class StateFileStore {
       }
       throw error;
     }
+
+    try {
+      await fs.mkdir(config.stateDirPath, { recursive: true });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new FileWriteError(statePath, { cause: error });
+      }
+      throw error;
+    }
+
     const file = Bun.file(statePath);
     try {
       await file.write(contents);
