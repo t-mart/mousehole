@@ -39,6 +39,17 @@ export class FileWriteError extends MouseholeError {
   }
 }
 
+export class DirectoryCreateError extends MouseholeError {
+  constructor(path: string, { cause }: { cause: Error }) {
+    super(
+      `Error creating directory: ${path}. Check that the parent directory exists and you have write permissions.`,
+      { cause, httpStatus: 500 }
+    );
+    this.name = "DirectoryCreateError";
+    this.errorType = "directory-create-error";
+  }
+}
+
 export class JSONParseError extends MouseholeError {
   private constructor(
     message: string,

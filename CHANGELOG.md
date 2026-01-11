@@ -5,6 +5,7 @@
 - State updates to `PUT /state` now save correctly (was writing Promise object
   instead of actual data)
 - State directory is now created automatically on first write if it doesn't exist
+- Non-Error exceptions are now properly wrapped in custom error types with context
 - Start this changelog
 
 ## [0.2.0](https://github.com/t-mart/mousehole/releases/tag/v0.2.0) - 2025-09-09
