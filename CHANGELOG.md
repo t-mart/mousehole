@@ -4,6 +4,7 @@
 
 - State updates to `PUT /state` now save correctly (was writing Promise object
   instead of actual data)
+- Start this changelog
 
 ## [0.2.0](https://github.com/t-mart/mousehole/releases/tag/v0.2.0) - 2025-09-09
 
