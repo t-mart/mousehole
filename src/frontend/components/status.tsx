@@ -4,6 +4,7 @@ import type { GetStateResponseBody } from "#backend/types.ts";
 
 import { cn } from "#frontend/lib/cn.ts";
 
+import { ClickToCopy } from "./click-to-copy";
 import { Section } from "./section";
 
 export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
@@ -19,11 +20,16 @@ export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
         </DLRow>
         <DLRow>
           <DT>Host IP</DT>
-          <DD><span className="font-mono">{data.host.ip}</span></DD>
+          <DD>
+            <ClickToCopy value={data.host.ip} label="IP address" />
+          </DD>
         </DLRow>
         <DLRow>
           <DT>Host AS</DT>
-          <DD><span className="font-mono">{data.host.asn}</span>, {data.host.as}</DD>
+          <DD>
+            <ClickToCopy value={String(data.host.asn)} label="ASN" className="mr-1" />
+            <span>, {data.host.as}</span>
+          </DD>
         </DLRow>
       </dl>
     </Section>

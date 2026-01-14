@@ -203,6 +203,8 @@ function useInvalidateOnStateUpdate() {
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
+  const connectRef = useRef<(() => () => void) | undefined>(undefined);
+
   const connect = useCallback(() => {
     const websocket = new WebSocket("/web/ws");
     websocketRef.current = websocket;
@@ -234,10 +236,9 @@ function useInvalidateOnStateUpdate() {
 
     function handleClose() {
       clearInterval(heartbeatRef.current);
-      reconnectTimeoutRef.current = setTimeout(
-        connect,
-        reconnectDelayMilliseconds
-      );
+      reconnectTimeoutRef.current = setTimeout(() => {
+        connectRef.current?.();
+      }, reconnectDelayMilliseconds);
     }
 
     function handleError(event: Event) {
@@ -258,6 +259,10 @@ function useInvalidateOnStateUpdate() {
   }, [queryClient]);
 
   useEffect(() => {
+    connectRef.current = connect;
+  });
+
+  useEffect(() => {
     const cleanup = connect();
 
     return () => {
@@ -271,7 +276,7 @@ function useInvalidateOnStateUpdate() {
       }
       websocketRef.current = undefined;
     };
-  }, [connect, queryClient]);
+  }, [connect]);
 }
 
 function ShowStateResponse({ data }: Readonly<{ data: GetStateResponseBody }>) {
