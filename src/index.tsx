@@ -25,6 +25,7 @@ function makeJSONResponse<T>({ body, init }: JSONResponseArgs<T>): Response {
 
 const server = Bun.serve({
   port: config.port,
+  hostname: "0.0.0.0",
   routes: {
     "/": (request: Request) => {
       const negotiator = new Negotiator({
