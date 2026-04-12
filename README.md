@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=t-mart&project=mousehole&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 # Mousehole, a Seedbox IP Updater for MAM
 
 A background service to update a seedbox IP for MAM and an HTTP server to manage
