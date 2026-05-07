@@ -69,4 +69,12 @@ export const config = {
   port: environmentOrFallback("MOUSEHOLE_PORT", 5010, (value) =>
     Number.parseInt(value)
   ),
+
+  /**
+   * The HTTP proxy URL to use for outbound fetch requests.
+   *
+   * Reads HTTPS_PROXY, falling back to HTTP_PROXY. Undefined when neither is
+   * set.
+   */
+  proxy: environmentOrFallback("HTTPS_PROXY", process.env.HTTP_PROXY),
 };

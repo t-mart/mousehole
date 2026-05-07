@@ -160,6 +160,9 @@ Choose `latest` if you do not know which to pick.
   Mousehole is still talking with MAM at some regular interval and is detecting
   out-of-band changes to the cookie.
 - `TZ`: _(Default `Etc/UTC`)_ The timezone for displaying localized times.
+- `HTTPS_PROXY` / `HTTP_PROXY`: _(Default `undefined`)_ The HTTP proxy URL to
+  use for outbound requests (e.g. `http://gluetun:8888`). `HTTPS_PROXY` takes
+  precedence over `HTTP_PROXY`.
 
 ## Contributing
 

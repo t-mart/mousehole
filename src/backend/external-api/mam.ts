@@ -33,9 +33,11 @@ export async function updateMamIp(
   const performedAt = getNowZdt();
 
   // Note: the IP address is determined by the server from the request.
-  const response = await fetch(endpointUrl, {
+  const fetchInit: RequestInit & { proxy?: string } = {
     headers,
-  });
+    proxy: config.proxy,
+  };
+  const response = await fetch(endpointUrl, fetchInit);
 
   const json = await parseJsonResponse(response);
   const { data: body, error: parseError } =

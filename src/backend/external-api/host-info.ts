@@ -6,11 +6,11 @@ import { ipResponseBodySchema } from "#backend/types.ts";
 const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
 
 export async function getHostInfo() {
-  const response = await fetch(endpointUrl, {
-    headers: {
-      "User-Agent": config.userAgent,
-    },
-  });
+  const fetchInit: RequestInit & { proxy?: string } = {
+    headers: { "User-Agent": config.userAgent },
+    proxy: config.proxy,
+  };
+  const response = await fetch(endpointUrl, fetchInit);
 
   if (!response.ok) {
     throw new Error(
