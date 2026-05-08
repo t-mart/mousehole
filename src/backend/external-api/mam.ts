@@ -28,6 +28,10 @@ export async function updateMamIp(
 
     // must supply cookie
     Cookie: cookie.cookieString(),
+
+    // Avoid Bun reusing a stale keep-alive connection through the proxy,
+    // which surfaces as InvalidHTTPResponse.
+    Connection: "close",
   };
 
   const performedAt = getNowZdt();

@@ -7,7 +7,12 @@ const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
 
 export async function getHostInfo() {
   const fetchInit: RequestInit & { proxy?: string } = {
-    headers: { "User-Agent": config.userAgent },
+    headers: {
+      "User-Agent": config.userAgent,
+      // Avoid Bun reusing a stale keep-alive connection through the proxy,
+      // which surfaces as InvalidHTTPResponse.
+      Connection: "close",
+    },
     proxy: config.proxy,
   };
   const response = await fetch(endpointUrl, fetchInit);
