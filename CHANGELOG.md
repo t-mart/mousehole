@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Add Bun `proxy()` param to handle HTTP proxy environments in [#57](https://github.com/t-mart/mousehole/pull/57)
 - State updates to `PUT /state` now save correctly (was writing Promise object
   instead of actual data) in [#42](https://github.com/t-mart/mousehole/pull/42)
 - State directory is now created automatically on first write if it doesn't
