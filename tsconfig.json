@@ -21,7 +21,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
 
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
