@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Auto detect text files and perform LF normalization in
+  [#58](https://github.com/t-mart/mousehole/pull/58)
 - State updates to `PUT /state` now save correctly (was writing Promise object
   instead of actual data) in [#42](https://github.com/t-mart/mousehole/pull/42)
 - State directory is now created automatically on first write if it doesn't
