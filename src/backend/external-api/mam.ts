@@ -1,5 +1,3 @@
-import { Cookie } from "tough-cookie";
-
 import { config } from "#backend/config.ts";
 import { SchemaError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
@@ -17,17 +15,12 @@ const cookieKey = "mam_id";
 export async function updateMamIp(
   currentCookieValue: string
 ): Promise<MamResponse> {
-  const cookie = new Cookie({
-    key: cookieKey,
-    value: currentCookieValue,
-  });
-
   const headers = {
     // Identify us to MAM if they even care
     "User-Agent": config.userAgent,
 
     // must supply cookie
-    Cookie: cookie.cookieString(),
+    Cookie: `${cookieKey}=${currentCookieValue}`,
   };
 
   const performedAt = getNowZdt();
@@ -65,11 +58,9 @@ export async function updateMamIp(
 }
 
 function getResponseCookieValue(response: Response): string | undefined {
-  const setCookieHeaders = response.headers.getSetCookie();
-
-  for (const headerValue of setCookieHeaders) {
-    const cookie = Cookie.parse(headerValue);
-    if (cookie && cookie.key === cookieKey) {
+  for (const headerValue of response.headers.getSetCookie()) {
+    const cookie = new Bun.Cookie(headerValue);
+    if (cookie.name === cookieKey) {
       return cookie.value;
     }
   }
