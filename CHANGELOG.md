@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Also log HTTP request errors in server logs in
+  [#70](https://github.com/t-mart/mousehole/pull/70)
 - Declare that CSS can be imported in
   [#66](https://github.com/t-mart/mousehole/pull/66)
 - Improve Dockerfile caching in
