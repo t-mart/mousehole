@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Update JS dependencies to latest versions in
+  [#63](https://github.com/t-mart/mousehole/pull/63)
 - Use Bun Cookie API instead of `tough-cookie` for parsing MAM cookies in
   [#62](https://github.com/t-mart/mousehole/pull/62)
 - Update GitHub actions to latest versions in
