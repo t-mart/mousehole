@@ -1,35 +1,34 @@
-# see all versions at https://hub.docker.com/r/oven/bun/tags
 FROM oven/bun:1-debian AS base
-WORKDIR /usr/src/app
 
-# install dependencies into temp directory
-# this will cache them and speed up future builds
-FROM base AS install
-RUN mkdir -p /temp/dev
-COPY package.json bun.lock /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+# where to install dependencies for caching
+ARG BUN_INSTALL_DIR=/temp/install
+# where the app will live in the final image
+ARG BUN_APP_DIR=/usr/src/app
 
-# install with --production (exclude devDependencies)
-RUN mkdir -p /temp/prod
-COPY package.json bun.lock /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
-
-# copy production dependencies and source code into final image
-FROM base AS release
-
-ARG GIT_HASH
-ENV BUN_PUBLIC_GIT_HASH=${GIT_HASH}
-ENV NODE_ENV=production
-
-# install curl for healthchecks
+FROM base AS base-with-curl
+# install curl for health checks, at top for caching
 RUN apt-get update && \
     apt-get install -y curl --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=install /temp/prod/node_modules node_modules
-COPY package.json bunfig.toml ./
-COPY src ./src
+FROM base AS install
+WORKDIR ${BUN_INSTALL_DIR}
+COPY package.json bun.lock ./
+# --production excludes devDependencies
+RUN bun install --frozen-lockfile --production
+
+FROM base-with-curl AS release
+# copy production dependencies and source code into final image
 
 USER bun
 EXPOSE 5010/tcp
+WORKDIR ${BUN_APP_DIR}
+ENV NODE_ENV=production
+ARG GIT_HASH
+ENV BUN_PUBLIC_GIT_HASH=${GIT_HASH}
+
+COPY --from=install ${BUN_INSTALL_DIR}/node_modules node_modules
+COPY package.json bunfig.toml ./
+COPY src ./src
+
 CMD ["bun", "run", "src/index.tsx"]

@@ -5,7 +5,8 @@
 - Declare that CSS can be imported in
   [#66](https://github.com/t-mart/mousehole/pull/66)
 - Improve Dockerfile caching in
-  [#65](https://github.com/t-mart/mousehole/pull/65)
+  [#65](https://github.com/t-mart/mousehole/pull/65) and
+  [#69](https://github.com/t-mart/mousehole/pull/69)
 - Remove deprecated `baseUrl` tsconfig option in
   [#64](https://github.com/t-mart/mousehole/pull/64)
 - Update JS dependencies to latest versions in
