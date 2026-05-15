@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Update GitHub actions to latest versions in
+  [#59](https://github.com/t-mart/mousehole/pull/59)
 - Auto detect text files and perform LF normalization in
   [#58](https://github.com/t-mart/mousehole/pull/58)
 - State updates to `PUT /state` now save correctly (was writing Promise object
