@@ -67,9 +67,10 @@ class StateFileStore {
       throw new DirectoryCreateError(config.stateDirPath, { cause });
     }
 
-    const file = Bun.file(statePath);
+    const temporaryPath = `${statePath}.tmp`;
     try {
-      await file.write(contents);
+      await Bun.write(temporaryPath, contents);
+      await fs.rename(temporaryPath, statePath);
     } catch (error) {
       const cause = error instanceof Error ? error : new Error(String(error));
       throw new FileWriteError(statePath, { cause });

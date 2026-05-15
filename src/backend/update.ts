@@ -17,6 +17,7 @@ import { updateMamIp } from "./external-api/mam.ts";
 import { stateFile } from "./store.ts";
 
 let currentBackgroundTask: BackgroundTask | undefined;
+const inflightUpdates = new Set<Promise<unknown>>();
 
 type UpdateOptions = {
   force: boolean;
@@ -24,7 +25,7 @@ type UpdateOptions = {
 
 export function getUpdateReason(
   state: State | undefined,
-  hostInfo: HostInfo
+  hostInfo: HostInfo,
 ): UpdateReason | undefined {
   const lastMamResponse = state?.lastMam;
 
@@ -82,7 +83,7 @@ async function update(options?: UpdateOptions): Promise<State> {
     console.log("IP address updated with MAM");
   } else {
     console.error(
-      `Failed to update IP address with MAM: ${mamResponse.response.httpStatus} - ${mamResponse.response.body.msg}`
+      `Failed to update IP address with MAM: ${mamResponse.response.httpStatus} - ${mamResponse.response.body.msg}`,
     );
   }
 
@@ -124,7 +125,7 @@ function reschedule() {
   // Schedule the next run.
   const timeoutId = setTimeout(
     () => updateAndReschedule(undefined, true),
-    config.checkIntervalSeconds * 1000
+    config.checkIntervalSeconds * 1000,
   );
 
   // this won't be exactly right because of the time between last statement
@@ -151,27 +152,37 @@ type UpdateAndRescheduleReturn<JustLogError extends boolean = false> =
  */
 export async function updateAndReschedule<JustLogError extends boolean = false>(
   options?: UpdateOptions,
-  justLogError: JustLogError = false as JustLogError
+  justLogError: JustLogError = false as JustLogError,
 ): Promise<UpdateAndRescheduleReturn<JustLogError>> {
-  try {
-    const newState = await update(options);
+  const promise = (async () => {
+    try {
+      const newState = await update(options);
 
-    // write, but also return to callers (such as API handlers)
-    await stateFile.write(newState);
+      // write, but also return to callers (such as API handlers)
+      await stateFile.write(newState);
 
-    notifyWebSocketClients();
+      notifyWebSocketClients();
 
-    return newState as UpdateAndRescheduleReturn<JustLogError>;
-  } catch (error) {
-    if (justLogError) {
-      console.error(error);
-      return undefined as UpdateAndRescheduleReturn<JustLogError>;
-    } else {
-      throw error;
+      return newState as UpdateAndRescheduleReturn<JustLogError>;
+    } catch (error) {
+      if (justLogError) {
+        console.error(error);
+        return undefined as UpdateAndRescheduleReturn<JustLogError>;
+      } else {
+        throw error;
+      }
+    } finally {
+      reschedule();
     }
-  } finally {
-    reschedule();
-  }
+  })();
+
+  inflightUpdates.add(promise);
+  promise.finally(() => inflightUpdates.delete(promise));
+  return promise;
+}
+
+export async function waitForInflightUpdates(): Promise<void> {
+  await Promise.allSettled(inflightUpdates);
 }
 
 /**
