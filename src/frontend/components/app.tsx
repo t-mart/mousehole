@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  useCallback,
   useEffect,
   useRef,
   useState,
@@ -32,6 +31,10 @@ import { Timer } from "./timer";
 export const stateQueryKey: readonly [string] = ["state"];
 const heartbeatIntervalMilliseconds = 30_000;
 const reconnectDelayMilliseconds = 3000;
+
+function handleWebSocketError(event: Event) {
+  console.error("WebSocket error:", event);
+}
 
 export function App() {
   return (
@@ -203,18 +206,8 @@ function useInvalidateOnStateUpdate() {
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
-  const connect = useCallback(() => {
-    const websocket = new WebSocket("/web/ws");
-    websocketRef.current = websocket;
-
-    function handleOpen() {
-      clearTimeout(reconnectTimeoutRef.current);
-      heartbeatRef.current = setInterval(() => {
-        if (websocket.readyState === WebSocket.OPEN) {
-          websocket.send("ping");
-        }
-      }, heartbeatIntervalMilliseconds);
-    }
+  useEffect(() => {
+    let cleanupListeners: (() => void) | undefined;
 
     function handleMessage(event: MessageEvent<string>) {
       const { data } = event;
@@ -232,46 +225,50 @@ function useInvalidateOnStateUpdate() {
       }
     }
 
-    function handleClose() {
-      clearInterval(heartbeatRef.current);
-      reconnectTimeoutRef.current = setTimeout(
-        connect,
-        reconnectDelayMilliseconds
-      );
+    function connect() {
+      const websocket = new WebSocket("/web/ws");
+      websocketRef.current = websocket;
+
+      function handleOpen() {
+        clearTimeout(reconnectTimeoutRef.current);
+        heartbeatRef.current = setInterval(() => {
+          if (websocket.readyState === WebSocket.OPEN) {
+            websocket.send("ping");
+          }
+        }, heartbeatIntervalMilliseconds);
+      }
+
+      function handleClose() {
+        clearInterval(heartbeatRef.current);
+        reconnectTimeoutRef.current = setTimeout(
+          connect,
+          reconnectDelayMilliseconds
+        );
+      }
+
+      websocket.addEventListener("open", handleOpen);
+      websocket.addEventListener("message", handleMessage);
+      websocket.addEventListener("close", handleClose);
+      websocket.addEventListener("error", handleWebSocketError);
+
+      cleanupListeners = () => {
+        websocket.removeEventListener("open", handleOpen);
+        websocket.removeEventListener("message", handleMessage);
+        websocket.removeEventListener("close", handleClose);
+        websocket.removeEventListener("error", handleWebSocketError);
+      };
     }
 
-    function handleError(event: Event) {
-      console.error("WebSocket error:", event);
-    }
-
-    websocket.addEventListener("open", handleOpen);
-    websocket.addEventListener("message", handleMessage);
-    websocket.addEventListener("close", handleClose);
-    websocket.addEventListener("error", handleError);
-
-    return () => {
-      websocket.removeEventListener("open", handleOpen);
-      websocket.removeEventListener("message", handleMessage);
-      websocket.removeEventListener("close", handleClose);
-      websocket.removeEventListener("error", handleError);
-    };
-  }, [queryClient]);
-
-  useEffect(() => {
-    const cleanup = connect();
+    connect();
 
     return () => {
       clearInterval(heartbeatRef.current);
       clearTimeout(reconnectTimeoutRef.current);
-
-      const ws = websocketRef.current;
-      if (ws) {
-        cleanup();
-        ws.close();
-      }
+      cleanupListeners?.();
+      websocketRef.current?.close();
       websocketRef.current = undefined;
     };
-  }, [connect, queryClient]);
+  }, [queryClient]);
 }
 
 function ShowStateResponse({ data }: Readonly<{ data: GetStateResponseBody }>) {
