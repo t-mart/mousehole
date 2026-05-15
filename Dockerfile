@@ -1,35 +1,20 @@
-# see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1-debian AS base
-WORKDIR /usr/src/app
+FROM oven/bun:debian
 
-# install dependencies into temp directory
-# this will cache them and speed up future builds
-FROM base AS install
-RUN mkdir -p /temp/dev
-COPY package.json bun.lock /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+WORKDIR /mousehole
 
-# install with --production (exclude devDependencies)
-RUN mkdir -p /temp/prod
-COPY package.json bun.lock /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
-
-# copy production dependencies and source code into final image
-FROM base AS release
-
-ARG GIT_HASH
-ENV BUN_PUBLIC_GIT_HASH=${GIT_HASH}
-ENV NODE_ENV=production
-
-# install curl for healthchecks
+# get curl for healthcheck
 RUN apt-get update && \
     apt-get install -y curl --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=install /temp/prod/node_modules node_modules
-COPY package.json bunfig.toml ./
+ARG GIT_HASH
+ENV BUN_PUBLIC_GIT_HASH=${GIT_HASH}
+
+COPY package.json .
+COPY bun.lock .
+COPY bunfig.toml .
 COPY src ./src
 
-USER bun
-EXPOSE 3000/tcp
-CMD ["bun", "src/index.tsx"]
+RUN bun install
+
+CMD ["bun", "run", "start"]
