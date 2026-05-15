@@ -86,6 +86,7 @@ const server = Bun.serve({
   },
 
   error(error: unknown) {
+    console.error(error);
     return makeJSONResponse(toJSONResponseArgs(error));
   },
 
