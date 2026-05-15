@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Remove deprecated `baseUrl` tsconfig option in
+  [#64](https://github.com/t-mart/mousehole/pull/64)
 - Update JS dependencies to latest versions in
   [#63](https://github.com/t-mart/mousehole/pull/63)
 - Use Bun Cookie API instead of `tough-cookie` for parsing MAM cookies in
