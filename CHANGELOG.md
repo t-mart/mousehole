@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Use Bun Cookie API instead of `tough-cookie` for parsing MAM cookies in
+  [#62](https://github.com/t-mart/mousehole/pull/62)
 - Update GitHub actions to latest versions in
   [#59](https://github.com/t-mart/mousehole/pull/59)
 - Auto detect text files and perform LF normalization in
