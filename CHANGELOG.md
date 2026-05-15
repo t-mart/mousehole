@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Improve Dockerfile caching in
+  [#65](https://github.com/t-mart/mousehole/pull/65)
 - Remove deprecated `baseUrl` tsconfig option in
   [#64](https://github.com/t-mart/mousehole/pull/64)
 - Update JS dependencies to latest versions in
