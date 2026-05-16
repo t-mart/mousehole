@@ -14,14 +14,26 @@ import { config } from "./config.ts";
 import { NoCookieError } from "./error.ts";
 import { getHostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
+import { Mutex } from "./mutex.ts";
 import { stateFile } from "./store.ts";
 
+// ── internal work ─────────────────────────────────────────────────────────────
+
 let currentBackgroundTask: BackgroundTask | undefined;
-const inflightUpdates = new Set<Promise<unknown>>();
+export const updateMutex = new Mutex();
 
 type UpdateOptions = {
   force: boolean;
 };
+
+function responseIsStale(response: MamResponse): boolean {
+  // Check if the last response is older than the force update interval.
+  const performedAt = response.request.at;
+  const staleAt = performedAt.add({
+    seconds: config.staleResponseSeconds,
+  });
+  return staleAt.epochNanoseconds <= getNowZdt().epochNanoseconds;
+}
 
 export function getUpdateReason(
   state: State | undefined,
@@ -42,18 +54,16 @@ export function getUpdateReason(
   }
 }
 
-/**
- * Perform the core IP update logic
- */
-async function update(options?: UpdateOptions): Promise<State> {
+async function coreUpdate(options?: UpdateOptions): Promise<State> {
   const force = options?.force ?? false;
 
   const state = await stateFile.readIfExists();
-  const hostInfo = await getHostInfo();
 
   if (!state?.currentCookie) {
     throw new NoCookieError();
   }
+
+  const hostInfo = await getHostInfo();
 
   const reason: ManualUpdateReason | undefined = force
     ? "forced"
@@ -67,7 +77,7 @@ async function update(options?: UpdateOptions): Promise<State> {
       lastUpdate: {
         at: getNowZdt(),
         mamUpdated: false,
-        mamUpdateReason: reason,
+        mamUpdateReason: undefined,
       },
     };
     return newState;
@@ -104,95 +114,58 @@ async function update(options?: UpdateOptions): Promise<State> {
   return newState;
 }
 
-function responseIsStale(response: MamResponse): boolean {
-  // Check if the last response is older than the force update interval.
-  const performedAt = response.request.at;
-  const staleAt = performedAt.add({
-    seconds: config.staleResponseSeconds,
-  });
-  return staleAt.epochNanoseconds <= getNowZdt().epochNanoseconds;
+async function runUpdate(options?: UpdateOptions): Promise<State> {
+  const release = await updateMutex.acquire();
+  try {
+    const newState = await coreUpdate(options);
+    await stateFile.write(newState);
+    notifyWebSocketClients();
+    return newState;
+  } finally {
+    scheduleNext();
+    release();
+  }
 }
 
+// ── timer ─────────────────────────────────────────────────────────────────────
+
 /**
- * Clears any existing scheduled task and sets a new one.
+ * Clear any current timer and schedule the next one
+ * `config.checkIntervalSeconds` seconds from now.
  */
-function reschedule() {
-  // Cancel the previously scheduled task, if it exists.
+function scheduleNext() {
   if (currentBackgroundTask?.nextUpdateTimeoutId) {
     clearTimeout(currentBackgroundTask.nextUpdateTimeoutId);
   }
 
-  // Schedule the next run.
   const timeoutId = setTimeout(
-    () => updateAndReschedule(undefined, true),
+    () => runUpdate().catch(console.error),
     config.checkIntervalSeconds * 1000,
   );
 
   // this won't be exactly right because of the time between last statement
-  // (setTimeout) and this line but it will be close enough for our purposes.
+  // (setTimeout) and this line but it will be close enough. this is just
+  // for informational/logging purposes anyway.
   const nextUpdateAt = getNowZdt().add({
     seconds: config.checkIntervalSeconds,
   });
 
-  currentBackgroundTask = {
-    nextUpdateTimeoutId: timeoutId,
-    nextUpdateAt,
-  };
+  currentBackgroundTask = { nextUpdateTimeoutId: timeoutId, nextUpdateAt };
 
   console.log(`Next automatic update scheduled for: ${nextUpdateAt}`);
 }
 
-type UpdateAndRescheduleReturn<JustLogError extends boolean = false> =
-  JustLogError extends true ? void : State;
+// ── public API ────────────────────────────────────────────────────────────────
 
-/**
- * Manually update the IP and resets the automatic update schedule.
- * This is the function to call when a user initiates the update.
- * @returns The result of the MAM update.
- */
-export async function updateAndReschedule<JustLogError extends boolean = false>(
-  options?: UpdateOptions,
-  justLogError: JustLogError = false as JustLogError,
-): Promise<UpdateAndRescheduleReturn<JustLogError>> {
-  const promise = (async () => {
-    try {
-      const newState = await update(options);
-
-      // write, but also return to callers (such as API handlers)
-      await stateFile.write(newState);
-
-      notifyWebSocketClients();
-
-      return newState as UpdateAndRescheduleReturn<JustLogError>;
-    } catch (error) {
-      if (justLogError) {
-        console.error(error);
-        return undefined as UpdateAndRescheduleReturn<JustLogError>;
-      } else {
-        throw error;
-      }
-    } finally {
-      reschedule();
-    }
-  })();
-
-  inflightUpdates.add(promise);
-  promise.finally(() => inflightUpdates.delete(promise));
-  return promise;
+// Called by the HTTP handler. Throws on error — caller returns 500.
+export function triggerUpdate(options?: UpdateOptions): Promise<State> {
+  return runUpdate(options);
 }
 
-export async function waitForInflightUpdates(): Promise<void> {
-  await Promise.allSettled(inflightUpdates);
-}
-
-/**
- * Starts the background task scheduler.
- * Call this once when server starts.
- */
+// Called once at startup.
 export function startBackgroundUpdateTask() {
   console.log("Starting background update task...");
-  // We run the update once immediately, then schedule the next one.
-  updateAndReschedule(undefined, true);
+  runUpdate().catch(console.error);
 }
 
 export function getNextUpdateAt() {

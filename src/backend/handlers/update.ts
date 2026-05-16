@@ -7,7 +7,7 @@ import {
   type JSONResponseArgs,
   type SerializedUpdate,
 } from "#backend/types.ts";
-import { updateAndReschedule } from "#backend/update.ts";
+import { triggerUpdate } from "#backend/update.ts";
 
 export async function handlePostUpdate(
   request: Request
@@ -19,7 +19,7 @@ export async function handlePostUpdate(
     throw SchemaError.fromUserSource("request body", { cause: error });
   }
 
-  const state = await updateAndReschedule(updateOptions);
+  const state = await triggerUpdate(updateOptions);
 
   if (state instanceof Error) {
     throw state;

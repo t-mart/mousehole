@@ -7,7 +7,7 @@ import { toJSONResponseArgs } from "#backend/error.ts";
 import { handleGetOk } from "#backend/handlers/ok.ts";
 import { handleGetState, handlePutState } from "#backend/handlers/state.ts";
 import { handlePostUpdate } from "#backend/handlers/update.ts";
-import { startBackgroundUpdateTask, waitForInflightUpdates } from "#backend/update.ts";
+import { startBackgroundUpdateTask, updateMutex } from "#backend/update.ts";
 import index from "#frontend/index.html";
 import { gitHash } from "#shared/git-hash.ts";
 
@@ -119,7 +119,7 @@ startBackgroundUpdateTask();
 
 async function shutdown() {
   console.log("Shutting down...");
-  await waitForInflightUpdates();
+  await updateMutex.acquire();
   server.stop();
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0);

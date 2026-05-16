@@ -67,6 +67,9 @@ class StateFileStore {
       throw new DirectoryCreateError(config.stateDirPath, { cause });
     }
 
+    // Write to a temporary file first and then rename it to ensure atomic
+    // writes. This is a millisecond-level race condition protection against
+    // broken writes; unlikely, but why not be safe?
     const temporaryPath = `${statePath}.tmp`;
     try {
       await Bun.write(temporaryPath, contents);
