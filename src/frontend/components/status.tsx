@@ -1,9 +1,11 @@
-import type { ComponentPropsWithRef } from "react";
+import { Check, Copy } from "lucide-react";
+import { type ComponentPropsWithRef, useState } from "react";
 
 import type { GetStateResponseBody } from "#backend/types.ts";
 
 import { cn } from "#frontend/lib/cn.ts";
 
+import { focusRingClasses } from "./link";
 import { Section } from "./section";
 
 export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
@@ -19,14 +21,42 @@ export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
         </DLRow>
         <DLRow>
           <DT>Host IP</DT>
-          <DD><span className="font-mono">{data.host.ip}</span></DD>
+          <DD>
+            <CopyableIP ip={data.host.ip} />
+          </DD>
         </DLRow>
         <DLRow>
           <DT>Host AS</DT>
-          <DD><span className="font-mono">{data.host.asn}</span>, {data.host.as}</DD>
+          <DD>
+            <span className="font-mono">{data.host.asn}</span>, {data.host.as}
+          </DD>
         </DLRow>
       </dl>
     </Section>
+  );
+}
+
+function CopyableIP({ ip }: Readonly<{ ip: string }>) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(ip);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="font-mono">{ip}</span>
+      <button
+        type="button"
+        onClick={handleCopy}
+        aria-label={copied ? "Copied!" : "Copy IP address"}
+        className={cn("text-muted-text hover:text-foreground cursor-pointer", focusRingClasses)}
+      >
+        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+      </button>
+    </span>
   );
 }
 
@@ -48,13 +78,8 @@ function StatusContent({ data }: Readonly<{ data: GetStateResponseBody }>) {
   } else if (data.lastMam) {
     const success = data.lastMam.response.body.Success;
     const state = success ? "ok" : "error";
-    const text = success? "OK": data.lastMam.response.body.msg
-    return (
-      <StatusLine
-        state={state}
-        text={text}
-      />
-    );
+    const text = success ? "OK" : data.lastMam.response.body.msg;
+    return <StatusLine state={state} text={text} />;
   } else {
     return <StatusLine state="warn" text="Pending check" />;
   }
@@ -67,8 +92,8 @@ function StatusLine({ state, text }: Readonly<{ state: State; text: string }>) {
     state === "ok"
       ? "text-success"
       : state === "error"
-      ? "text-destructive"
-      : "text-warn";
+        ? "text-destructive"
+        : "text-warn";
   return (
     <div className="flex items-center gap-x-2">
       <span className={cn(styleClass)}>{text}</span>
