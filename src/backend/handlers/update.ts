@@ -7,19 +7,20 @@ import {
   type JSONResponseArgs,
   type SerializedUpdate,
 } from "#backend/types.ts";
-import { updateAndReschedule } from "#backend/update.ts";
+import { triggerUpdate } from "#backend/update.ts";
 
 export async function handlePostUpdate(
-  request: Request
+  request: Request,
 ): Promise<JSONResponseArgs<SerializedUpdate | ErrorResponseBody>> {
   const json = await parseRequestJson(request);
-  const { data: updateOptions, error } = postIpRequestBodySchema.safeParse(json);
+  const { data: updateOptions, error } =
+    postIpRequestBodySchema.safeParse(json);
 
   if (error) {
     throw SchemaError.fromUserSource("request body", { cause: error });
   }
 
-  const state = await updateAndReschedule(updateOptions);
+  const state = await triggerUpdate(updateOptions);
 
   if (state instanceof Error) {
     throw state;

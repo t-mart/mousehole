@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Fix some issues around synchronization, such as preventing race conditions and
+  enabling graceful shutdown on signal in
+  [#68](https://github.com/t-mart/mousehole/pull/68)
 - Also log HTTP request errors in server logs in
   [#70](https://github.com/t-mart/mousehole/pull/70)
 - Declare that CSS can be imported in
