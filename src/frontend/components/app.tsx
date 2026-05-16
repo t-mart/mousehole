@@ -100,6 +100,7 @@ function GitHashSpan() {
 
 function StateSections() {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
+  const queryClient = useQueryClient();
 
   const stateQuery = useQuery({
     queryKey: stateQueryKey,
@@ -171,7 +172,10 @@ function StateSections() {
               </ButtonLink>
               <ButtonLink
                 variant={"muted-primary-background-bright"}
-                onClick={() => fetch("/update", { method: "POST" })}
+                onClick={async () => {
+                  await fetch("/update", { method: "POST" });
+                  queryClient.invalidateQueries({ queryKey: stateQueryKey });
+                }}
               >
                 Check Now
               </ButtonLink>
@@ -226,11 +230,13 @@ function useInvalidateOnStateUpdate() {
     }
 
     function connect() {
+      cleanupListeners?.();
       const websocket = new WebSocket("/web/ws");
       websocketRef.current = websocket;
 
       function handleOpen() {
         clearTimeout(reconnectTimeoutRef.current);
+        queryClient.invalidateQueries({ queryKey: stateQueryKey });
         heartbeatRef.current = setInterval(() => {
           if (websocket.readyState === WebSocket.OPEN) {
             websocket.send("ping");
