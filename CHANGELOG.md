@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Maintain help documentation in Markdown on Github instead of in the app in
+  [#74](https://github.com/t-mart/mousehole/pull/74)
 - Click to copy IP address in [#71](https://github.com/t-mart/mousehole/pull/71)
 - Refactor frontend files in [#67](https://github.com/t-mart/mousehole/pull/67)
 - Fix some issues around synchronization, such as preventing race conditions and
