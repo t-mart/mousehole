@@ -1,43 +1,54 @@
 # Getting Your Cookie Value
 
-When running this service for the first time (or if the cookie gets out of
-sync), you need to set the Mousehole's cookie manually. Follow these steps to
-get yours.
+When running this service for the first time (or if run into issues), you need
+to create a session for it. Each session is tied to a cookie value.
+
+> [!IMPORTANT] Create a dedicated session for Mousehole. The cookie rotates on
+> every request, so any other client sharing this cookie will be invalidated the
+> moment Mousehole makes a request (and vice versa).
 
 1. Go to the
    [MAM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security).
 
-2. Make a session.
+   Here, you will see a section listing your existing sessions and a section to
+   create a new session.
 
-   _(If you already have a session you want to use here, click "View ASN locked
-   session cookie" and proceed to the next step.)_
+   ![Security Settings Page](/docs/images/security-settings-page.png)
 
-   In the "Create session" section, enter these values:
+2. Create a session.
 
-   ![Create Session Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/mam-session-form.png)
+   **Already have a session from the last time you did this?** You _can_ reuse
+   it, but some settings are locked at session creation and cannot be changed
+   later. I recommend to just delete the old one with the "Remove Session"
+   button in the "Sessions" section and create a new one.
+
+   In the "Create session" section at the bottom of the page, enter these values:
+
+   ![Create Session Form](/docs/images/mam-session-form.png)
 
    | Field                                | Description                                                                  |
-   | ------------------------------------ | -----------------------------------------------------------------------------|
-   | IP                                   | The current IP address of your host. (Mousehole displays this for you!)      |
+   | ------------------------------------ | ---------------------------------------------------------------------------- |
+   | IP                                   | The IP address of the machine running Mousehole — **not** your browser's IP. Mousehole shows you the correct value on its main page. |
    | IP vs ASN locked session             | Select **ASN**. This allows your IP to change.                               |
    | Allow Session to set Dynamic Seedbox | Select **Yes**. This allows the service to update your IP through MAM's API. |
-   | Session Label/note                   | Something that identifies the seedbox host, such as "mousehole".             |
+   | Session Label/note                   | Text by which you can remember the session, such as "mousehole".             |
 
    Then press the "Submit Changes!" button.
 
 3. Copy the cookie value on the shown page.
 
-   ![Session Cookie Value](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/mam-cookie.png)
+   ![Session Cookie Value](/docs/images/mam-cookie.png)
 
-4. Back in Mousehole, paste the cookie into the text box and click the "Set" button.
+4. Back in Mousehole, paste the cookie into the text box and click the "Set"
+   button.
 
-   ![Mousehole Set Button](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/cookie-form.png)
+   ![Mousehole Set Button](/docs/images/cookie-form.png)
 
 5. Click the "Check Now" button.
 
-   ![Mousehole Check Now Button](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/check-now-button.png)
+   ![Mousehole Check Now Button](/docs/images/check-now-button.png)
 
-6. Et voilà! You should now see an OK status, and Mousehole keep your IP updated
+6. Et voilà! You should now see an OK status, and Mousehole will keep your IP updated
    with MAM automatically in the background. You don't need to do anything else!
    You can close the page.
 

@@ -16,10 +16,14 @@ import {
   DialogTrigger,
 } from "./dialog";
 import { ButtonLink } from "./link";
+import { NeedHelp } from "./need-help";
 import { Spinner } from "./spinner";
 import { Status } from "./status";
 import { Timer } from "./timer";
-import { stateQueryKey, useInvalidateOnStateUpdate } from "./use-invalidate-on-state-update";
+import {
+  stateQueryKey,
+  useInvalidateOnStateUpdate,
+} from "./use-invalidate-on-state-update";
 
 export function StateSections() {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
@@ -34,7 +38,7 @@ export function StateSections() {
         | ErrorResponseBody;
       if (!response.ok) {
         throw new Error(
-          `Bad response from GET /state: ${response.status} - ${body}`
+          `Bad response from GET /state: ${response.status} - ${body}`,
         );
       }
       return body as GetStateResponseBody;
@@ -62,16 +66,18 @@ export function StateSections() {
 
   const data = stateQuery.data;
 
+  const isMamError = data.lastMam?.response.body.Success === false;
+
   const showCookieForm =
     userWantsInputCookie ||
     !data.currentCookie ||
-    (data.lastMam?.response.body.Success === false &&
-      data.lastMam?.response.httpStatus !== 429);
+    (isMamError && data.lastMam?.response.httpStatus !== 429);
 
   return (
     <>
       <main className="space-y-4">
         <Status data={data} key={`status-${data.lastUpdate?.at}`} />
+        {isMamError && <NeedHelp />}
         {showCookieForm && (
           <Cookie
             onUpdated={() => setUserWantsInputCookie(false)}
