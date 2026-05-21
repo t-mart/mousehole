@@ -13,7 +13,8 @@ to create a session for it. Each session is tied to a cookie value.
 
 2. Create a session.
 
-   > [!TIP] **Already have a session from the last time you did this?** You
+   > [!TIP]
+   > **Already have a session from the last time you did this?** You
    > _can_ reuse it, but some settings are permanent and cannot be changed
    > later. I recommend to just delete the old one with the "Remove Session"
    > button in the "Sessions" section and create a new one.
