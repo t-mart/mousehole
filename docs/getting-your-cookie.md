@@ -13,11 +13,10 @@ to create a session for it. Each session is tied to a cookie value.
 
 2. Create a session.
 
-   > [!TIP]
-   > Already have a session from the last time you did this? You
-   > _can_ reuse it, but some settings are permanent and cannot be changed
-   > later. I recommend to just delete the old one with the "Remove Session"
-   > button in the "Sessions" section and create a new one.
+   **Already have a session from the last time you did this?** You _can_ reuse
+   it, but some settings are permanent and cannot be changed later. I recommend
+   to just delete the old one with the "Remove Session" button in the "Sessions"
+   section and create a new one.
 
    In the "Create session" section at the bottom of the page, enter these
    values:
@@ -37,10 +36,9 @@ to create a session for it. Each session is tied to a cookie value.
 
    ![Session Cookie Value](/docs/images/mam-cookie.png)
 
-   > [!IMPORTANT] 
-   > Do not share this cookie with any other client. The session rotates to a new
-   > cookie value for each request, so any other client sharing this cookie will be
-   > invalidated the moment Mousehole makes a request (and vice versa).
+   **Do not share this cookie with any other client.** The session rotates the
+   cookie value for each request, so any other client sharing this cookie will
+   be invalidated the moment Mousehole makes a request (and vice versa).
 
 4. Back in Mousehole, paste the cookie into the text box and click the "Set"
    button.
