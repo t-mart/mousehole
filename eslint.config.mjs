@@ -56,7 +56,7 @@ export default defineConfig({
     "unicorn/prevent-abbreviations": [
       "error",
       {
-        ignore: [/param/i, /ref/i, /props/i, /args/i, /prev/i, /dev/i, /db/i],
+        ignore: [/param/i, /ref/i, /props/i, /args/i, /prev/i, /dev/i, /db/i, /docs/i],
       },
     ],
     "unicorn/filename-case": [

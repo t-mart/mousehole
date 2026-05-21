@@ -52,7 +52,10 @@ function CopyableIP({ ip }: Readonly<{ ip: string }>) {
         type="button"
         onClick={handleCopy}
         aria-label={copied ? "Copied!" : "Copy IP address"}
-        className={cn("text-muted-text hover:text-foreground cursor-pointer", focusRingClasses)}
+        className={cn(
+          "text-muted-text hover:text-foreground cursor-pointer",
+          focusRingClasses,
+        )}
       >
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
       </button>
