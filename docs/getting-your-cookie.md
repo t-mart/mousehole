@@ -3,7 +3,8 @@
 When running this service for the first time (or if run into issues), you need
 to create a session for it. Each session is tied to a cookie value.
 
-> [!IMPORTANT] Create a dedicated session for Mousehole. The cookie rotates on
+> [!IMPORTANT]
+> Create a dedicated session for Mousehole. The cookie rotates on
 > every request, so any other client sharing this cookie will be invalidated the
 > moment Mousehole makes a request (and vice versa).
 
@@ -22,16 +23,17 @@ to create a session for it. Each session is tied to a cookie value.
    later. I recommend to just delete the old one with the "Remove Session"
    button in the "Sessions" section and create a new one.
 
-   In the "Create session" section at the bottom of the page, enter these values:
+   In the "Create session" section at the bottom of the page, enter these
+   values:
 
    ![Create Session Form](/docs/images/mam-session-form.png)
 
-   | Field                                | Description                                                                  |
-   | ------------------------------------ | ---------------------------------------------------------------------------- |
+   | Field                                | Description                                                                                                                          |
+   | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
    | IP                                   | The IP address of the machine running Mousehole — **not** your browser's IP. Mousehole shows you the correct value on its main page. |
-   | IP vs ASN locked session             | Select **ASN**. This allows your IP to change.                               |
-   | Allow Session to set Dynamic Seedbox | Select **Yes**. This allows the service to update your IP through MAM's API. |
-   | Session Label/note                   | Text by which you can remember the session, such as "mousehole".             |
+   | IP vs ASN locked session             | Select **ASN**. This allows your IP to change.                                                                                       |
+   | Allow Session to set Dynamic Seedbox | Select **Yes**. This allows the service to update your IP through MAM's API.                                                         |
+   | Session Label/note                   | Text by which you can remember the session, such as "mousehole".                                                                     |
 
    Then press the "Submit Changes!" button.
 
@@ -48,9 +50,9 @@ to create a session for it. Each session is tied to a cookie value.
 
    ![Mousehole Check Now Button](/docs/images/check-now-button.png)
 
-6. Et voilà! You should now see an OK status, and Mousehole will keep your IP updated
-   with MAM automatically in the background. You don't need to do anything else!
-   You can close the page.
+6. Et voilà! You should now see an OK status, and Mousehole will keep your IP
+   updated with MAM automatically in the background. You don't need to do
+   anything else! You can close the page.
 
    If you do not see an OK status, check out
    [how to handle errors](https://github.com/t-mart/mousehole/blob/master/README.md#handling-errors).
