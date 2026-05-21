@@ -3,11 +3,6 @@
 When running this service for the first time (or if run into issues), you need
 to create a session for it. Each session is tied to a cookie value.
 
-> [!IMPORTANT]
-> Create a dedicated session for Mousehole. The cookie rotates on
-> every request, so any other client sharing this cookie will be invalidated the
-> moment Mousehole makes a request (and vice versa).
-
 1. Go to the
    [MAM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security).
 
@@ -18,10 +13,10 @@ to create a session for it. Each session is tied to a cookie value.
 
 2. Create a session.
 
-   **Already have a session from the last time you did this?** You _can_ reuse
-   it, but some settings are locked at session creation and cannot be changed
-   later. I recommend to just delete the old one with the "Remove Session"
-   button in the "Sessions" section and create a new one.
+   > [!TIP] **Already have a session from the last time you did this?** You
+   > _can_ reuse it, but some settings are permanent and cannot be changed
+   > later. I recommend to just delete the old one with the "Remove Session"
+   > button in the "Sessions" section and create a new one.
 
    In the "Create session" section at the bottom of the page, enter these
    values:
@@ -40,6 +35,11 @@ to create a session for it. Each session is tied to a cookie value.
 3. Copy the cookie value on the shown page.
 
    ![Session Cookie Value](/docs/images/mam-cookie.png)
+
+   > [!IMPORTANT] 
+   > Do not share this cookie with any other client. The session rotates to a new
+   > cookie value for each request, so any other client sharing this cookie will be
+   > invalidated the moment Mousehole makes a request (and vice versa).
 
 4. Back in Mousehole, paste the cookie into the text box and click the "Set"
    button.
