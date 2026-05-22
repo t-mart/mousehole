@@ -86,6 +86,8 @@ Starter Docker Compose examples:
 - ⭐
   [Gluetun + qBittorrent + Mousehole](docs/docker-compose-examples/gluetun-qb.md)
 - [Wireguard + qBittorrent + Mousehole](docs/docker-compose-examples/wireguard-qb.md)
+- [hotio/qBittorrent + Mousehole](docs/docker-compose-examples/hotio-qb.md)
+- [binhex/arch-qbittorrentvpn + Mousehole](docs/docker-compose-examples/binhex-qb.md)
 - [Non-VPN Example](docs/docker-compose-examples/non-vpn.md)
 
 Any VPN setup can be adapted to include Mousehole as a sidecar. See

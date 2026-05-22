@@ -13,9 +13,9 @@ in this example.
 This example uses [Mousehole as a sidecar](../sidecars.md).
 
 > [!IMPORTANT]  
-> This is just a starting point! Read documentation for the projects involved
-> and adapt this example to your needs. Ask for help from the
-> [forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257) or an LLM.
+> This is just a [starting point](../vpn-complexity.md)! Read documentation for
+> the projects involved and adapt this example to your needs. Ask for help from
+> the [forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257) or an LLM.
 
 ```yaml
 services:
