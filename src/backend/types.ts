@@ -44,14 +44,12 @@ const updateReasons = [
   "last-response-error",
   "ip-changed",
   "asn-changed",
+  "cookie-changed",
   "response-stale",
+  "force-update",
 ];
 export const updateReasonSchema = z.literal(updateReasons);
 export type UpdateReason = z.infer<typeof updateReasonSchema>;
-
-const manualUpdateReasons = [...updateReasons, "forced"];
-export const manualUpdateReasonSchema = z.literal(manualUpdateReasons);
-export type ManualUpdateReason = z.infer<typeof manualUpdateReasonSchema>;
 
 const okResponseUpdateReasons = [...updateReasons, "no-update-needed"];
 export const okResponseUpdateReasonSchema = z.literal(okResponseUpdateReasons);
@@ -75,7 +73,7 @@ export type State = {
   lastUpdate?: {
     at: Temporal.ZonedDateTime;
     mamUpdated: boolean;
-    mamUpdateReason?: ManualUpdateReason;
+    mamUpdateReason?: UpdateReason;
   };
 };
 
@@ -84,7 +82,7 @@ export type MamResponse = NonNullable<State["lastMam"]>;
 const serializedUpdateSchema = z.object({
   at: z.string(),
   mamUpdated: z.boolean(),
-  mamUpdateReason: manualUpdateReasonSchema.optional(),
+  mamUpdateReason: updateReasonSchema.optional(),
 });
 
 export const serializedStateSchema = z.object({

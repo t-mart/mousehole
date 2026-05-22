@@ -10,7 +10,7 @@ export async function handleGetOk(): Promise<
   const state = await stateFile.readIfExists();
   const hostInfo = await getHostInfo();
 
-  const updateReason = getUpdateReason(state, hostInfo);
+  const updateReason = getUpdateReason(state, hostInfo, false);
   const ok = updateReason === undefined;
 
   return {
