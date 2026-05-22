@@ -82,7 +82,10 @@ export function StateSections() {
         {isMamError && <NeedHelp />}
         {showCookieForm && (
           <Cookie
-            onUpdated={() => setUserWantsInputCookie(false)}
+            onUpdated={() => {
+              setUserWantsInputCookie(false);
+              checkNowMutation.mutate();
+            }}
             currentCookie={data.currentCookie}
           />
         )}
