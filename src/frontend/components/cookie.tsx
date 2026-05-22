@@ -1,4 +1,5 @@
-import { useId, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useId, useState } from "react";
 
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
@@ -7,29 +8,38 @@ import { Input } from "./input";
 import { Link } from "./link";
 import { Section } from "./section";
 import { Spinner } from "./spinner";
+import { stateQueryKey } from "./use-invalidate-on-state-update";
 
 export function Cookie({
   onUpdated,
   currentCookie,
 }: Readonly<{ onUpdated: () => void; currentCookie?: string }>) {
-  const [formCookie, setFormCookie] = useState<string>(currentCookie ?? "");
-  const [isPending, setIsPending] = useState<boolean>(false);
+  const queryClient = useQueryClient();
+  const [formCookie, setFormCookie] = useState(currentCookie ?? "");
   const cookieInputId = useId();
 
-  function submitForm(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (formCookie === "") {
-      return; // Prevent submitting empty cookie
-    }
-    setIsPending(true);
-    fetch("/state", {
-      method: "PUT",
-      body: JSON.stringify({ currentCookie: formCookie }),
-    }).then(() => {
-      setIsPending(false);
-      setFormCookie("");
+  useEffect(() => {
+    console.log("Current cookie:", currentCookie);
+  }, [currentCookie]);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (cookie: string) =>
+      fetch("/state", {
+        method: "PUT",
+        body: JSON.stringify({ currentCookie: cookie }),
+      }),
+    onSuccess: () => {
+      console.log("Cookie updated successfully");
       onUpdated();
-    });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: stateQueryKey });
+    },
+  });
+
+  function submitForm(event: React.SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (formCookie !== "") mutate(formCookie);
   }
 
   return (

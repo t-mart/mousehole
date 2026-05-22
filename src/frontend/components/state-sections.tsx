@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState, type ComponentPropsWithRef } from "react";
 import { Temporal } from "temporal-polyfill";
 
@@ -27,7 +27,9 @@ import {
 
 export function StateSections() {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
-  const queryClient = useQueryClient();
+  const checkNowMutation = useMutation({
+    mutationFn: () => fetch("/update", { method: "POST" }),
+  });
 
   const stateQuery = useQuery({
     queryKey: stateQueryKey,
@@ -76,7 +78,7 @@ export function StateSections() {
   return (
     <>
       <main className="space-y-4">
-        <Status data={data} key={`status-${data.lastUpdate?.at}`} />
+        <Status data={data} />
         {isMamError && <NeedHelp />}
         {showCookieForm && (
           <Cookie
@@ -87,7 +89,6 @@ export function StateSections() {
         {!showCookieForm && data.nextUpdateAt && (
           <Timer
             nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
-            key={`timer-${data.lastUpdate?.at}`}
           />
         )}
         <div className="flex items-center justify-center gap-4">
@@ -101,12 +102,9 @@ export function StateSections() {
               </ButtonLink>
               <ButtonLink
                 variant={"muted-primary-background-bright"}
-                onClick={async () => {
-                  await fetch("/update", { method: "POST" });
-                  queryClient.invalidateQueries({ queryKey: stateQueryKey });
-                }}
+                onClick={() => checkNowMutation.mutate()}
               >
-                Check Now
+                {checkNowMutation.isPending ? <Spinner /> : "Check Now"}
               </ButtonLink>
             </>
           )}
