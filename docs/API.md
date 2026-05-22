@@ -65,7 +65,8 @@ Example request bodies:
   }
   ```
 
-Returns `204 No Content` with no response body on success.
+Responses are identical to the `GET /state` response, reflecting the updated
+state.
 
 ## `/update`
 
@@ -78,7 +79,7 @@ Example request bodies:
 - _(no body)_
 - ```jsonc
   {
-    "force": true // Optional, defaults to false
+    "force": true, // Optional, defaults to false
   }
   ```
 

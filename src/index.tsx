@@ -49,7 +49,7 @@ const server = Bun.serve({
     },
     [stateEndpointPath]: {
       GET: async () => makeJSONResponse(await handleGetState()),
-      PUT: async (request) => handlePutState(request),
+      PUT: async (request) => makeJSONResponse(await handlePutState(request)),
     },
     [okEndpointPath]: {
       GET: async () => makeJSONResponse(await handleGetOk()),

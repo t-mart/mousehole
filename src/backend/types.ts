@@ -151,6 +151,7 @@ export type ErrorResponseBody = {
   [key: string]: unknown; // For additional error details, like zod issues or other supplemental data
 };
 
+export type PutStateResponseBody = GetStateResponseBody;
 
 export type DeleteStateResponseBody = {
   message: string;
