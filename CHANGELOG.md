@@ -2,7 +2,6 @@
 
 ## [Unreleased]
 
-- BREAKING: 
 - Reduce calls to IP endpoint by passing state in WebSocket messages in
   [#79](https://github.com/t-mart/mousehole/pull/79)
 - Maintain help documentation in Markdown on Github instead of in the app in

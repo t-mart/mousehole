@@ -79,7 +79,7 @@ Example request bodies:
 - _(no body)_
 - ```jsonc
   {
-    "force": true, // Optional, defaults to false
+    "force": true // Optional, defaults to false
   }
   ```
 
