@@ -5,7 +5,6 @@ import type {
   BackgroundTask,
   HostInfo,
   MamResponse,
-  ManualUpdateReason,
   State,
   UpdateReason,
 } from "./types.ts";
@@ -50,10 +49,13 @@ function responseIsStale(response: MamResponse): boolean {
 export function getUpdateReason(
   state: State | undefined,
   hostInfo: HostInfo,
+  force: boolean,
 ): UpdateReason | undefined {
   const lastMamResponse = state?.lastMam;
 
-  if (!lastMamResponse) {
+  if (force) {
+    return "force-update";
+  } else if (!lastMamResponse) {
     return "no-last-response";
   } else if (lastMamResponse.response.httpStatus !== 200) {
     return "last-response-error";
@@ -61,6 +63,8 @@ export function getUpdateReason(
     return "ip-changed";
   } else if (hostInfo.asn !== lastMamResponse.response.body.ASN) {
     return "asn-changed";
+  } else if (state.currentCookie !== lastMamResponse.response.cookie) {
+    return "cookie-changed";
   } else if (responseIsStale(lastMamResponse)) {
     return "response-stale";
   }
@@ -79,9 +83,7 @@ async function coreUpdate(
 
   const hostInfo = await getHostInfo();
 
-  const reason: ManualUpdateReason | undefined = force
-    ? "forced"
-    : getUpdateReason(state, hostInfo);
+  const reason = getUpdateReason(state, hostInfo, force);
 
   if (!reason) {
     console.log("No update needed, current state is ok");
