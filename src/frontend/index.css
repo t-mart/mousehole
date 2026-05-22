@@ -34,6 +34,10 @@
   color: var(--color-text);
 }
 
+@utility focus-ring {
+  @apply rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:ring-offset-4 focus-visible:ring-offset-background transition-[color,box-shadow];
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

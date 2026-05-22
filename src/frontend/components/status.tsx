@@ -5,7 +5,6 @@ import type { GetStateResponseBody } from "#backend/types.ts";
 
 import { cn } from "#frontend/lib/cn.ts";
 
-import { focusRingClasses } from "./link";
 import { Section } from "./section";
 
 export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
@@ -53,8 +52,10 @@ function CopyableIP({ ip }: Readonly<{ ip: string }>) {
         onClick={handleCopy}
         aria-label={copied ? "Copied!" : "Copy IP address"}
         className={cn(
-          "text-muted-text hover:text-foreground cursor-pointer",
-          focusRingClasses,
+          "cursor-pointer focus-ring",
+          copied
+            ? "text-success"
+            : "text-muted-text hover:text-primary-background-bright",
         )}
       >
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}

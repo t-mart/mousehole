@@ -4,11 +4,8 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "#frontend/lib/cn.ts";
 
-export const focusRingClasses =
-  "rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:ring-offset-4 focus-visible:ring-offset-background transition-[color,box-shadow]";
-
 const linkVariants = cva(
-  `font-semibold underline underline-offset-3 hover:decoration-[20%] ${focusRingClasses}`,
+  "font-semibold underline underline-offset-3 hover:decoration-[20%] focus-ring",
   {
     variants: {
       variant: {
