@@ -84,9 +84,12 @@ export function Dashboard() {
             currentCookie={data.currentCookie}
           />
         )}
+
+        {/* Providing a key here ensures re-render on timer expiration, good visual feedback for user */}
         {!showCookieForm && data.nextUpdateAt && (
           <Timer
             nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
+            key={data.nextUpdateAt}
           />
         )}
 
