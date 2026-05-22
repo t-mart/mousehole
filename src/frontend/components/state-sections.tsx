@@ -12,13 +12,6 @@ import {
   useInvalidateOnStateUpdate,
 } from "../hooks/invalidate-on-state-update";
 import { Cookie } from "./cookie";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./dialog";
 import { ButtonLink } from "./link";
 import { NeedHelp } from "./need-help";
 import { Spinner } from "./spinner";
@@ -111,7 +104,6 @@ export function StateSections() {
               </ButtonLink>
             </>
           )}
-          <ShowStateResponse data={data} />
         </div>
       </main>
 
@@ -129,24 +121,4 @@ export function StateSections() {
 
 function Center({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
   return <div {...props} className="flex items-center justify-center" />;
-}
-
-function ShowStateResponse({ data }: Readonly<{ data: GetStateResponseBody }>) {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <ButtonLink variant={"muted-primary-background-bright"}>
-          Show Mousehole Response
-        </ButtonLink>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Mousehole State Response</DialogTitle>
-        </DialogHeader>
-        <pre className="font-semibold bg-background rounded-lg p-4 w-full overflow-auto">
-          {JSON.stringify(data, undefined, 2)}
-        </pre>
-      </DialogContent>
-    </Dialog>
-  );
 }
