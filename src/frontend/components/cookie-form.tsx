@@ -1,9 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useId, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useId, useState } from "react";
 
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
-import { stateQueryKey } from "../hooks/invalidate-on-state-update";
 import { Button } from "./lib/button";
 import { Input } from "./lib/input";
 import { Link } from "./lib/link";
@@ -14,7 +13,6 @@ export function CookieForm({
   onUpdated,
   currentCookie,
 }: Readonly<{ onUpdated: () => void; currentCookie?: string }>) {
-  const queryClient = useQueryClient();
   const [formCookie, setFormCookie] = useState(currentCookie ?? "");
   const cookieInputId = useId();
 
@@ -26,9 +24,6 @@ export function CookieForm({
       }),
     onSuccess: () => {
       onUpdated();
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: stateQueryKey });
     },
   });
 

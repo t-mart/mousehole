@@ -5,6 +5,7 @@ import { Temporal } from "temporal-polyfill";
 import type {
   ErrorResponseBody,
   GetStateResponseBody,
+  PostIpRequestBody,
 } from "#backend/types.ts";
 
 import {
@@ -14,14 +15,18 @@ import {
 import { CookieForm } from "./cookie-form";
 import { ButtonLink } from "./lib/link";
 import { Spinner } from "./lib/spinner";
-import { NeedHelp } from "./need-help";
 import { MamResponse } from "./mam-response";
+import { NeedHelp } from "./need-help";
 import { Timer } from "./timer";
 
 export function Dashboard() {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
   const checkNowMutation = useMutation({
-    mutationFn: () => fetch("/update", { method: "POST" }),
+    mutationFn: (options: PostIpRequestBody) =>
+      fetch("/update", {
+        method: "POST",
+        body: options ? JSON.stringify(options) : undefined,
+      }),
   });
 
   const stateQuery = useQuery({
@@ -33,7 +38,7 @@ export function Dashboard() {
         | ErrorResponseBody;
       if (!response.ok) {
         throw new Error(
-          `Bad response from GET /state: ${response.status} - ${body}`,
+          `Bad response from GET /state: ${response.status} - ${JSON.stringify(body)}`,
         );
       }
       return body as GetStateResponseBody;
@@ -74,12 +79,12 @@ export function Dashboard() {
         <MamResponse data={data} />
 
         {isMamError && <NeedHelp />}
-        
+
         {showCookieForm && (
           <CookieForm
             onUpdated={() => {
               setUserWantsInputCookie(false);
-              checkNowMutation.mutate();
+              checkNowMutation.mutate({ force: true });
             }}
             currentCookie={data.currentCookie}
           />
@@ -104,7 +109,7 @@ export function Dashboard() {
               </ButtonLink>
               <ButtonLink
                 variant={"muted-primary-background-bright"}
-                onClick={() => checkNowMutation.mutate()}
+                onClick={() => checkNowMutation.mutate({ force: true })}
               >
                 {checkNowMutation.isPending ? <Spinner /> : "Check Now"}
               </ButtonLink>

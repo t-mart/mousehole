@@ -1,6 +1,6 @@
 import Negotiator from "negotiator";
 
-import type { JSONResponseArgs } from "#backend/types.ts";
+import type { GetStateResponseBody, JSONResponseArgs } from "#backend/types.ts";
 
 import { config } from "#backend/config.ts";
 import { toJSONResponseArgs } from "#backend/error.ts";
@@ -49,7 +49,7 @@ const server = Bun.serve({
     },
     [stateEndpointPath]: {
       GET: async () => makeJSONResponse(await handleGetState()),
-      PUT: async (request) => makeJSONResponse(await handlePutState(request)),
+      PUT: async (request) => handlePutState(request),
     },
     [okEndpointPath]: {
       GET: async () => makeJSONResponse(await handleGetOk()),
@@ -123,6 +123,6 @@ async function shutdown() {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-export function notifyWebSocketClients(): void {
-  server.publish(wsTopic, "state-update");
+export function notifyWebSocketClients(data: GetStateResponseBody): void {
+  server.publish(wsTopic, JSON.stringify({ type: "state-update", data }));
 }

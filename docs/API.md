@@ -65,8 +65,7 @@ Example request bodies:
   }
   ```
 
-Responses are identical to the `GET /state` response, reflecting the updated
-state.
+Returns `204 No Content` with no response body on success.
 
 ## `/update`
 

@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Reduce calls to IP endpoint by passing state in WebSocket messages
 - Maintain help documentation in Markdown on Github instead of in the app in
   [#74](https://github.com/t-mart/mousehole/pull/74)
 - Click to copy IP address in [#71](https://github.com/t-mart/mousehole/pull/71)

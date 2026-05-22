@@ -15,6 +15,7 @@ import { NoCookieError } from "./error.ts";
 import { getHostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { Mutex } from "./mutex.ts";
+import { serializeState } from "./serde.ts";
 import { stateFile } from "./store.ts";
 
 // This prevents multiple update timers from running during development hot
@@ -65,7 +66,9 @@ export function getUpdateReason(
   }
 }
 
-async function coreUpdate(options?: UpdateOptions): Promise<State> {
+async function coreUpdate(
+  options?: UpdateOptions,
+): Promise<{ state: State; hostInfo: HostInfo }> {
   const force = options?.force ?? false;
 
   const state = await stateFile.readIfExists();
@@ -91,7 +94,7 @@ async function coreUpdate(options?: UpdateOptions): Promise<State> {
         mamUpdateReason: undefined,
       },
     };
-    return newState;
+    return { state: newState, hostInfo };
   }
 
   console.log(`Updating MAM because: ${reason}`);
@@ -122,18 +125,25 @@ async function coreUpdate(options?: UpdateOptions): Promise<State> {
       mamUpdateReason: reason,
     },
   };
-  return newState;
+  return { state: newState, hostInfo };
 }
 
 async function runUpdate(options?: UpdateOptions): Promise<State> {
   const release = await updateMutex.acquire();
+  let result: { state: State; hostInfo: HostInfo } | undefined;
   try {
-    const newState = await coreUpdate(options);
-    await stateFile.write(newState);
-    notifyWebSocketClients();
-    return newState;
+    result = await coreUpdate(options);
+    await stateFile.write(result.state);
+    return result.state;
   } finally {
     scheduleNext();
+    if (result) {
+      notifyWebSocketClients({
+        host: result.hostInfo,
+        nextUpdateAt: getNextUpdateAt()?.toString(),
+        ...serializeState(result.state),
+      });
+    }
     release();
   }
 }

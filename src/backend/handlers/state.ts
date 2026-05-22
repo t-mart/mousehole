@@ -5,10 +5,8 @@ import { serializeState } from "#backend/serde.ts";
 import { stateFile } from "#backend/store.ts";
 import {
   putStateRequestBodySchema,
-  type ErrorResponseBody,
   type GetStateResponseBody,
   type JSONResponseArgs,
-  type PutStateResponseBody,
 } from "#backend/types.ts";
 import { getNextUpdateAt } from "#backend/update.ts";
 import { notifyWebSocketClients } from "#index.tsx";
@@ -29,9 +27,7 @@ export async function handleGetState(): Promise<
   };
 }
 
-export async function handlePutState(
-  request: Request
-): Promise<JSONResponseArgs<PutStateResponseBody | ErrorResponseBody>> {
+export async function handlePutState(request: Request): Promise<Response> {
   const json = await parseRequestJson(request);
   const { data: newState, error } = putStateRequestBodySchema.safeParse(json);
 
@@ -42,8 +38,12 @@ export async function handlePutState(
   const state = { ...(await stateFile.readIfExists()), ...newState };
   await stateFile.write(state);
 
-  // notify websocket clients
-  notifyWebSocketClients();
+  const hostInfo = await getHostInfo();
+  notifyWebSocketClients({
+    host: hostInfo,
+    nextUpdateAt: getNextUpdateAt()?.toString(),
+    ...serializeState(state),
+  });
 
-  return handleGetState();
+  return new Response(undefined, { status: 204 });
 }
