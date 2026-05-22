@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 
-- Refactor update reason logic in [#84](https://github.com/t-mart/mousehole/pull/84)
+- Show gentler log message on first startup when no cookie exists yet in
+  [#85](https://github.com/t-mart/mousehole/pull/85)
+- Refactor update reason logic in
+  [#84](https://github.com/t-mart/mousehole/pull/84)
 - Deprecate `/srv/mousehole` as the default directory for persistent application
   state in favor of `/var/lib/mousehole`. See rationale in the
   [FHS](https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch05s08.html).
