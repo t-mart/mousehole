@@ -6,7 +6,7 @@
   "main": "src/index.tsx",
   "module": "src/index.tsx",
   "scripts": {
-    "dev": "BUN_PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) bun --hot src/index.tsx",
+    "dev": "BUN_PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) bun run --hot --no-clear-screen src/index.tsx",
     "start": "NODE_ENV=production bun src/index.tsx",
     "lint": "eslint src",
     "check-types": "tsc --noEmit"

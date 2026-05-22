@@ -17,7 +17,18 @@ import { updateMamIp } from "./external-api/mam.ts";
 import { Mutex } from "./mutex.ts";
 import { stateFile } from "./store.ts";
 
-// ── internal work ─────────────────────────────────────────────────────────────
+// This prevents multiple update timers from running during development hot
+// module reloading. globalThis persists across re-evaluations; module-scoped
+// `generation` does not. Old instances see a mismatch and stop scheduling
+// further work. This might be a Bun bug... normal solutions like
+// import.meta.hot.dispose() don't seem to work on backend modules.
+declare const globalThis: { __updateGeneration?: number };
+const generation = (globalThis.__updateGeneration =
+  (globalThis.__updateGeneration ?? 0) + 1);
+
+function __is_old_updater_from_hmr_during_development() {
+  return globalThis.__updateGeneration !== generation;
+}
 
 let currentBackgroundTask: BackgroundTask | undefined;
 export const updateMutex = new Mutex();
@@ -134,6 +145,8 @@ async function runUpdate(options?: UpdateOptions): Promise<State> {
  * `config.checkIntervalSeconds` seconds from now.
  */
 function scheduleNext() {
+  if (__is_old_updater_from_hmr_during_development()) return;
+
   if (currentBackgroundTask?.nextUpdateTimeoutId) {
     clearTimeout(currentBackgroundTask.nextUpdateTimeoutId);
   }
@@ -164,8 +177,15 @@ export function triggerUpdate(options?: UpdateOptions): Promise<State> {
 
 // Called once at startup.
 export function startBackgroundUpdateTask() {
-  console.log("Starting background update task...");
   runUpdate().catch(console.error);
+}
+
+// Called on hot reload to cancel the pending timer before the module re-evaluates.
+export function stopBackgroundUpdateTask() {
+  if (currentBackgroundTask?.nextUpdateTimeoutId) {
+    clearTimeout(currentBackgroundTask.nextUpdateTimeoutId);
+    currentBackgroundTask = undefined;
+  }
 }
 
 export function getNextUpdateAt() {

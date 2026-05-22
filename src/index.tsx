@@ -7,7 +7,11 @@ import { toJSONResponseArgs } from "#backend/error.ts";
 import { handleGetOk } from "#backend/handlers/ok.ts";
 import { handleGetState, handlePutState } from "#backend/handlers/state.ts";
 import { handlePostUpdate } from "#backend/handlers/update.ts";
-import { startBackgroundUpdateTask, updateMutex } from "#backend/update.ts";
+import {
+  startBackgroundUpdateTask,
+  stopBackgroundUpdateTask,
+  updateMutex,
+} from "#backend/update.ts";
 import index from "#frontend/index.html";
 import { gitHash } from "#shared/git-hash.ts";
 
@@ -103,12 +107,15 @@ const server = Bun.serve({
 });
 
 console.log(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
+
+console.log("Starting background update task...");
 startBackgroundUpdateTask();
 
 async function shutdown() {
   console.log("Shutting down...");
   await updateMutex.acquire();
   server.stop();
+  stopBackgroundUpdateTask();
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0);
 }
