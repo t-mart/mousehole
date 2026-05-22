@@ -5,11 +5,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "#frontend/lib/cn.ts";
 
 const linkVariants = cva(
-  "font-semibold underline underline-offset-3 hover:decoration-[20%] focus-ring",
+  "font-semibold underline underline-offset-3 hover:decoration-[20%] focus-ring transition-colors duration-300",
   {
     variants: {
       variant: {
         default: "hover:text-primary-background-bright",
+        disco: "disco-text-hover",
         "muted-destructive": "text-muted-text hover:text-destructive/80",
         "muted-primary-background-bright":
           "text-muted-text hover:text-primary-background-bright",
@@ -18,7 +19,7 @@ const linkVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 export function Link({
@@ -42,7 +43,7 @@ export function ButtonLink({
     <button
       type={type}
       className={cn(
-        linkVariants({ variant, className: ` cursor-pointer ${className}` })
+        linkVariants({ variant, className: ` cursor-pointer ${className}` }),
       )}
       {...props}
     />

@@ -34,6 +34,22 @@
   color: var(--color-text);
 }
 
+@keyframes disco-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@utility disco-text-hover {
+  &:hover {
+    background: linear-gradient(90deg, #f59e0b, #ef4444, #ec4899, #8b5cf6, #3b82f6, #06b6d4, #10b981, #f59e0b);
+    background-size: 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: disco-shift 3s linear infinite;
+  }
+}
+
 @utility focus-ring {
   @apply rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:ring-offset-4 focus-visible:ring-offset-background transition-[color,box-shadow];
 }

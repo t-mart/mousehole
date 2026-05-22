@@ -22,10 +22,11 @@ export function Footer() {
         </li>
         <li>
           <Link
-            href="https://hub.docker.com/r/tmmrtn/mousehole"
+            href="https://github.com/t-mart/mousehole#sponsor"
             target="_blank"
+            variant="disco"
           >
-            Docker Hub
+            Sponsor Me
           </Link>
         </li>
       </ol>

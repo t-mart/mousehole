@@ -16,7 +16,6 @@ Features:
   comparing the host's current IP address and AS and with the last MAM response.
 
 - Frontend website to manage the service, allowing:
-
   - Setting your MAM cookie
   - Displaying status information
   - Manual triggering of checks
@@ -82,10 +81,10 @@ volumes:
   mousehole:
 ```
 
-
 Starter Docker Compose examples:
 
-- ⭐ [Gluetun + qBittorrent + Mousehole](docs/docker-compose-examples/gluetun-qb.md)
+- ⭐
+  [Gluetun + qBittorrent + Mousehole](docs/docker-compose-examples/gluetun-qb.md)
 - [Wireguard + qBittorrent + Mousehole](docs/docker-compose-examples/wireguard-qb.md)
 - [Non-VPN Example](docs/docker-compose-examples/non-vpn.md)
 
@@ -122,7 +121,6 @@ cookie -- paste your cookie and click the "Set" button.
 
 If you need help getting the cookie, click the "What do I enter here?" button
 for a tutorial.
-
 
 ### Handling Errors
 
@@ -190,3 +188,8 @@ functionality.
 
 Mouse Hole by Sergey Demushkin from
 [Noun Project](https://thenounproject.com/term/mouse-hole/) (CC BY 3.0)
+
+## Support
+
+Sponsor me on [GitHub](https://github.com/sponsors/t-mart) or donate BTC to
+`3NbDsq9mhLAf7mRQ5UqnC5z1UXS8YGJBok`.
