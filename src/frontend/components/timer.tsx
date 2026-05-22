@@ -4,7 +4,7 @@ import { Temporal } from "temporal-polyfill";
 import { formatMillisecondsAsDuration } from "#frontend/lib/format.ts";
 import { getNowZdt } from "#shared/time.ts";
 
-import { Section } from "./section";
+import { Section } from "./lib/section";
 
 export function Timer({
   nextUpdateAt,

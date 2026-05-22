@@ -5,7 +5,7 @@ import type { GetStateResponseBody } from "#backend/types.ts";
 
 import { cn } from "#frontend/lib/cn.ts";
 
-import { Section } from "./section";
+import { Section } from "./lib/section";
 
 export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
   return (

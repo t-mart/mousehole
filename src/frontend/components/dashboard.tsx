@@ -11,14 +11,14 @@ import {
   stateQueryKey,
   useInvalidateOnStateUpdate,
 } from "../hooks/invalidate-on-state-update";
-import { Cookie } from "./cookie";
-import { ButtonLink } from "./link";
+import { CookieForm } from "./cookie-form";
+import { ButtonLink } from "./lib/link";
+import { Spinner } from "./lib/spinner";
 import { NeedHelp } from "./need-help";
-import { Spinner } from "./spinner";
 import { Status } from "./status";
 import { Timer } from "./timer";
 
-export function StateSections() {
+export function Dashboard() {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
   const checkNowMutation = useMutation({
     mutationFn: () => fetch("/update", { method: "POST" }),
@@ -74,7 +74,7 @@ export function StateSections() {
         <Status data={data} />
         {isMamError && <NeedHelp />}
         {showCookieForm && (
-          <Cookie
+          <CookieForm
             onUpdated={() => {
               setUserWantsInputCookie(false);
               checkNowMutation.mutate();

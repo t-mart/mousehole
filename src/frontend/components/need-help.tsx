@@ -1,7 +1,7 @@
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
-import { Link } from "./link";
-import { Section } from "./section";
+import { Link } from "./lib/link";
+import { Section } from "./lib/section";
 
 export function NeedHelp() {
   return (

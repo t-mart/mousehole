@@ -1,4 +1,4 @@
-import { Link } from "./link";
+import { Link } from "./lib/link";
 
 export function Header() {
   return (

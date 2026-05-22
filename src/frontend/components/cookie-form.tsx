@@ -4,13 +4,13 @@ import { useEffect, useId, useState } from "react";
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
 import { stateQueryKey } from "../hooks/invalidate-on-state-update";
-import { Button } from "./button";
-import { Input } from "./input";
-import { Link } from "./link";
-import { Section } from "./section";
-import { Spinner } from "./spinner";
+import { Button } from "./lib/button";
+import { Input } from "./lib/input";
+import { Link } from "./lib/link";
+import { Section } from "./lib/section";
+import { Spinner } from "./lib/spinner";
 
-export function Cookie({
+export function CookieForm({
   onUpdated,
   currentCookie,
 }: Readonly<{ onUpdated: () => void; currentCookie?: string }>) {

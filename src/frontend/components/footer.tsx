@@ -1,7 +1,7 @@
 import { gitHash } from "#shared/git-hash.ts";
 
 import { version } from "../../../package.json";
-import { Link } from "./link";
+import { Link } from "./lib/link";
 
 export function Footer() {
   return (
