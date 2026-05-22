@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { useState, type ComponentPropsWithRef } from "react";
+import { useState, type ComponentPropsWithRef, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
 
 import type {
@@ -92,19 +92,19 @@ export function Dashboard() {
         )}
 
         {/* Providing a key here ensures re-render on timer expiration, good visual feedback for user */}
-        {!showCookieForm && data.nextUpdateAt && (
-          <Timer
-            nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
-            key={data.nextUpdateAt}
-          />
-        )}
+        {!showCookieForm &&
+          !checkNowMutation.isPending &&
+          data.nextUpdateAt && (
+            <Timer
+              nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
+              key={data.nextUpdateAt}
+            />
+          )}
 
         <div className="flex items-center justify-center gap-4">
           {!showCookieForm && (
             <>
-              <AnimatedButton
-                onClick={() => setUserWantsInputCookie(true)}
-              >
+              <AnimatedButton onClick={() => setUserWantsInputCookie(true)}>
                 Set Cookie
               </AnimatedButton>
               <AnimatedButton
@@ -138,7 +138,11 @@ function AnimatedButton({
   show = true,
   onClick,
   children,
-}: Readonly<{ show?: boolean; onClick: () => void; children: React.ReactNode }>) {
+}: Readonly<{
+  show?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}>) {
   return (
     <AnimatePresence>
       {show && (
