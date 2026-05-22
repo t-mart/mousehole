@@ -3,12 +3,12 @@ import { useEffect, useId, useState } from "react";
 
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
+import { stateQueryKey } from "../hooks/invalidate-on-state-update";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Link } from "./link";
 import { Section } from "./section";
 import { Spinner } from "./spinner";
-import { stateQueryKey } from "./use-invalidate-on-state-update";
 
 export function Cookie({
   onUpdated,

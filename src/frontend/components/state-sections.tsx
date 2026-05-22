@@ -7,6 +7,10 @@ import type {
   GetStateResponseBody,
 } from "#backend/types.ts";
 
+import {
+  stateQueryKey,
+  useInvalidateOnStateUpdate,
+} from "../hooks/invalidate-on-state-update";
 import { Cookie } from "./cookie";
 import {
   Dialog,
@@ -20,10 +24,6 @@ import { NeedHelp } from "./need-help";
 import { Spinner } from "./spinner";
 import { Status } from "./status";
 import { Timer } from "./timer";
-import {
-  stateQueryKey,
-  useInvalidateOnStateUpdate,
-} from "./use-invalidate-on-state-update";
 
 export function StateSections() {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
