@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Deprecate `/srv/mousehole` as the default directory for persistent application
+  state in favor of `/var/lib/mousehole`. See rationale in the
+  [FHS](https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch05s08.html).
+  Mousehole will warn at startup and continue reading from the old path if state
+  is found there. See [#51](https://github.com/t-mart/mousehole/pull/51) for
+  migration instructions.
 - Reduce calls to IP endpoint by passing state in WebSocket messages in
   [#79](https://github.com/t-mart/mousehole/pull/79)
 - Maintain help documentation in Markdown on Github instead of in the app in

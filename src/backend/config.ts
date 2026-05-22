@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+
 import { version } from "../../package.json";
 
 function environmentOrFallback<T>(
@@ -15,6 +18,40 @@ function environmentOrFallback<T>(
   return value as T;
 }
 
+// TODO: Remove this migration compatibility code in a future major release, after giving
+// users sufficient time to migrate.
+const LEGACY_STATE_DIR = "/srv/mousehole";
+const NEW_STATE_DIR = "/var/lib/mousehole";
+
+function resolveStateDirectoryPath(): {
+  stateDirPath: string;
+  stateDirPathDeprecationWarning: string | undefined;
+} {
+  const environmentValue = process.env.MOUSEHOLE_STATE_DIR_PATH;
+
+  if (environmentValue !== undefined) {
+    return { stateDirPath: environmentValue, stateDirPathDeprecationWarning: undefined };
+  }
+
+  // No env var set — use filesystem to detect migration state.
+  const legacyExists = existsSync(path.join(LEGACY_STATE_DIR, "state.json"));
+  const newExists = existsSync(path.join(NEW_STATE_DIR, "state.json"));
+
+  if (legacyExists && !newExists) {
+    return {
+      stateDirPath: LEGACY_STATE_DIR,
+      stateDirPathDeprecationWarning:
+        `[DEPRECATION] State found at legacy path ${LEGACY_STATE_DIR}. ` +
+        `Migrate to ${NEW_STATE_DIR}. See https://github.com/t-mart/mousehole/issues/51 for migration steps.`,
+    };
+  }
+
+  return { stateDirPath: NEW_STATE_DIR, stateDirPathDeprecationWarning: undefined };
+}
+
+const { stateDirPath, stateDirPathDeprecationWarning } = resolveStateDirectoryPath();
+export { stateDirPathDeprecationWarning };
+
 export const config = {
   /**
    * The user agent string to use for HTTP requests.
@@ -29,12 +66,10 @@ export const config = {
   /**
    * The directory path where Mousehole stores its state.
    *
-   * Defaults to "/srv/mousehole".
+   * Defaults to "/var/lib/mousehole", falling back to "/srv/mousehole" if
+   * state already exists there and no env var is set (migration compatibility).
    */
-  stateDirPath: environmentOrFallback(
-    "MOUSEHOLE_STATE_DIR_PATH",
-    "/srv/mousehole",
-  ),
+  stateDirPath,
 
   /**
    * The number of seconds between checks of the host's IP. If the IP has

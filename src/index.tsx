@@ -2,7 +2,7 @@ import Negotiator from "negotiator";
 
 import type { GetStateResponseBody, JSONResponseArgs } from "#backend/types.ts";
 
-import { config } from "#backend/config.ts";
+import { config, stateDirPathDeprecationWarning } from "#backend/config.ts";
 import { toJSONResponseArgs } from "#backend/error.ts";
 import { handleGetOk } from "#backend/handlers/ok.ts";
 import { handleGetState, handlePutState } from "#backend/handlers/state.ts";
@@ -107,6 +107,9 @@ const server = Bun.serve({
 });
 
 console.log(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
+if (stateDirPathDeprecationWarning) {
+  console.warn(stateDirPathDeprecationWarning);
+}
 
 console.log("Starting background update task...");
 startBackgroundUpdateTask();

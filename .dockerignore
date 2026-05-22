@@ -3,8 +3,16 @@ Dockerfile*
 .dockerignore
 .git
 .gitignore
+docs
+contrib
+CONTRIBUTING.md
+components.json
+eslint.config.mjs
+CHANGELOG.md
 README.md
 LICENSE
 .vscode
 Makefile
-state
+.state
+.env
+.env.local
