@@ -164,7 +164,7 @@ function scheduleNext() {
   }
 
   const timeoutId = setTimeout(
-    () => runUpdate().catch(console.error),
+    () => runUpdate().catch(handleBackgroundUpdateError),
     config.checkIntervalSeconds * 1000,
   );
 
@@ -180,7 +180,16 @@ function scheduleNext() {
   console.log(`Next automatic update scheduled for: ${nextUpdateAt}`);
 }
 
+function handleBackgroundUpdateError(error: unknown) {
+  if (error instanceof NoCookieError) {
+    console.error("No MAM cookie set. Visit the web UI to configure one.");
+    return;
+  }
+  console.error(error);
+}
+
 // ── public API ────────────────────────────────────────────────────────────────
+
 
 // Called by the HTTP handler. Throws on error — caller returns 500.
 export function triggerUpdate(options?: UpdateOptions): Promise<State> {
@@ -189,7 +198,7 @@ export function triggerUpdate(options?: UpdateOptions): Promise<State> {
 
 // Called once at startup.
 export function startBackgroundUpdateTask() {
-  runUpdate().catch(console.error);
+  runUpdate().catch(handleBackgroundUpdateError);
 }
 
 // Called on hot reload to cancel the pending timer before the module re-evaluates.
