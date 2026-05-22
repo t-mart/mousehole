@@ -3,7 +3,7 @@ import { version } from "../../package.json";
 function environmentOrFallback<T>(
   name: string,
   fallback: T,
-  mapFunction?: (s: string) => T
+  mapFunction?: (s: string) => T,
 ): T {
   const value = process.env[name];
   if (value === undefined) {
@@ -23,7 +23,7 @@ export const config = {
    */
   userAgent: environmentOrFallback(
     "MOUSEHOLE_USER_AGENT",
-    `mousehole-by-timtimtim/${version}`
+    `mousehole-by-timtimtim/${version}`,
   ),
 
   /**
@@ -33,7 +33,7 @@ export const config = {
    */
   stateDirPath: environmentOrFallback(
     "MOUSEHOLE_STATE_DIR_PATH",
-    "/srv/mousehole"
+    "/srv/mousehole",
   ),
 
   /**
@@ -44,8 +44,9 @@ export const config = {
    */
   checkIntervalSeconds: environmentOrFallback(
     "MOUSEHOLE_CHECK_INTERVAL_SECONDS",
-    5 * 60, // 5 minutes
-    (value) => Number.parseFloat(value)
+    // if production, 5 minute, else 10 seconds
+    process.env.NODE_ENV === "production" ? 5 * 60 : 10,
+    (value) => Number.parseFloat(value),
   ),
 
   /**
@@ -58,7 +59,7 @@ export const config = {
   staleResponseSeconds: environmentOrFallback(
     "MOUSEHOLE_STALE_RESPONSE_SECONDS",
     60 * 60 * 24, // 1 day
-    (value) => Number.parseFloat(value)
+    (value) => Number.parseFloat(value),
   ),
 
   /**
@@ -67,6 +68,6 @@ export const config = {
    * Defaults to 5010.
    */
   port: environmentOrFallback("MOUSEHOLE_PORT", 5010, (value) =>
-    Number.parseInt(value)
+    Number.parseInt(value),
   ),
 };
