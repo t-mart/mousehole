@@ -17,18 +17,18 @@ MAM. This page will help you understand what the error means and how to fix it.
 
 ## 429 Last Change Too Recent
 
-**❓ What's wrong?**: Mousehole attempted to update your IP address with MAM, but
-MAM rejected the update because the last change happened too recently. MAM
-enforces a minimum one-hour interval between IP address changes for security
-reasons.
+**❓ What's wrong?**: MAM was updated within the last hour — either because your
+IP changed or because you set a new cookie — and MAM enforces a minimum one-hour
+interval between updates.
 
-**🔧 How to fix**: You just have to wait it out, at most one hour. Mousehole will
-retry automatically. (If you insist, you can also create a new session.)
+**🔧 How to fix**: You just have to wait it out, at most one hour. This is a
+policy of MAM. Mousehole will retry automatically. You do not need a new cookie
+or to restart Mousehole.
 
 ## 403 Invalid Session
 
-**❓ What's wrong?**: MAM could not validate the session. This is a general error,
-usually returned when a more specific error could not be identified.
+**❓ What's wrong?**: MAM could not validate the session. This is a general
+error, usually returned when a more specific error could not be identified.
 
 **🔧 How to fix**: Get a new cookie value following the steps in
 [Getting Your Cookie Value](getting-your-cookie.md).
@@ -44,8 +44,8 @@ selected for "IP vs ASN locked session".
 
 ## 403 Invalid Session - ASN Mismatch
 
-**❓ What's wrong?**: Mousehole is running on a network that MAM does not expect.
-The ASN (Autonomous System Number, which groups sets of IP addresses) of
+**❓ What's wrong?**: Mousehole is running on a network that MAM does not
+expect. The ASN (Autonomous System Number, which groups sets of IP addresses) of
 Mousehole's IP is not in the list of allowed ASNs for the session.
 
 **🔧 How to fix**: Add Mousehole's IP address to the session's allowed ASNs:
@@ -79,8 +79,8 @@ Mousehole's IP is not in the list of allowed ASNs for the session.
 
 ## 403 Invalid Session - Invalid Cookie
 
-**❓ What's wrong?**: The cookie value stored in Mousehole is incorrect — possibly
-a typo or a copy of the wrong value.
+**❓ What's wrong?**: The cookie value stored in Mousehole is incorrect —
+possibly a typo or a copy of the wrong value.
 
 **🔧 How to fix**: Get a new cookie value following the steps in
 [Getting Your Cookie Value](getting-your-cookie.md). When pasting the cookie
@@ -89,9 +89,9 @@ of the value.
 
 ## 403 Incorrect Session Type - Not Allowed This Function
 
-**❓ What's wrong?**: The session cookie belongs to a session that was not created
-with permission to set the Dynamic Seedbox IP. This means "Allow Session to set
-Dynamic Seedbox" was set to "No" when the session was created.
+**❓ What's wrong?**: The session cookie belongs to a session that was not
+created with permission to set the Dynamic Seedbox IP. This means "Allow Session
+to set Dynamic Seedbox" was set to "No" when the session was created.
 
 **🔧 How to fix**: Get a new cookie value following the steps in
 [Getting Your Cookie Value](getting-your-cookie.md), ensuring to select "Yes"
@@ -99,9 +99,9 @@ for "Allow Session to set Dynamic Seedbox" when creating the session.
 
 ## 403 Incorrect Session Type - Non-API Session
 
-**❓ What's wrong?**: The cookie belongs to a regular MAM web browser session, not
-an API session. (Did you copy the cookie from your browser's developer tools?
-🤨)
+**❓ What's wrong?**: The cookie belongs to a regular MAM web browser session,
+not an API session. (Did you copy the cookie from your browser's developer
+tools? 🤨)
 
 **🔧 How to fix**: Create a new session the right way by following the steps in
 [Getting Your Cookie Value](getting-your-cookie.md).
