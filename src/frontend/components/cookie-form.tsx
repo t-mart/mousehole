@@ -18,6 +18,8 @@ export function CookieForm({
 
   const { mutate, isPending } = useMutation({
     mutationFn: (cookie: string) =>
+      // disregard response, websocket will update us with the new state when
+      // the update is processed. this is robust for multiple tabs/windows
       fetch("/state", {
         method: "PUT",
         body: JSON.stringify({ currentCookie: cookie }),
