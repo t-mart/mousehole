@@ -7,7 +7,9 @@ import { cn } from "#frontend/lib/cn.ts";
 
 import { Section } from "./lib/section";
 
-export function Status({ data }: Readonly<{ data: GetStateResponseBody }>) {
+export function MamResponse({
+  data,
+}: Readonly<{ data: GetStateResponseBody }>) {
   return (
     <Section className="space-y-2">
       <h2 className="sr-only">Status</h2>

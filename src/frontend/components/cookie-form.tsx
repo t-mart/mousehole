@@ -18,10 +18,6 @@ export function CookieForm({
   const [formCookie, setFormCookie] = useState(currentCookie ?? "");
   const cookieInputId = useId();
 
-  useEffect(() => {
-    console.log("Current cookie:", currentCookie);
-  }, [currentCookie]);
-
   const { mutate, isPending } = useMutation({
     mutationFn: (cookie: string) =>
       fetch("/state", {
@@ -29,7 +25,6 @@ export function CookieForm({
         body: JSON.stringify({ currentCookie: cookie }),
       }),
     onSuccess: () => {
-      console.log("Cookie updated successfully");
       onUpdated();
     },
     onSettled: () => {

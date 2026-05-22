@@ -15,7 +15,7 @@ import { CookieForm } from "./cookie-form";
 import { ButtonLink } from "./lib/link";
 import { Spinner } from "./lib/spinner";
 import { NeedHelp } from "./need-help";
-import { Status } from "./status";
+import { MamResponse } from "./mam-response";
 import { Timer } from "./timer";
 
 export function Dashboard() {
@@ -71,8 +71,10 @@ export function Dashboard() {
   return (
     <>
       <main className="space-y-4">
-        <Status data={data} />
+        <MamResponse data={data} />
+
         {isMamError && <NeedHelp />}
+        
         {showCookieForm && (
           <CookieForm
             onUpdated={() => {
@@ -87,6 +89,7 @@ export function Dashboard() {
             nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
           />
         )}
+
         <div className="flex items-center justify-center gap-4">
           {!showCookieForm && (
             <>
