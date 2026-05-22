@@ -1,5 +1,5 @@
 import { config } from "#backend/config.ts";
-import { SchemaError } from "#backend/error.ts";
+import { SchemaError, UnexpectedRedirectError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import {
   mamUpdateDynamicSeedboxResponseBodySchema,
@@ -8,12 +8,12 @@ import {
 import { getNowZdt } from "#shared/time.ts";
 
 const endpointUrl = new URL(
-  "https://t.myanonamouse.net/json/dynamicSeedbox.php"
+  "https://t.myanonamouse.net/json/dynamicSeedbox.php",
 );
 const cookieKey = "mam_id";
 
 export async function updateMamIp(
-  currentCookieValue: string
+  currentCookieValue: string,
 ): Promise<MamResponse> {
   const headers = {
     // Identify us to MAM if they even care
@@ -28,7 +28,16 @@ export async function updateMamIp(
   // Note: the IP address is determined by the server from the request.
   const response = await fetch(endpointUrl, {
     headers,
+    redirect: "manual",
   });
+
+  // This is a MaM bug! Certain malformed cookies cause MaM to respond with 302 redirects to / (HTML) instead of 4xx with JSON
+  if (response.status >= 300 && response.status < 400) {
+    throw new UnexpectedRedirectError(
+      endpointUrl.toString(),
+      response.headers.get("location"),
+    );
+  }
 
   const json = await parseJsonResponse(response);
   const { data: body, error: parseError } =
