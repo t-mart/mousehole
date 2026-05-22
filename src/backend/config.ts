@@ -44,8 +44,8 @@ export const config = {
    */
   checkIntervalSeconds: environmentOrFallback(
     "MOUSEHOLE_CHECK_INTERVAL_SECONDS",
-    // if production, 5 minute, else 10 seconds
-    process.env.NODE_ENV === "production" ? 5 * 60 : 10,
+    // 5 minutes
+    60 * 5,
     (value) => Number.parseFloat(value),
   ),
 
