@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "motion/react";
 import { useState, type ComponentPropsWithRef } from "react";
 import { Temporal } from "temporal-polyfill";
 
@@ -101,18 +102,17 @@ export function Dashboard() {
         <div className="flex items-center justify-center gap-4">
           {!showCookieForm && (
             <>
-              <ButtonLink
+              <AnimatedButton
                 onClick={() => setUserWantsInputCookie(true)}
-                variant={"muted-primary-background-bright"}
               >
                 Set Cookie
-              </ButtonLink>
-              <ButtonLink
-                variant={"muted-primary-background-bright"}
+              </AnimatedButton>
+              <AnimatedButton
+                show={!checkNowMutation.isPending}
                 onClick={() => checkNowMutation.mutate({ force: true })}
               >
-                {checkNowMutation.isPending ? <Spinner /> : "Check Now"}
-              </ButtonLink>
+                Check Now
+              </AnimatedButton>
             </>
           )}
         </div>
@@ -132,4 +132,33 @@ export function Dashboard() {
 
 function Center({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
   return <div {...props} className="flex items-center justify-center" />;
+}
+
+function AnimatedButton({
+  show = true,
+  onClick,
+  children,
+}: Readonly<{ show?: boolean; onClick: () => void; children: React.ReactNode }>) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0 }}
+          transition={{
+            duration: 0.3,
+            scale: { type: "spring", visualDuration: 0.4, bounce: 0.5 },
+          }}
+        >
+          <ButtonLink
+            variant={"muted-primary-background-bright"}
+            onClick={onClick}
+          >
+            {children}
+          </ButtonLink>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
