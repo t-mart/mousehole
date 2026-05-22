@@ -30,7 +30,7 @@ export async function handleGetState(): Promise<
 }
 
 export async function handlePutState(
-  request: Request
+  request: Request,
 ): Promise<JSONResponseArgs<PutStateResponseBody | ErrorResponseBody>> {
   const json = await parseRequestJson(request);
   const { data: newState, error } = putStateRequestBodySchema.safeParse(json);
@@ -42,8 +42,16 @@ export async function handlePutState(
   const state = { ...(await stateFile.readIfExists()), ...newState };
   await stateFile.write(state);
 
-  // notify websocket clients
-  notifyWebSocketClients();
+  const hostInfo = await getHostInfo();
+  const body = {
+    host: hostInfo,
+    nextUpdateAt: getNextUpdateAt()?.toString(),
+    ...serializeState(state),
+  };
 
-  return handleGetState();
+  notifyWebSocketClients(body);
+
+  return {
+    body,
+  };
 }

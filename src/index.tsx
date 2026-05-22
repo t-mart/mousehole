@@ -1,6 +1,6 @@
 import Negotiator from "negotiator";
 
-import type { JSONResponseArgs } from "#backend/types.ts";
+import type { GetStateResponseBody, JSONResponseArgs } from "#backend/types.ts";
 
 import { config } from "#backend/config.ts";
 import { toJSONResponseArgs } from "#backend/error.ts";
@@ -123,6 +123,6 @@ async function shutdown() {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-export function notifyWebSocketClients(): void {
-  server.publish(wsTopic, "state-update");
+export function notifyWebSocketClients(data: GetStateResponseBody): void {
+  server.publish(wsTopic, JSON.stringify({ type: "state-update", data }));
 }

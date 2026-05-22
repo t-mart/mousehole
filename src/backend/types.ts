@@ -3,7 +3,7 @@
 
 import type { Temporal } from "temporal-polyfill";
 
-import * as z from "zod/v4";
+import * as z from "zod";
 
 //
 // External API types
@@ -108,18 +108,17 @@ export const serializedStateSchema = z.object({
 export type SerializedState = z.infer<typeof serializedStateSchema>;
 export type SerializedUpdate = z.infer<typeof serializedUpdateSchema>;
 
-export type GetStateResponseBody = {
-  /**
-   * This is the current host IP (et al) as determined by the ip endpoint. It
-   * may be different than the IP of the last update if the host IP has changed.
-   */
-  host: HostInfo;
+export const getStateResponseBodySchema = serializedStateSchema.extend({
+  host: hostInfoSchema,
+  nextUpdateAt: z.string().optional(),
+});
+export type GetStateResponseBody = z.infer<typeof getStateResponseBodySchema>;
 
-  /**
-   * Only known at runtime
-   */
-  nextUpdateAt?: string;
-} & SerializedState;
+export const wsStateUpdateMessageSchema = z.object({
+  type: z.literal("state-update"),
+  data: getStateResponseBodySchema,
+});
+export type WsStateUpdateMessage = z.infer<typeof wsStateUpdateMessageSchema>;
 
 //
 // Handler request types (with zod schemas)

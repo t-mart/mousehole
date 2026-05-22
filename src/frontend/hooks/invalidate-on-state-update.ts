@@ -1,6 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
+import { wsStateUpdateMessageSchema } from "#backend/types.ts";
+
 export const stateQueryKey: readonly [string] = ["state"];
 const heartbeatIntervalMilliseconds = 30_000;
 const reconnectDelayMilliseconds = 3000;
@@ -22,19 +24,24 @@ export function useInvalidateOnStateUpdate() {
     let cleanupListeners: (() => void) | undefined;
 
     function handleMessage(event: MessageEvent<string>) {
-      const { data } = event;
-      switch (data) {
-        case "pong": {
-          break;
-        }
-        case "state-update": {
-          queryClient.invalidateQueries({ queryKey: stateQueryKey });
-          break;
-        }
-        default: {
-          console.warn("Unknown message from WebSocket:", data);
-        }
+      if (event.data === "pong") return;
+
+      let json: unknown;
+      try {
+        json = JSON.parse(event.data);
+      } catch {
+        console.error("Failed to parse WebSocket message as JSON:", event.data);
+        return;
       }
+
+      const { data: message, error } =
+        wsStateUpdateMessageSchema.safeParse(json);
+      if (error) {
+        console.error("Unexpected WebSocket message shape:", error.message);
+        return;
+      }
+
+      queryClient.setQueryData(stateQueryKey, message.data);
     }
 
     function connect() {
