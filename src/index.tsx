@@ -54,18 +54,6 @@ const server = Bun.serve({
       new Response(await Bun.file("./src/frontend/logo.svg").bytes(), {
         headers: { "Content-Type": "image/svg+xml" },
       }),
-    ...Object.fromEntries(
-      [...new Bun.Glob("*.png").scanSync("./src/frontend/images")].map(
-        (file) => [
-          `/images/${file}`,
-          async () =>
-            new Response(
-              await Bun.file(`./src/frontend/images/${file}`).bytes(),
-              { headers: { "Content-Type": "image/png" } }
-            ),
-        ]
-      )
-    ),
     "/web": index,
     "/web/ws": (request, server) => {
       const success = server.upgrade(request);
