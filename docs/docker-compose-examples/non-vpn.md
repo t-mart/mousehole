@@ -18,6 +18,8 @@ services:
     image: tmmrtn/mousehole:latest
     environment:
       TZ: Etc/UTC # Set to your timezone for localization
+    ports:
+      - "5010:5010" # Mousehole port
     volumes:
       # persist cookie data across container restarts
       - "mousehole:/var/lib/mousehole"
