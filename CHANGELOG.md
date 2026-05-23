@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.3.1](https://github.com/t-mart/mousehole/releases/tag/v0.3.1) - 2026-05-23
+
+- Use correct user in Dockerfile in
+  [6e51d6a](https://github.com/t-mart/mousehole/commit/6e51d6a)
+- Add TLS certificates to Docker image in
+  [a4fbd43](https://github.com/t-mart/mousehole/commit/a4fbd43)
+
 ## [v0.3.0](https://github.com/t-mart/mousehole/releases/tag/v0.3.0) - 2026-05-22
 
 - Show gentler log message on first startup when no cookie exists yet in
