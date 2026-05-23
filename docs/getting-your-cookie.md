@@ -53,5 +53,5 @@ to create a session for it. Each session is tied to a cookie value.
    updated with MAM automatically in the background. You don't need to do
    anything else! You can close the page.
 
-   If you do not see an OK status, check out
-   [how to handle errors](https://github.com/t-mart/mousehole/blob/master/README.md#handling-errors).
+   If you do not see an OK status, check out the
+   [error documentation](./errors.md) for help with troubleshooting.

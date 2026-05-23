@@ -3,7 +3,7 @@
 A background service to update a seedbox IP for MAM and an HTTP server to manage
 it.
 
-![Mousehole Demo](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/demo.webp)
+![Mousehole Demo](docs/images/demo.webp)
 
 This can be helpful if you are using a host/VPN/seedbox to seed and its IP
 address is not stable.
@@ -13,7 +13,7 @@ Features:
 - Background service that regularly updates MAM with the IP address of the host.
 
   Before an update, Mousehole checks that it actually needs to update by
-  comparing the host's current IP address and AS and with the last MAM response.
+  comparing the host's current IP address and AS against the last MAM response.
 
 - Frontend website to manage the service, allowing:
   - Setting your MAM cookie
@@ -22,18 +22,16 @@ Features:
 
 - API server with management endpoints.
 
-  See [API.md](https://github.com/t-mart/mousehole/blob/master/docs/API.md) for
-  details.
+  See [API.md](docs/API.md) for details.
 
 ## Getting Started
 
 To use Mousehole, you need to:
 
-1. [Run the service](#running-the-service)
-2. [Set your MAM cookie via the web interface](#setting-your-mam-cookie)
-3. [Handle MAM errors](#handling-errors) (if any)
+1. [Run the service](#step-1-run-the-service)
+2. [Set your MAM cookie via the web interface](#step-2-set-your-mam-cookie)
 
-### Running the service
+### Step 1: Run the service
 
 #### Docker Compose (recommended)
 
@@ -96,7 +94,7 @@ details.
 
 #### Unraid
 
-See the [Unraid Installation Guide](./contrib/unraid/README.md) for
+See the [Unraid Installation Guide](contrib/unraid/README.md) for
 instructions.
 
 #### Local
@@ -107,31 +105,19 @@ Run the server with:
 bun run start
 ```
 
-### Setting Your MAM Cookie
+### Step 2: Set Your MAM Cookie
 
-Once Mousehole is running, navigate to its web UI at `http://<host>:5010` in
-your browser. This is likely to be <http://localhost:5010> if you are running it
-locally.
+Navigate to the Mousehole web UI at `http://<host>:5010` (likely
+<http://localhost:5010> if running locally) and paste in your MAM cookie.
 
-When running for the first time (or if the cookie gets out of sync), you need to
-set Mousehole's cookie manually.
+See [Getting Your Cookie Value](docs/getting-your-cookie.md) for a full
+walkthrough of how to obtain the cookie from MAM.
 
-On navigating to the Mousehole web interface, you will see a form to set the
-cookie -- paste your cookie and click the "Set" button.
-
-![Mousehole Cookie Form](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/cookie-form.png)
-
-If you need help getting the cookie, click the "What do I enter here?" button
-for a tutorial.
-
-### Handling Errors
+## Handling Errors
 
 Even with Mousehole up and running, things can still go wrong that Mousehole
-cannot fix automatically. Here are some of the common ones:
-
-- ["Invalid session - ASN mismatch"](./docs/errors/asn-mismatch.md)
-- ["Invalid session - Invalid cookie"](./docs/errors/invalid-cookie.md)
-- ["Last Change too recent"](./docs/errors/last-change-too-recent.md)
+cannot fix automatically. Check out the [error documentation](docs/errors.md)
+for help with troubleshooting.
 
 ## Docker Tags
 
@@ -193,5 +179,7 @@ Mouse Hole by Sergey Demushkin from
 
 ## Support
 
-Sponsor me on [GitHub](https://github.com/sponsors/t-mart) or donate BTC to
-`3NbDsq9mhLAf7mRQ5UqnC5z1UXS8YGJBok`.
+If my project has helped you out, consider supporting me:
+
+- Sponsor me on [GitHub](https://github.com/sponsors/t-mart)
+- Donate BTC to `3NbDsq9mhLAf7mRQ5UqnC5z1UXS8YGJBok`.

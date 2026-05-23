@@ -1,4 +1,4 @@
-# Error Responses
+# Mousehole Errors
 
 Mousehole communicates with MyAnonamouse's
 [Dynamic Seedbox IP API endpoint](https://www.myanonamouse.net/api/endpoint.php/3/json/dynamicSeedbox.php).
