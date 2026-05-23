@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [v0.3.0](https://github.com/t-mart/mousehole/releases/tag/v0.3.0) - 2026-05-22
 
 - Show gentler log message on first startup when no cookie exists yet in
   [#85](https://github.com/t-mart/mousehole/pull/85)

@@ -125,7 +125,7 @@ Mousehole publishes several image tags to
 [Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole):
 
 - SemVer versions (`0`, `0.1`, `0.1.11`, etc)
-- `latest`, the latest released version
+- `latest`, the latest versioned release
 - `edge`, the tip of `master` branch
 - Pull requests targeting `master` for testing, tagged as `pr-<number>`
 
