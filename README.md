@@ -177,7 +177,7 @@ functionality.
 Mouse Hole by Sergey Demushkin from
 [Noun Project](https://thenounproject.com/term/mouse-hole/) (CC BY 3.0)
 
-## Support
+## Sponsor
 
 If my project has helped you out, consider supporting me:
 
