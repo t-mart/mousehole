@@ -120,8 +120,8 @@ export function Dashboard() {
       {!showCookieForm && (
         <aside>
           <p className="text-sm text-muted-text text-balance">
-            You don't need to keep this window open! Automatic updates will
-            occur on the server.
+            You don't need to keep this page open! Automatic updates will occur
+            on the server.
           </p>
         </aside>
       )}
