@@ -5,8 +5,6 @@ ARG BUN_INSTALL_DIR=/temp/install
 # where the app will live in the final image
 ARG BUN_APP_DIR=/usr/src/app
 
-FROM base AS base-with-curl
-# install curl for health checks, at top for caching
 RUN apt-get update && \
     apt-get install -y curl ca-certificates --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
@@ -17,7 +15,7 @@ COPY package.json bun.lock ./
 # --production excludes devDependencies
 RUN bun install --frozen-lockfile --production
 
-FROM base-with-curl AS release
+FROM base AS release
 # copy production dependencies and source code into final image
 
 EXPOSE 5010/tcp
