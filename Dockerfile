@@ -20,7 +20,6 @@ RUN bun install --frozen-lockfile --production
 FROM base-with-curl AS release
 # copy production dependencies and source code into final image
 
-USER bun
 EXPOSE 5010/tcp
 WORKDIR ${BUN_APP_DIR}
 ENV NODE_ENV=production
