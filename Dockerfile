@@ -26,6 +26,7 @@ WORKDIR ${BUN_APP_DIR}
 ENV NODE_ENV=production
 ARG GIT_HASH
 ENV PUBLIC_GIT_HASH=${GIT_HASH}
+ENV PUBLIC_DEMO_MODE=false
 
 COPY --from=install ${BUN_INSTALL_DIR}/node_modules node_modules
 COPY package.json bunfig.toml ./

@@ -10,6 +10,10 @@ import { Section } from "./lib/section";
 export function MamResponse({
   data,
 }: Readonly<{ data: GetStateResponseBody }>) {
+  const inDemoMode = process.env.PUBLIC_DEMO_MODE === "true";
+  const ip = inDemoMode ? "123.123.123.123" : data.host.ip;
+  const asn = inDemoMode ? "12345" : data.host.asn;
+  const as = inDemoMode ? "MegaCorp Networks" : data.host.as;
   return (
     <Section className="space-y-2">
       <h2 className="sr-only">Status</h2>
@@ -23,13 +27,13 @@ export function MamResponse({
         <DLRow>
           <DT>Host IP</DT>
           <DD>
-            <CopyableIP ip={data.host.ip} />
+            <CopyableIP ip={ip} />
           </DD>
         </DLRow>
         <DLRow>
           <DT>Host AS</DT>
           <DD>
-            <span className="font-mono">{data.host.asn}</span>, {data.host.as}
+            <span className="font-mono">{asn}</span>, {as}
           </DD>
         </DLRow>
       </dl>
