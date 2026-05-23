@@ -6,7 +6,6 @@ import { Temporal } from "temporal-polyfill";
 import type {
   ErrorResponseBody,
   GetStateResponseBody,
-  PostIpRequestBody,
 } from "#backend/types.ts";
 
 import {
@@ -23,10 +22,10 @@ import { Timer } from "./timer";
 export function Dashboard() {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
   const checkNowMutation = useMutation({
-    mutationFn: (options: PostIpRequestBody) =>
+    mutationFn: (force: boolean) =>
       fetch("/update", {
         method: "POST",
-        body: options ? JSON.stringify(options) : undefined,
+        body: JSON.stringify({ force }),
       }),
   });
 
@@ -85,7 +84,7 @@ export function Dashboard() {
           <CookieForm
             onUpdated={() => {
               setUserWantsInputCookie(false);
-              checkNowMutation.mutate({ force: true });
+              checkNowMutation.mutate(false);
             }}
             currentCookie={data.currentCookie}
           />
@@ -109,7 +108,7 @@ export function Dashboard() {
               </AnimatedButton>
               <AnimatedButton
                 show={!checkNowMutation.isPending}
-                onClick={() => checkNowMutation.mutate({ force: true })}
+                onClick={() => checkNowMutation.mutate(true)}
               >
                 Check Now
               </AnimatedButton>
