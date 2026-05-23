@@ -8,7 +8,7 @@ ARG BUN_APP_DIR=/usr/src/app
 FROM base AS base-with-curl
 # install curl for health checks, at top for caching
 RUN apt-get update && \
-    apt-get install -y curl --no-install-recommends && \
+    apt-get install -y curl ca-certificates --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
 FROM base AS install
