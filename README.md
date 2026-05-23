@@ -72,7 +72,7 @@ services:
       TZ: Etc/UTC # Set to your timezone for localization
     volumes:
       # persist cookie data across container restarts
-      - "mousehole:/srv/mousehole"
+      - "mousehole:/var/lib/mousehole"
     restart: unless-stopped
 
 volumes:
@@ -135,7 +135,7 @@ Choose `latest` if you do not know which to pick.
 
 - `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
   listen.
-- `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/srv/mousehole`)_ The directory where
+- `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory where
   the service will store its data.
 - `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
   user agent to use for requests to MAM.

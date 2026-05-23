@@ -48,7 +48,7 @@ services:
       TZ: Etc/UTC # Set to your timezone for localization
     volumes:
       # persist cookie data across container restarts
-      - "mousehole:/srv/mousehole"
+      - "mousehole:/var/lib/mousehole"
     restart: unless-stopped
 
 volumes:
