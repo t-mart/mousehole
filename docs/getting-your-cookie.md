@@ -45,11 +45,7 @@ to create a session for it. Each session is tied to a cookie value.
 
    ![Mousehole Set Button](/docs/images/cookie-form.png)
 
-5. Click the "Check Now" button.
-
-   ![Mousehole Check Now Button](/docs/images/check-now-button.png)
-
-6. Et voilà! You should now see an OK status, and Mousehole will keep your IP
+5. Et voilà! You should now see an OK status, and Mousehole will keep your IP
    updated with MAM automatically in the background. You don't need to do
    anything else! You can close the page.
 
