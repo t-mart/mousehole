@@ -79,7 +79,7 @@ Example request bodies:
 - _(no body)_
 - ```jsonc
   {
-    "force": true // Optional, defaults to false
+    "force": true, // Optional, defaults to false
   }
   ```
 
@@ -134,3 +134,6 @@ Example response bodies:
     "reason": "no-last-response"
   }
   ```
+
+If `ok` is true, then the status code is 200. If `ok` is false, then the status
+code is 503.
