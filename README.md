@@ -94,8 +94,7 @@ details.
 
 #### Unraid
 
-See the [Unraid Installation Guide](contrib/unraid/README.md) for
-instructions.
+See the [Unraid Installation Guide](contrib/unraid/README.md) for instructions.
 
 #### Local
 
@@ -135,8 +134,8 @@ Choose `latest` if you do not know which to pick.
 
 - `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
   listen.
-- `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory where
-  the service will store its data.
+- `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory
+  where the service will store its data.
 - `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
   user agent to use for requests to MAM.
 - `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
@@ -145,7 +144,11 @@ Choose `latest` if you do not know which to pick.
   seconds after which a MAM response is considered stale. This ensures that
   Mousehole is still talking with MAM at some regular interval and is detecting
   out-of-band changes to the cookie.
-- `TZ`: _(Default `Etc/UTC`)_ The timezone for displaying localized times.
+- `TZ`: _(Default `Etc/UTC`)_ The timezone identifier for displaying localized
+  times. Use the "TZ identifier" column from this
+  [list of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+  for valid values. (Not every city is listed! Use one that follows the same
+  time rules as your location.)
 
 ## Contributing
 
