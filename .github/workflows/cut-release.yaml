@@ -9,7 +9,11 @@ permissions:
   contents: write # Required to create a release
 
 jobs:
-  build:
+  ci:
+    uses: ./.github/workflows/ci.yaml
+
+  release:
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
