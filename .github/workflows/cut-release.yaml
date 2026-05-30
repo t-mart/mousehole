@@ -18,4 +18,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.CI_PAT }}
         run: |
-          gh release create "${{ github.ref_name }}" --generate-notes
+          gh release create "${{ github.ref_name }}" --notes "[changelog](https://github.com/t-mart/mousehole/blob/master/CHANGELOG.md)"
