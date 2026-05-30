@@ -9,8 +9,6 @@ import { handleGetOk } from "#backend/handlers/ok.ts";
 import { handleGetState, handlePutState } from "#backend/handlers/state.ts";
 import { handlePostUpdate } from "#backend/handlers/update.ts";
 import {
-  guardLoginRequest,
-  guardLogoutRequest,
   guardProtectedRequest,
   validateRuntimeSecurityConfig,
   type ProtectedRequestOptions,
@@ -67,7 +65,11 @@ const server = Bun.serve({
   routes: {
     "/login": {
       POST: async (request) => {
-        const guard = guardLoginRequest(request);
+        const guard = guardProtectedRequest(request, {
+          requireAuth: false,
+          requireOrigin: true,
+          requireJsonContentType: true,
+        });
         if (guard) return guard;
         const result = await handlePostLogin(request);
         if (!result.ok)
@@ -78,7 +80,7 @@ const server = Bun.serve({
     },
     "/logout": {
       POST: (request) => {
-        const guard = guardLogoutRequest(request);
+        const guard = guardProtectedRequest(request, { requireAuth: false });
         if (guard) return guard;
         deleteRequestSession(request);
         clearSessionCookie(request);

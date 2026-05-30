@@ -26,6 +26,7 @@ type BoundaryFailure = {
 };
 
 export type ProtectedRequestOptions = {
+  requireAuth?: boolean;
   requireJsonContentType?: boolean;
   requireOrigin?: boolean;
 };
@@ -70,37 +71,29 @@ export function guardProtectedRequest(
   return makeFailureResponse(failure);
 }
 
-export function guardLoginRequest(
-  request: Request,
-  securityConfig: SecurityConfig = config,
-): Response | undefined {
-  const failure =
-    checkHost(request, securityConfig.allowedHosts) ??
-    checkJsonContentType(request);
-  if (failure) return makeFailureResponse(failure);
-}
-
-export function guardLogoutRequest(
-  request: Request,
-  securityConfig: SecurityConfig = config,
-): Response | undefined {
-  const failure = checkHost(request, securityConfig.allowedHosts);
-  if (failure) return makeFailureResponse(failure);
-}
 
 export function checkProtectedRequest(
   request: Request,
   options: ProtectedRequestOptions = {},
   securityConfig: SecurityConfig = config,
 ): BoundaryFailure | undefined {
-  return (
-    checkHost(request, securityConfig.allowedHosts) ??
-    checkAuthentication(request, securityConfig.auth) ??
-    (options.requireOrigin
-      ? checkOrigin(request, securityConfig.allowedOrigins)
-      : undefined) ??
-    (options.requireJsonContentType ? checkJsonContentType(request) : undefined)
-  );
+  const hostFailure = checkHost(request, securityConfig.allowedHosts);
+  if (hostFailure) return hostFailure;
+
+  if (options.requireAuth !== false) {
+    const authFailure = checkAuthentication(request, securityConfig.auth);
+    if (authFailure) return authFailure;
+  }
+
+  if (options.requireOrigin) {
+    const originFailure = checkOrigin(request, securityConfig.allowedOrigins);
+    if (originFailure) return originFailure;
+  }
+
+  if (options.requireJsonContentType) {
+    const contentTypeFailure = checkJsonContentType(request);
+    if (contentTypeFailure) return contentTypeFailure;
+  }
 }
 
 function checkHost(
@@ -211,7 +204,7 @@ function checkOrigin(
   return {
     status: 403,
     type: "origin-not-allowed",
-    message: "Request Origin header is not allowed.",
+    message: `Origin '${origin}' is not allowed.`,
   };
 }
 

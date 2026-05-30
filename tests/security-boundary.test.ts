@@ -408,6 +408,35 @@ describe("protected HTTP boundary", () => {
     expect(failure?.type).toBe("unsupported-media-type");
   });
 
+  test("requireAuth: false allows unauthenticated requests through (login scenario)", () => {
+    const failure = checkProtectedRequest(
+      makeRequest("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: "http://localhost" },
+        body: "{}",
+      }),
+      { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
+      passwordConfig,
+    );
+
+    expect(failure).toBeUndefined();
+  });
+
+  test("requireAuth: false still enforces origin check — disallowed origin gets 403", () => {
+    const failure = checkProtectedRequest(
+      makeRequest("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: "http://evil.example" },
+        body: "{}",
+      }),
+      { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
+      passwordConfig,
+    );
+
+    expect(failure?.status).toBe(403);
+    expect(failure?.type).toBe("origin-not-allowed");
+  });
+
 });
 
 const passwordAuthConfig = {

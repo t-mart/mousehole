@@ -8,7 +8,7 @@ import { Spinner } from "./lib/spinner";
 
 export function LoginPage({ onLogin }: Readonly<{ onLogin: () => void }>) {
   const [password, setPassword] = useState("");
-  const [invalid, setInvalid] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const passwordId = useId();
 
   const { mutate, isPending } = useMutation({
@@ -18,16 +18,21 @@ export function LoginPage({ onLogin }: Readonly<{ onLogin: () => void }>) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: value }),
       });
-      if (!response.ok) throw new Error("Invalid password");
+      if (!response.ok) {
+        const body = await response.json().catch(() => undefined);
+        throw new Error(
+          typeof body?.message === "string" ? body.message : "Incorrect password.",
+        );
+      }
     },
     onSuccess: onLogin,
-    onError: () => setInvalid(true),
+    onError: (error: Error) => setErrorMessage(error.message),
   });
 
   function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (password !== "") {
-      setInvalid(false);
+      setErrorMessage(undefined);
       mutate(password);
     }
   }
@@ -42,9 +47,9 @@ export function LoginPage({ onLogin }: Readonly<{ onLogin: () => void }>) {
             type="password"
             id={passwordId}
             value={password}
-            onChange={(event) => { setPassword(event.target.value); setInvalid(false); }}
+            onChange={(event) => { setPassword(event.target.value); setErrorMessage(undefined); }}
             placeholder="Enter password"
-            aria-invalid={invalid || password === "" ? "true" : "false"}
+            aria-invalid={errorMessage !== undefined || password === "" ? "true" : "false"}
             autoComplete="current-password"
             required
           />
@@ -52,8 +57,8 @@ export function LoginPage({ onLogin }: Readonly<{ onLogin: () => void }>) {
             {isPending ? <Spinner /> : "Log in"}
           </Button>
         </form>
-        {invalid && (
-          <p className="text-destructive text-sm">Incorrect password.</p>
+        {errorMessage !== undefined && (
+          <p className="text-destructive text-sm">{errorMessage}</p>
         )}
       </Section>
     </main>
