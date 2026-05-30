@@ -5,12 +5,16 @@
 - Add new healthcheck endpoint `GET /health` that is used in as the Docker
   image's default healthcheck in
   [#104](https://github.com/t-mart/mousehole/pull/104)
+- **Deprecation**: Deprecate the `/ok` endpoint in favor of `/health`.
 - Greatly reduce the size of the docker image in
   [#103](https://github.com/t-mart/mousehole/pull/103)
-- Harden the HTTP and WebSocket boundary with public state serialization,
-  authentication, Host/Origin checks, JSON content-type enforcement, and request
-  body size limits in
-  [2ac082b](https://github.com/t-mart/mousehole/commit/2ac082b)
+- **Breaking**: Move to an alpine base image without `curl` (was Debian-based
+  with `curl`)
+- **Breaking**: Harden the HTTP and WebSocket boundary with public state
+  serialization, authentication, Host/Origin checks, JSON content-type
+  enforcement, and request body size limits in
+  [2ac082b](https://github.com/t-mart/mousehole/commit/2ac082b). To migrate,
+  users should at least set `MOUSEHOLE_PASSWORD`.
 
 ## [v0.3.1](https://github.com/t-mart/mousehole/releases/tag/v0.3.1) - 2026-05-23
 
