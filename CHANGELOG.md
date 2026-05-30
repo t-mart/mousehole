@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Greatly reduce the size of the docker image in
+  [#103](https://github.com/t-mart/mousehole/pull/103)
 - Harden the HTTP and WebSocket boundary with public state serialization,
   authentication, Host/Origin checks, JSON content-type enforcement, and request
   body size limits.

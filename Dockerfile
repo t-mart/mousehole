@@ -1,13 +1,11 @@
-FROM oven/bun:1-debian AS base
+FROM oven/bun:1-alpine AS base
 
 # where to install dependencies for caching
 ARG BUN_INSTALL_DIR=/temp/install
 # where the app will live in the final image
 ARG BUN_APP_DIR=/usr/src/app
 
-RUN apt-get update && \
-    apt-get install -y curl ca-certificates --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache ca-certificates
 
 FROM base AS install
 WORKDIR ${BUN_INSTALL_DIR}
