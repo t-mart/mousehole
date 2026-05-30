@@ -4,7 +4,7 @@
 
 - Add new healthcheck endpoint `GET /health` that is used in as the Docker
   image's default healthcheck in
-  [#xx](https://github.com/t-mart/mousehole/pull/xx)
+  [#104](https://github.com/t-mart/mousehole/pull/104)
 - Greatly reduce the size of the docker image in
   [#103](https://github.com/t-mart/mousehole/pull/103)
 - Harden the HTTP and WebSocket boundary with public state serialization,
