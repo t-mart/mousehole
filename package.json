@@ -22,6 +22,7 @@
     "@types/negotiator": "^0.6.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "baseline-browser-mapping": "^2.10.32",
     "eslint": "^9.39.4",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-perfectionist": "^5.9.0",
