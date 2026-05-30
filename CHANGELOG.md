@@ -14,7 +14,7 @@
   serialization, authentication, Host/Origin checks, JSON content-type
   enforcement, and request body size limits in
   [2ac082b](https://github.com/t-mart/mousehole/commit/2ac082b). To migrate,
-  users should at least set `MOUSEHOLE_PASSWORD`.
+  users should at least set `MOUSEHOLE_AUTH_PASSWORD`.
 
 ## [v0.3.1](https://github.com/t-mart/mousehole/releases/tag/v0.3.1) - 2026-05-23
 
