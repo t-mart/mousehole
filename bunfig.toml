@@ -1,4 +1,4 @@
 # see https://bun.sh/docs/bundler/fullstack
 [serve.static]
 env = "PUBLIC_*"
-plugins = ["bun-plugin-tailwind"]
+plugins = ["./tailwind-plugin.ts"]
