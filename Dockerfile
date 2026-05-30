@@ -24,7 +24,8 @@ ENV PUBLIC_GIT_HASH=${GIT_HASH}
 ENV PUBLIC_DEMO_MODE=false
 
 COPY --from=install ${BUN_INSTALL_DIR}/node_modules node_modules
-COPY package.json bunfig.toml bun-plugins ./
+COPY package.json bunfig.toml ./
+COPY bun-plugins ./bun-plugins
 COPY src ./src
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
