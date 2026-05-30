@@ -122,9 +122,7 @@ export const publicSerializedStateSchema = z.object({
   lastUpdate: serializedUpdateSchema.optional(),
 });
 
-export type PublicSerializedState = z.infer<
-  typeof publicSerializedStateSchema
->;
+export type PublicSerializedState = z.infer<typeof publicSerializedStateSchema>;
 
 export const getStateResponseBodySchema = publicSerializedStateSchema.extend({
   host: hostInfoSchema,
@@ -191,6 +189,15 @@ export type GetOkResponseBody = {
   ok: boolean;
   reason: OkResponseUpdateReason;
 };
+
+export type GetHealthResponseBody =
+  | {
+      ok: false;
+      neededUpdateReason: UpdateReason;
+    }
+  | {
+      ok: true;
+    };
 
 //
 // Other

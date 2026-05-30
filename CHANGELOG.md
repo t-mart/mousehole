@@ -2,11 +2,15 @@
 
 ## [Unreleased]
 
+- Add new healthcheck endpoint `GET /health` that is used in as the Docker
+  image's default healthcheck in
+  [#xx](https://github.com/t-mart/mousehole/pull/xx)
 - Greatly reduce the size of the docker image in
   [#103](https://github.com/t-mart/mousehole/pull/103)
 - Harden the HTTP and WebSocket boundary with public state serialization,
   authentication, Host/Origin checks, JSON content-type enforcement, and request
-  body size limits in [2ac082b](https://github.com/t-mart/mousehole/commit/2ac082b)
+  body size limits in
+  [2ac082b](https://github.com/t-mart/mousehole/commit/2ac082b)
 
 ## [v0.3.1](https://github.com/t-mart/mousehole/releases/tag/v0.3.1) - 2026-05-23
 
