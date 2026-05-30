@@ -50,6 +50,23 @@
   }
 }
 
+@keyframes sp-rotate { 100% { transform: rotate(360deg); } }
+@keyframes sp-dash {
+  0%        { stroke-dasharray: 0 150;  stroke-dashoffset: 0;   }
+  47.5%     { stroke-dasharray: 42 150; stroke-dashoffset: -16; }
+  95%, 100% { stroke-dasharray: 42 150; stroke-dashoffset: -59; }
+}
+
+@utility spinner-group {
+  transform-origin: center;
+  animation: sp-rotate 2s linear infinite;
+}
+
+@utility spinner-circle {
+  stroke-linecap: round;
+  animation: sp-dash 1.5s ease-in-out infinite;
+}
+
 @utility focus-ring {
   @apply rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:ring-offset-4 focus-visible:ring-offset-background transition-[color,box-shadow];
 }
