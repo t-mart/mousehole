@@ -12,7 +12,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yaml
+
   tag:
+    needs: ci
     runs-on: ubuntu-latest
 
     permissions:
@@ -29,6 +33,11 @@ jobs:
       - name: Get new tag from package.json
         run: |
           NEW_TAG="v$(jq -r '.version' package.json)"
+          if [[ ! "$NEW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: version '${NEW_TAG}' is not a valid tag."
+            echo "::error file=package.json::version '${NEW_TAG}' is not a valid tag"
+            exit 1
+          fi
           echo "new_tag=${NEW_TAG}" >> "$GITHUB_ENV"
           echo "Identified potential new tag: ${NEW_TAG}"
 
