@@ -122,9 +122,9 @@ If you access Mousehole through a NAS hostname or LAN IP address, set
 names or IP addresses you use in the browser, such as `nas.local,192.168.1.10`.
 
 `MOUSEHOLE_ALLOWED_ORIGINS` is usually not needed for normal LAN access when
-Mousehole serves its own frontend, even if accessed at
-`http://nas-ip:5010`. The default same-origin policy accepts browser requests
-whose `Origin` matches the Mousehole URL being requested.
+Mousehole serves its own frontend, even if accessed at `http://nas-ip:5010`. The
+default same-origin policy accepts browser requests whose `Origin` matches the
+Mousehole URL being requested.
 
 Set `MOUSEHOLE_ALLOWED_ORIGINS` only when the browser sends an `Origin` that
 does not match the origin Mousehole sees for the request, such as some reverse
@@ -140,20 +140,31 @@ for help with troubleshooting.
 
 ## Security
 
-- Mousehole stores your MAM session cookie on disk.
+- Mousehole stores your MAM session cookie on disk in plaintext. Do not use
+  Mousehole if you cannot keep its state directory secure.
 - Enable authentication before exposing it beyond localhost.
 
-## Docker Tags
+## Docker Images
 
-Mousehole publishes several image tags to
+Mousehole publishes Alpine-based images for amd64 and arm64 to
 [Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole):
 
-- SemVer versions (`0`, `0.1`, `0.1.11`, etc)
-- `latest`, the latest versioned release
+### Tags
+
+Several tags are published throughout the lifecycle of the project:
+
+- Released [SemVer](https://semver.org/) versions (`0`, `0.1`, `0.1.11`, etc)
+- `latest`, the latest release
 - `edge`, the tip of `master` branch
 - Pull requests targeting `master` for testing, tagged as `pr-<number>`
 
-Choose `latest` if you do not know which to pick.
+### Healthcheck
+
+The Dockerfile includes a default healthcheck that hits the
+`http://localhost:5010/health` endpoint (see
+[API Documentation](docs/API.md#get-health)). If you change the port on which
+Mousehole listens with the `MOUSEHOLE_PORT` environment variable, make sure to
+override the healthcheck command accordingly.
 
 ## Environment Variables
 
