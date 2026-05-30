@@ -67,3 +67,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             GIT_HASH=${{ steps.vars.outputs.short_sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
