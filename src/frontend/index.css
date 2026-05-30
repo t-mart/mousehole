@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @theme inline {
   --color-background-dark: var(--color-stone-900);
