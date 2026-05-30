@@ -120,6 +120,8 @@ Example response bodies:
 
 ### `GET /ok`
 
+**This endpoint will soon be deprecated in favor of `/health`.**
+
 A convenience endpoint to check if MAM needs to be updated with the host IP
 address.
 
@@ -138,6 +140,33 @@ Example response bodies:
     "reason": "no-last-response"
   }
   ```
+
+If `ok` is true, then the status code is 200. If `ok` is false, then the status
+code is 503.
+
+## `/health`
+
+### `GET /health`
+
+Health check endpoint. Returns 200 when no MAM update is needed, 503 otherwise.
+
+Example response bodies:
+
+- ```json
+  {
+    "ok": true
+  }
+  ```
+
+- ```json
+  {
+    "ok": false,
+    "neededUpdateReason": "ip-changed"
+  }
+  ```
+
+Possible `neededUpdateReason` values: `no-last-response`, `last-response-error`,
+`ip-changed`, `asn-changed`, `cookie-changed`, `response-stale`.
 
 If `ok` is true, then the status code is 200. If `ok` is false, then the status
 code is 503.
