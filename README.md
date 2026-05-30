@@ -147,7 +147,7 @@ for help with troubleshooting.
 ## Docker Images
 
 Mousehole publishes Alpine-based images for amd64 and arm64 to
-[Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole):
+[Docker Hub](https://hub.docker.com/r/tmmrtn/mousehole).
 
 ### Tags
 
