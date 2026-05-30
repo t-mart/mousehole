@@ -50,12 +50,28 @@ Enter - Save File Name
 4. Verify all settings are correct for your setup
 5. Click **Apply**
 
+### Accessing the WebUI by Unraid IP or Hostname
+
+If you use the Unraid WebUI link at `http://[IP]:[PORT:5010]`, set the
+template's **Allowed Hosts** field to the exact Unraid IP address or hostname
+you use in the browser.
+
+Normal same-origin LAN access does not usually require
+`MOUSEHOLE_ALLOWED_ORIGINS`. See the
+[LAN or Headless NAS Access](../../README.md#lan-or-headless-nas-access)
+section for reverse proxy and cross-origin cases.
+
 ## Running qBittorrent with VPN
 
 If you're running mousehole through qBittorrent's VPN connection using `network_mode: "service:qbittorrent"`, mousehole will share qBittorrent's network stack. This means:
 
-1. **Expose port 5010 through qBittorrent** - Add `-p 5010:5010` to qBittorrent's docker run command, or add `5010:5010` to qBittorrent's ports in docker-compose
-2. **Remove mousehole's port mapping** - Don't include `-p 5010:5010` on mousehole since it's using qBittorrent's network
-3. **Allow LAN access** - Add the environment variable to qBittorrent to expose the port on your local network (exact variable depends on your qBittorrent container image)
+> [!WARNING]
+> Mousehole stores a MAM session cookie. Do not expose port `5010` to a
+> mixed-trust LAN, VPN, or public interface without authentication and explicit
+> Host/Origin allowlists.
+
+1. **Expose port 5010 through qBittorrent** - Add `-p 127.0.0.1:5010:5010` to qBittorrent's docker run command, or add `127.0.0.1:5010:5010` to qBittorrent's ports in docker-compose
+2. **Remove mousehole's port mapping** - Don't publish port `5010` on mousehole since it's using qBittorrent's network
+3. **Allow LAN access only if needed** - Keep authentication enabled and add the environment variable to qBittorrent to expose the port on your local network (exact variable depends on your qBittorrent container image)
 
 Mousehole will be accessible at `http://localhost:5010`

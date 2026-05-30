@@ -1,15 +1,19 @@
 # API
 
-Some guiding principles:
+## Authentication
 
-- HTTP status code indicates success/failure.
-- Endpoint paths use `kebab-case`.
-- Object properties use `camelCase`.
-- Object string values (various types/actions/error-codes) use `kebab-case`,
-  unless they are from an external APIs.
-- Failures from external APIs return a 500
-- Datetime strings are RFC 9557 format (this is what Temporal produces on
-  `toString()`)
+Protected endpoints accept a Bearer token. Set the `MOUSEHOLE_AUTH_TOKEN`
+environment variable and pass it in the `Authorization` header:
+
+```
+Authorization: Bearer <token>
+```
+
+Example with curl:
+
+```sh
+curl -H "Authorization: Bearer mytoken" http://localhost:5010/state
+```
 
 ## `/state`
 
@@ -23,14 +27,12 @@ Example response bodies:
   {
     "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
     "nextUpdateAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]",
-    "currentCookie": "<some-cookie>",
+    "hasCurrentCookie": true,
     "lastMam": {
       "request": {
-        "cookie": "<some-cookie>",
         "at": "2025-06-21T13:26:50.536-05:00[America/Chicago]"
       },
       "response": {
-        "cookie": "<some-cookie>",
         "httpStatus": 200,
         "body": {
           "Success": true,
@@ -76,11 +78,13 @@ Manually trigger an update of MAM if needed (or if forced).
 
 Example request bodies:
 
-- _(no body)_
 - ```jsonc
   {
     "force": true, // Optional, defaults to false
   }
+  ```
+- ```json
+  {}
   ```
 
 Example response bodies:

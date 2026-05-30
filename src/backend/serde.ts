@@ -1,6 +1,23 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { SerializedState, State } from "./types";
+import type {
+  PublicSerializedState,
+  SerializedState,
+  SerializedUpdate,
+  State,
+} from "./types";
+
+export function serializeUpdate(
+  update: State["lastUpdate"],
+): SerializedUpdate | undefined {
+  return update
+    ? {
+        mamUpdated: update.mamUpdated,
+        mamUpdateReason: update.mamUpdateReason,
+        at: update.at.toString(),
+      }
+    : undefined;
+}
 
 export function serializeState(state: State): SerializedState {
   return {
@@ -18,13 +35,27 @@ export function serializeState(state: State): SerializedState {
           },
         }
       : undefined,
-    lastUpdate: state.lastUpdate
+    lastUpdate: serializeUpdate(state.lastUpdate),
+  };
+}
+
+export function serializePublicState(
+  state?: State | undefined,
+): PublicSerializedState {
+  return {
+    hasCurrentCookie: Boolean(state?.currentCookie),
+    lastMam: state?.lastMam
       ? {
-          mamUpdated: state.lastUpdate.mamUpdated,
-          mamUpdateReason: state.lastUpdate.mamUpdateReason,
-          at: state.lastUpdate.at.toString(),
+          request: {
+            at: state.lastMam.request.at.toString(),
+          },
+          response: {
+            httpStatus: state.lastMam.response.httpStatus,
+            body: state.lastMam.response.body,
+          },
         }
       : undefined,
+    lastUpdate: serializeUpdate(state?.lastUpdate),
   };
 }
 

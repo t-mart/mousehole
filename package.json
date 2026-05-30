@@ -28,6 +28,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-unicorn": "^62.0.0",
     "globals": "^17.6.0",
+    "type-fest": "^5.6.0",
     "typescript-eslint": "^8.59.3"
   },
   "peerDependencies": {

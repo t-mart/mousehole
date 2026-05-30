@@ -75,6 +75,8 @@
     image: tmmrtn/mousehole:latest
     ports:
       - "127.0.0.1:5010:5010"
+    environment:
+      MOUSEHOLE_AUTH_PASSWORD: replace-with-a-long-random-password
     volumes:
       - mousehole:/var/lib/mousehole
   

@@ -83,7 +83,7 @@ function DD({ ...props }: Readonly<ComponentPropsWithRef<"dd">>) {
 }
 
 function StatusContent({ data }: Readonly<{ data: GetStateResponseBody }>) {
-  if (!data.currentCookie) {
+  if (!data.hasCurrentCookie) {
     return <StatusLine state="warn" text="No cookie set" />;
   } else if (data.lastMam) {
     const success = data.lastMam.response.body.Success;

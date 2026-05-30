@@ -11,6 +11,9 @@ without a VPN.
 > This is just a starting point! Read documentation for the projects involved
 > and adapt this example to your needs. Ask for help from the
 > [forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257) or an LLM.
+>
+> Mousehole stores a MAM session cookie. Do not expose it beyond trusted local
+> access without authentication and explicit Host/Origin allowlists.
 
 ```yaml
 services:
@@ -18,8 +21,9 @@ services:
     image: tmmrtn/mousehole:latest
     environment:
       TZ: Etc/UTC # Set to your timezone for localization
+      MOUSEHOLE_AUTH_PASSWORD: replace-with-a-long-random-password
     ports:
-      - "5010:5010" # Mousehole port
+      - "127.0.0.1:5010:5010" # Mousehole port
     volumes:
       # persist cookie data across container restarts
       - "mousehole:/var/lib/mousehole"

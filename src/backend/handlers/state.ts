@@ -1,17 +1,37 @@
+import { config } from "#backend/config.ts";
 import { SchemaError } from "#backend/error.ts";
 import { getHostInfo } from "#backend/external-api/host-info.ts";
 import { parseRequestJson } from "#backend/json.ts";
-import { serializeState } from "#backend/serde.ts";
+import { serializePublicState } from "#backend/serde.ts";
 import { stateFile } from "#backend/store.ts";
 import {
   putStateRequestBodySchema,
   type ErrorResponseBody,
   type GetStateResponseBody,
+  type HostInfo,
   type JSONResponseArgs,
   type PutStateResponseBody,
+  type State,
 } from "#backend/types.ts";
 import { getNextUpdateAt } from "#backend/update.ts";
-import { notifyWebSocketClients } from "#index.tsx";
+import { notifyWebSocketClients } from "#backend/websocket.ts";
+
+export function makeStateResponseBody({
+  hostInfo,
+  nextUpdateAt,
+  state,
+}: {
+  hostInfo: HostInfo;
+  nextUpdateAt?: { toString: () => string };
+  state?: State;
+}): GetStateResponseBody {
+  return {
+    host: hostInfo,
+    nextUpdateAt: nextUpdateAt?.toString(),
+    hasAuth: config.auth.type === "configured",
+    ...serializePublicState(state),
+  };
+}
 
 export async function handleGetState(): Promise<
   JSONResponseArgs<GetStateResponseBody>
@@ -21,11 +41,7 @@ export async function handleGetState(): Promise<
   const nextUpdateAt = getNextUpdateAt();
 
   return {
-    body: {
-      host: hostInfo,
-      nextUpdateAt: nextUpdateAt?.toString(),
-      ...(state ? serializeState(state) : {}),
-    },
+    body: makeStateResponseBody({ hostInfo, nextUpdateAt, state }),
   };
 }
 
@@ -43,11 +59,11 @@ export async function handlePutState(
   await stateFile.write(state);
 
   const hostInfo = await getHostInfo();
-  const body = {
-    host: hostInfo,
-    nextUpdateAt: getNextUpdateAt()?.toString(),
-    ...serializeState(state),
-  };
+  const body = makeStateResponseBody({
+    hostInfo,
+    nextUpdateAt: getNextUpdateAt(),
+    state,
+  });
 
   notifyWebSocketClients(body);
 

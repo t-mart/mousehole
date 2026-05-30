@@ -10,6 +10,10 @@ This example uses [Mousehole as a sidecar](../sidecars.md).
 > This is just a [starting point](../vpn-complexity.md)! Read documentation for
 > the projects involved and adapt this example to your needs. Ask for help from
 > the [forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257) or an LLM.
+>
+> Mousehole stores a MAM session cookie. Keep it bound to localhost unless you
+> also configure authentication and explicit Host/Origin allowlists for your
+> trusted access path.
 
 ```yaml
 services:
@@ -20,7 +24,7 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - "5010:5010" # Mousehole port
+      - "127.0.0.1:5010:5010" # Mousehole port
       - "8080:8080" # qBittorrent Web UI port
       - "6881:6881/tcp" # qBittorrent TCP torrent port
       - "6881:6881/udp" # qBittorrent UDP torrent port
@@ -46,6 +50,7 @@ services:
     network_mode: "service:gluetun"
     environment:
       TZ: Etc/UTC # Set to your timezone for localization
+      MOUSEHOLE_AUTH_PASSWORD: replace-with-a-long-random-password
     volumes:
       # persist cookie data across container restarts
       - "mousehole:/var/lib/mousehole"

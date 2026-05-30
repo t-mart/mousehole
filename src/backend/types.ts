@@ -106,17 +106,49 @@ export const serializedStateSchema = z.object({
 export type SerializedState = z.infer<typeof serializedStateSchema>;
 export type SerializedUpdate = z.infer<typeof serializedUpdateSchema>;
 
-export const getStateResponseBodySchema = serializedStateSchema.extend({
+export const publicSerializedStateSchema = z.object({
+  hasCurrentCookie: z.boolean(),
+  lastMam: z
+    .object({
+      request: z.object({
+        at: z.string(),
+      }),
+      response: z.object({
+        httpStatus: z.number(),
+        body: mamUpdateDynamicSeedboxResponseBodySchema,
+      }),
+    })
+    .optional(),
+  lastUpdate: serializedUpdateSchema.optional(),
+});
+
+export type PublicSerializedState = z.infer<
+  typeof publicSerializedStateSchema
+>;
+
+export const getStateResponseBodySchema = publicSerializedStateSchema.extend({
   host: hostInfoSchema,
   nextUpdateAt: z.string().optional(),
+  hasAuth: z.boolean(),
 });
 export type GetStateResponseBody = z.infer<typeof getStateResponseBodySchema>;
 
-export const wsStateUpdateMessageSchema = z.object({
+export const wsClientMessageSchema = z.object({
+  type: z.literal("ping"),
+});
+export type WsClientMessage = z.infer<typeof wsClientMessageSchema>;
+
+const wsStateUpdateMessageSchema = z.object({
   type: z.literal("state-update"),
   data: getStateResponseBodySchema,
 });
-export type WsStateUpdateMessage = z.infer<typeof wsStateUpdateMessageSchema>;
+
+export const wsServerMessageSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("pong") }),
+  wsStateUpdateMessageSchema,
+  z.object({ type: z.literal("session-expired") }),
+]);
+export type WsServerMessage = z.infer<typeof wsServerMessageSchema>;
 
 //
 // Handler request types (with zod schemas)
@@ -129,8 +161,8 @@ export const postIpRequestBodySchema = z
   .optional();
 export type PostIpRequestBody = z.infer<typeof postIpRequestBodySchema>;
 
-export const putStateRequestBodySchema = serializedStateSchema.pick({
-  currentCookie: true,
+export const putStateRequestBodySchema = z.object({
+  currentCookie: z.string(),
 });
 export type PutStateRequestBody = z.infer<typeof putStateRequestBodySchema>;
 

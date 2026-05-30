@@ -1,15 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { useState, type ComponentPropsWithRef, type ReactNode } from "react";
+import { useEffect, useState, type ComponentPropsWithRef, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import type {
-  ErrorResponseBody,
-  GetStateResponseBody,
-} from "#backend/types.ts";
-
 import {
+  stateQueryFunction,
   stateQueryKey,
+  UnauthenticatedError,
   useInvalidateOnStateUpdate,
 } from "../hooks/invalidate-on-state-update";
 import { CookieForm } from "./cookie-form";
@@ -19,32 +16,31 @@ import { MamResponse } from "./mam-response";
 import { NeedHelp } from "./need-help";
 import { Timer } from "./timer";
 
-export function Dashboard() {
+export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
   const checkNowMutation = useMutation({
     mutationFn: (force: boolean) =>
       fetch("/update", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ force }),
       }),
+  });
+  const logoutMutation = useMutation({
+    mutationFn: () => fetch("/logout", { method: "POST" }),
+    onSuccess: onLogout,
   });
 
   const stateQuery = useQuery({
     queryKey: stateQueryKey,
-    queryFn: async () => {
-      const response = await fetch("/state");
-      const body = (await response.json()) as
-        | GetStateResponseBody
-        | ErrorResponseBody;
-      if (!response.ok) {
-        throw new Error(
-          `Bad response from GET /state: ${response.status} - ${JSON.stringify(body)}`,
-        );
-      }
-      return body as GetStateResponseBody;
-    },
+    queryFn: stateQueryFunction,
+    retry: (_, error) => !(error instanceof UnauthenticatedError),
   });
-  useInvalidateOnStateUpdate();
+  useInvalidateOnStateUpdate({ onSessionExpired: onLogout });
+
+  useEffect(() => {
+    if (stateQuery.error instanceof UnauthenticatedError) onLogout();
+  }, [stateQuery.error, onLogout]);
 
   if (stateQuery.isPending) {
     return (
@@ -70,7 +66,7 @@ export function Dashboard() {
 
   const showCookieForm =
     userWantsInputCookie ||
-    !data.currentCookie ||
+    !data.hasCurrentCookie ||
     (isMamError && data.lastMam?.response.httpStatus !== 429);
 
   return (
@@ -86,7 +82,6 @@ export function Dashboard() {
               setUserWantsInputCookie(false);
               checkNowMutation.mutate(false);
             }}
-            currentCookie={data.currentCookie}
           />
         )}
 
@@ -113,6 +108,11 @@ export function Dashboard() {
                 Check Now
               </AnimatedButton>
             </>
+          )}
+          {data.hasAuth && (
+            <AnimatedButton onClick={() => logoutMutation.mutate()}>
+              Log out
+            </AnimatedButton>
           )}
         </div>
       </main>

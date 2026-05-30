@@ -1,4 +1,4 @@
-import { notifyWebSocketClients } from "#index.tsx";
+import { notifyWebSocketClients } from "#backend/websocket.ts";
 import { getNowZdt } from "#shared/time.ts";
 
 import type {
@@ -14,7 +14,7 @@ import { NoCookieError } from "./error.ts";
 import { getHostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { Mutex } from "./mutex.ts";
-import { serializeState } from "./serde.ts";
+import { serializePublicState } from "./serde.ts";
 import { stateFile } from "./store.ts";
 
 // This prevents multiple update timers from running during development hot
@@ -143,7 +143,8 @@ async function runUpdate(options?: UpdateOptions): Promise<State> {
       notifyWebSocketClients({
         host: result.hostInfo,
         nextUpdateAt: getNextUpdateAt()?.toString(),
-        ...serializeState(result.state),
+        hasAuth: config.auth.type === "configured",
+        ...serializePublicState(result.state),
       });
     }
     release();

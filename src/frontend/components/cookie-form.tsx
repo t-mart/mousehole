@@ -11,9 +11,8 @@ import { Spinner } from "./lib/spinner";
 
 export function CookieForm({
   onUpdated,
-  currentCookie,
-}: Readonly<{ onUpdated: () => void; currentCookie?: string }>) {
-  const [formCookie, setFormCookie] = useState(currentCookie ?? "");
+}: Readonly<{ onUpdated: () => void }>) {
+  const [formCookie, setFormCookie] = useState("");
   const cookieInputId = useId();
 
   const { mutate, isPending } = useMutation({
@@ -22,6 +21,7 @@ export function CookieForm({
       // the update is processed. this is robust for multiple tabs/windows
       fetch("/state", {
         method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentCookie: cookie }),
       }),
     onSuccess: () => {

@@ -13,6 +13,14 @@ The two key points to configuring Mousehole as a sidecar are:
 Knowing these two points, you can adapt any Docker Compose VPN setup to include
 Mousehole as a sidecar.
 
+> [!WARNING]
+> Mousehole stores a MAM session cookie. Binding port `5010` to a LAN, VPN, or
+> public interface exposes the web UI, API, and WebSocket endpoint to that
+> network. Keep the publish binding on `127.0.0.1` unless you also configure
+> authentication and explicit Host allowlists for a trusted access path. See
+> [LAN or Headless NAS Access](../README.md#lan-or-headless-nas-access) before
+> exposing Mousehole to a LAN address or hostname.
+
 ## Non-Functional but Illustrative Example
 
 ```yaml
@@ -20,10 +28,12 @@ services:
   mousehole:
     image: tmmrtn/mousehole:latest
     network_mode: "service:vpn" # Point 1: Use VPN container's network
+    environment:
+      MOUSEHOLE_AUTH_PASSWORD: replace-with-a-long-random-password
     restart: unless-stopped
 
   vpn:
     image: your-vpn-image:latest
     ports:
-      - "5010:5010" # Point 2: Expose Mousehole's port here
+      - "127.0.0.1:5010:5010" # Point 2: Expose Mousehole's port here
 ```

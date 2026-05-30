@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+- Harden the HTTP and WebSocket boundary with public state serialization,
+  authentication, Host/Origin checks, JSON content-type enforcement, and request
+  body size limits.
+
 ## [v0.3.1](https://github.com/t-mart/mousehole/releases/tag/v0.3.1) - 2026-05-23
 
 - Use correct user in Dockerfile in
