@@ -87,7 +87,7 @@ async function coreUpdate(
   const reason = getUpdateReason(state, hostInfo, force);
 
   if (!reason) {
-    logger.debug("No update needed, current state is ok");
+    logger.info("No update needed, current state is ok");
     const newState: State = {
       currentCookie: state.currentCookie,
       lastMam: state.lastMam,
@@ -179,7 +179,7 @@ function scheduleNext() {
 
   currentBackgroundTask = { nextUpdateTimeoutId: timeoutId, nextUpdateAt };
 
-  logger.debug(`Next automatic update scheduled for: ${nextUpdateAt}`);
+  logger.info(`Next automatic update scheduled for: ${nextUpdateAt}`);
 }
 
 function handleBackgroundUpdateError(error: unknown) {
