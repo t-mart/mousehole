@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Questions & Feature Requests
-    url: https://github.com/t-mart/mousehole/discussions/new
-    about: Ask support questions or suggest features in Discussions, not Issues.
-  - name: Security Vulnerability
-    url: https://github.com/t-mart/mousehole/security/policy
-    about: Please report security issues through the security policy, not a public issue.
+  - name: Need help?
+    url: https://github.com/t-mart/mousehole/discussions/new?category=q-a
+    about: Ask support questions in Discussions, not Issues.
+  - name: Feature request
+    url: https://github.com/t-mart/mousehole/discussions/new?category=ideas
+    about: Suggest new features in Discussions, not Issues.
