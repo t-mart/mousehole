@@ -10,19 +10,9 @@ address is not stable.
 
 Features:
 
-- Background service that regularly updates MAM with the IP address of the host.
-
-  Before an update, Mousehole checks that it actually needs to update by
-  comparing the host's current IP address and AS against the last MAM response.
-
-- Frontend website to manage the service, allowing:
-  - Setting your MAM cookie
-  - Displaying status information
-  - Manual triggering of checks
-
-- API server with management endpoints.
-
-  See [API.md](docs/API.md) for details.
+- Background service that regularly updates MAM with the IP address of the host
+- Frontend website to manage the service
+- [API](docs/API.md) for programmatic access
 
 ## Getting Started
 
