@@ -11,6 +11,15 @@ import { createRoot } from "react-dom/client";
 
 import "./index.css";
 import { App } from "./components/app";
+import logoUrl from "./logo.svg";
+
+document.head.append(
+  Object.assign(document.createElement("link"), {
+    rel: "icon",
+    type: "image/svg+xml",
+    href: logoUrl,
+  }),
+);
 
 const queryClient = new QueryClient();
 
