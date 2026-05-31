@@ -1,0 +1,54 @@
+name: Bug Report on code
+description: Describe your bug with Mousehole
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+        Only file bugs here!
+        
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: I did this
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected-behaviour
+    attributes:
+      label: I expected the following
+    validations:
+      required: false
+
+  - type: textarea
+    id: version
+    attributes:
+      label: Mousehole version
+      description: |
+        Please paste the Mousehole version and hexadecimal git hash listed on
+        the web UI or in the server logs.
+      placeholder: "Mousehole v0.3.1 (8810cf0)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: compose-file
+    attributes:
+      label: compose file
+      description: |
+        Please post your entire compose file if you are using one, redacting any sensitive information or N/A if not applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: browser
+    attributes:
+      label: browser
+      description: |
+        Please post the browser version on which you are accessing Mousehole, or N/A if not applicable.
+      placeholder: "Firefox 112.0"
+    validations:
+      required: true
