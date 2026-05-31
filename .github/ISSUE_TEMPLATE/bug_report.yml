@@ -8,7 +8,7 @@ body:
         Thanks for taking the time to fill out this bug report!
 
         Only file bugs here!
-        
+
   - type: textarea
     id: reproducer
     attributes:
@@ -37,7 +37,7 @@ body:
   - type: textarea
     id: compose-file
     attributes:
-      label: compose file
+      label: Compose file
       description: |
         Please post your entire compose file if you are using one, redacting any sensitive information or N/A if not applicable.
     validations:
@@ -46,7 +46,7 @@ body:
   - type: textarea
     id: browser
     attributes:
-      label: browser
+      label: Browser version
       description: |
         Please post the browser version on which you are accessing Mousehole, or N/A if not applicable.
       placeholder: "Firefox 112.0"
