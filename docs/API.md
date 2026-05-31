@@ -1,5 +1,7 @@
 # API
 
+Mousehole provides a API for programmatic access to its functionality.
+
 ## Authentication
 
 Protected endpoints accept a Bearer token. Set the `MOUSEHOLE_AUTH_TOKEN`
@@ -18,6 +20,8 @@ curl -H "Authorization: Bearer mytoken" http://localhost:5010/state
 ## `/state`
 
 ### `GET /state`
+
+Protected: Yes 
 
 Retrieve the current state of the MAM service.
 
@@ -53,6 +57,8 @@ Example response bodies:
 
 ### `PUT /state`
 
+Protected: Yes 
+
 Reset state for a new provided cookie value.
 
 If a cookie is applied successfully, this endpoint also deletes the state
@@ -73,6 +79,8 @@ state.
 ## `/update`
 
 ### `POST /update`
+
+Protected: Yes 
 
 Manually trigger an update of MAM if needed (or if forced).
 
@@ -120,6 +128,8 @@ Example response bodies:
 
 ### `GET /ok`
 
+Protected: No 
+
 **This endpoint will soon be deprecated in favor of `/health`.**
 
 A convenience endpoint to check if MAM needs to be updated with the host IP
@@ -147,6 +157,8 @@ code is 503.
 ## `/health`
 
 ### `GET /health`
+
+Protected: No 
 
 Health check endpoint. Returns 200 when no MAM update is needed, 503 otherwise.
 
