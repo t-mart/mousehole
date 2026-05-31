@@ -14,14 +14,21 @@ body:
     attributes:
       label: I did this
     validations:
-      required: false
+      required: true
 
   - type: textarea
     id: expected-behaviour
     attributes:
       label: I expected the following
     validations:
-      required: false
+      required: true
+
+  - type: textarea
+    id: actual-behaviour
+    attributes:
+      label: I got this instead
+    validations:
+      required: true
 
   - type: textarea
     id: version
