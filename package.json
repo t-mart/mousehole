@@ -41,6 +41,7 @@
     "@tanstack/react-query": "^5.100.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "consola": "^3.4.2",
     "lucide-react": "^0.562.0",
     "motion": "^12.40.0",
     "negotiator": "^1.0.0",

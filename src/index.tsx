@@ -14,6 +14,7 @@ import {
   validateRuntimeSecurityConfig,
   type ProtectedRequestOptions,
 } from "#backend/http-boundary.ts";
+import { logger } from "#backend/logger.ts";
 import {
   applySessionCookie,
   clearSessionCookie,
@@ -149,7 +150,7 @@ const server = Bun.serve({
   },
 
   error(error: unknown) {
-    console.error(error);
+    logger.error(error);
     return makeJSONResponse(toJSONResponseArgs(error));
   },
 
@@ -193,16 +194,15 @@ setWebSocketPublisher((topic, message) => {
   server.publish(topic, message);
 });
 
-console.log(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
+logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
 if (stateDirPathDeprecationWarning) {
-  console.warn(stateDirPathDeprecationWarning);
+  logger.warn(stateDirPathDeprecationWarning);
 }
 
-console.log("Starting background update task...");
 startBackgroundUpdateTask();
 
 async function shutdown() {
-  console.log("Shutting down...");
+  logger.info("Shutting down...");
   await updateMutex.acquire();
   server.stop();
   stopBackgroundUpdateTask();
