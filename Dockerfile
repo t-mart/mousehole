@@ -5,7 +5,7 @@ ARG BUN_INSTALL_DIR=/temp/install
 # where the app will live in the final image
 ARG BUN_APP_DIR=/usr/src/app
 
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates curl
 
 FROM base AS install
 WORKDIR ${BUN_INSTALL_DIR}
