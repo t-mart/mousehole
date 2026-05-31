@@ -4,16 +4,10 @@
 support for many providers. This example also uses
 [linuxserver/qbittorrent](https://docs.linuxserver.io/images/docker-qbittorrent).
 
-This example uses [Mousehole as a sidecar](../sidecars.md).
-
+<!-- prettier-ignore -->
 > [!IMPORTANT]  
-> This is just a [starting point](../vpn-complexity.md)! Read documentation for
-> the projects involved and adapt this example to your needs. Ask for help from
-> the [forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257) or an LLM.
->
-> Mousehole stores a MAM session cookie. Keep it bound to localhost unless you
-> also configure authentication and explicit Host/Origin allowlists for your
-> trusted access path.
+> This is just a starting point! You will need to
+> [customize](../compose-setups.md) it to your needs.
 
 ```yaml
 services:

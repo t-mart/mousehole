@@ -80,6 +80,10 @@ volumes:
   mousehole:
 ```
 
+<!-- prettier-ignore -->
+> [!NOTE]  
+> See the [Security Guide](docs/security-guide.md) if you are exposing Mousehole beyond localhost, such as through a reverse proxy.
+
 Starter Docker Compose examples:
 
 - ⭐
@@ -89,9 +93,7 @@ Starter Docker Compose examples:
 - [binhex/arch-qbittorrentvpn + Mousehole](docs/docker-compose-examples/binhex-qb.md)
 - [Non-VPN Example](docs/docker-compose-examples/non-vpn.md)
 
-Any VPN setup can be adapted to include Mousehole as a sidecar. See
-[Using Mousehole as a Sidecar with Docker Compose](docs/sidecars.md) for
-details.
+[Any Docker Compose setup can be adapted to include Mousehole as a sidecar](docs/compose-setups.md).
 
 #### Unraid
 
@@ -108,29 +110,8 @@ bun run start
 ### Step 2: Set Your MAM Cookie
 
 Navigate to the Mousehole web UI at <http://localhost:5010> and paste in your
-MAM cookie. If you need to access Mousehole through another host name, a LAN
-address, or a reverse proxy, keep authentication enabled and configure the
-trusted hostnames or IP addresses explicitly.
-
-See [Getting Your Cookie Value](docs/getting-your-cookie.md) for a full
-walkthrough of how to obtain the cookie from MAM.
-
-### LAN or Headless NAS Access
-
-If you access Mousehole through a NAS hostname or LAN IP address, set
-`MOUSEHOLE_AUTH_PASSWORD` and set `MOUSEHOLE_ALLOWED_HOSTS` to the exact host
-names or IP addresses you use in the browser, such as `nas.local,192.168.1.10`.
-
-`MOUSEHOLE_ALLOWED_ORIGINS` is usually not needed for normal LAN access when
-Mousehole serves its own frontend, even if accessed at `http://nas-ip:5010`. The
-default same-origin policy accepts browser requests whose `Origin` matches the
-Mousehole URL being requested.
-
-Set `MOUSEHOLE_ALLOWED_ORIGINS` only when the browser sends an `Origin` that
-does not match the origin Mousehole sees for the request, such as some reverse
-proxy setups or trusted cross-origin WebSocket/browser integrations. Values
-should be exact origins, including scheme and optional port, with no path, for
-example `https://mousehole.example.com` or `http://nas.local:5010`.
+MAM cookie. See [Getting Your Cookie Value](docs/getting-your-cookie.md) for a
+full walkthrough of how to obtain the cookie from MAM.
 
 ## Handling Errors
 
@@ -184,29 +165,32 @@ override the healthcheck command accordingly.
 - `MOUSEHOLE_AUTH_PASSWORD`: Enables browser login via the web UI login page.
   Set this to a strong password.
 - `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
-  Clients send `Authorization: Bearer <token>`.
+  Clients can send HTTP headers in the format `Authorization: Bearer <token>`
+  when accessing [API endpoints](docs/API.md).
+- `MOUSEHOLE_ALLOWED_HOSTS`: Comma-separated allowlist of `Host` header values
+  for protected routes. Defaults to `localhost,127.0.0.1,[::1]`. If an entry in
+  this list does not have a port, then any port is allowed for that host. But,
+  if a port is specified (`localhost:5010`), only that port is allowed. As an
+  advanced opt-out, set to `*` to allow any host. See
+  [Host Allowlist](docs/security-guide.md#host-allowlist) for more details.
+- `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of origins permitted to
+  make cross-origin requests to mutating routes and WebSocket upgrades. Defaults
+  to same-origin only, which only allows the origin that matches the host of the
+  request. Values must be exact origins with no path, such as
+  `https://mousehole.example.com` or `http://nas.local:5010`. As an advanced
+  opt-out, set to `*` to allow any origin. See
+  [Origin Allowlist](docs/security-guide.md#origin-allowlist) for more details.
 - `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH`: Set to `true` to turn off all
   authentication. Do not use in mixed-trust environments.
 - `MOUSEHOLE_SESSION_DURATION_SECONDS`: _(Default `604800` (1 week))_ How long a
-  browser login session remains valid before expiring.
+  browser login session remains valid before expiring. See
+  [Session Duration](docs/security-guide.md#session-duration) for more details.
 - `MOUSEHOLE_HTTPS_ONLY_COOKIES`: _(Default `false`)_ Set to `true` to add the
   `Secure` flag to session cookies, preventing browsers from sending them over
   plain HTTP. Enable this when Mousehole is accessed exclusively via HTTPS (e.g.
-  behind a reverse proxy).
-- `MOUSEHOLE_ALLOWED_HOSTS`: Comma-separated allowlist of `Host` header values
-  for protected routes. Defaults to `localhost,127.0.0.1,[::1]` (port is not
-  checked — any port on an allowed hostname is accepted). Entries may optionally
-  include a port to restrict further (e.g. `example.com:5010`). Set this to the
-  exact hostname or IP address used for LAN or NAS access. As an advanced
-  opt-out, set to `*` to allow any host.
-- `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of origins permitted to
-  make cross-origin requests to mutating routes and WebSocket upgrades. Defaults
-  to same-origin only, which covers the normal case where Mousehole serves its
-  own frontend, including normal LAN access through an allowed host. Set this
-  only when the browser `Origin` differs from the origin Mousehole sees for the
-  request. Values must be exact origins with no path, such as
-  `https://mousehole.example.com` or `http://nas.local:5010`. As an advanced
-  opt-out, set to `*` to allow any origin.
+  behind a reverse proxy). HTTP sessions will not work. See
+  [HTTPS-Only Cookies](docs/security-guide.md#https-only-cookies) for more
+  details.
 - `TZ`: _(Default `Etc/UTC`)_ The timezone identifier for displaying localized
   times. Use the "TZ identifier" column from this
   [list of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
@@ -231,8 +215,11 @@ functionality.
 - Start the dev server with:
 
   ```bash
-  bun run dev
+  bun dev
   ```
+
+- Run tests with `bun test`, check types with `bun check-types`, and lint with
+  `bun lint`.
 
 - New versions can be tagged, released and pushed to Docker Hub by simply
   changing the version in `package.json` and pushing to GitHub. The CI workflows

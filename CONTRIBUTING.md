@@ -11,8 +11,11 @@ Here are some things to keep in mind:
   unclear!
 - Pull requests should be made on their own separate branches.
 - Try to limit each pull request to _one_ idea only.
-- Follow existing code formatting
-- Document user-facing changes
+- Follow existing code formatting and linter rules. Run `bun run lint` and
+  `bun run check-types` before submitting.
+- Document user-facing changes.
+- Write tests for new features and bug fixes, and make sure all existing tests
+  pass.
 
 ## Submitting Changes
 
@@ -28,6 +31,6 @@ Here are some things to keep in mind:
 
 ## Getting Help
 
-- Open an [issue](https://github.com/t-mart/mousehole/issues) for bugs
 - Check existing issues before posting
 - Make a new issue instead of asking questions in closed ones.
+- Open an [issue](https://github.com/t-mart/mousehole/issues) for bugs

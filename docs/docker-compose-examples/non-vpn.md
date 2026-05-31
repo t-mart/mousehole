@@ -1,5 +1,6 @@
 # Non-VPN Docker Compose Example
 
+<!-- prettier-ignore -->
 > [!WARNING]
 > Most users will not want to use this example because it does not use a VPN.
 
@@ -7,13 +8,10 @@ This example runs Mousehole without a VPN. Therefore, it is only suitable if you
 are running your bittorrent client on the host machine or in another container
 without a VPN.
 
+<!-- prettier-ignore -->
 > [!IMPORTANT]  
-> This is just a starting point! Read documentation for the projects involved
-> and adapt this example to your needs. Ask for help from the
-> [forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257) or an LLM.
->
-> Mousehole stores a MAM session cookie. Do not expose it beyond trusted local
-> access without authentication and explicit Host/Origin allowlists.
+> This is just a starting point! You will need to
+> [customize](../compose-setups.md) it to your needs.
 
 ```yaml
 services:
