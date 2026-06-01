@@ -42,20 +42,31 @@ body:
       required: true
 
   - type: textarea
-    id: compose-file
-    attributes:
-      label: Compose file
-      description: |
-        Please post your entire compose file if you are using one, redacting any sensitive information or N/A if not applicable.
-    validations:
-      required: true
-
-  - type: textarea
     id: browser
     attributes:
       label: Browser version
       description: |
-        Please post the browser version on which you are accessing Mousehole, or N/A if not applicable.
+        Please post the browser version on which you are accessing Mousehole, 
+        or N/A if not a browser issue.
       placeholder: "Firefox 112.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: compose-file
+    attributes:
+      label: Server logs
+      description: |
+        Please post your server logs. On docker, you can run `docker logs 
+        mousehole > mousehole-logs.txt` to save the logs to a file.
+      required: true
+
+  - type: textarea
+    id: compose-file
+    attributes:
+      label: Compose file
+      description: |
+        Please post your entire compose file if you are using one, redacting any
+        sensitive information or N/A if not using a compose file.
     validations:
       required: true
