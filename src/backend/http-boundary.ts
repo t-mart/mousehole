@@ -5,6 +5,7 @@ import type {
 } from "./config.ts";
 
 import { config } from "./config.ts";
+import { logger } from "./logger.ts";
 import { validateRequestSession } from "./session.ts";
 
 type SecurityConfig = {
@@ -38,8 +39,8 @@ export function validateRuntimeSecurityConfig(
     securityConfig.auth.type === "configured" &&
     !securityConfig.auth.password
   ) {
-    console.warn(
-      "[WARNING] MOUSEHOLE_AUTH_PASSWORD is not set — browser login will be unavailable.",
+    logger.warn(
+      "MOUSEHOLE_AUTH_PASSWORD is not set. Browser login will be unavailable.",
     );
   }
   if (securityConfig.auth.type !== "none") {
@@ -52,8 +53,8 @@ export function validateRuntimeSecurityConfig(
     );
   }
 
-  console.warn(
-    "[WARNING] Running without authentication (MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true). Do not expose Mousehole to mixed-trust LAN, VPN, or public interfaces.",
+  logger.warn(
+    "Running without authentication (MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true). Do not expose Mousehole to mixed-trust LAN, VPN, or public interfaces.",
   );
 }
 
@@ -71,28 +72,48 @@ export function guardProtectedRequest(
   return makeFailureResponse(failure);
 }
 
-
 export function checkProtectedRequest(
   request: Request,
   options: ProtectedRequestOptions = {},
   securityConfig: SecurityConfig = config,
 ): BoundaryFailure | undefined {
+  // TODO: clean up the logging here later. logging is a middleware job. we also
+  // dirty test output putting it here.
+  const context = `${request.method} ${new URL(request.url).pathname}`;
+
   const hostFailure = checkHost(request, securityConfig.allowedHosts);
-  if (hostFailure) return hostFailure;
+  if (hostFailure) {
+    const host = getRequestHost(request);
+    logger.warn(
+      `[${context}] host not allowed: ${host ? `"${host}"` : "(missing)"}`,
+    );
+    return hostFailure;
+  }
 
   if (options.requireAuth !== false) {
     const authFailure = checkAuthentication(request, securityConfig.auth);
-    if (authFailure) return authFailure;
+    if (authFailure) {
+      logger.warn(`[${context}] authentication required`);
+      return authFailure;
+    }
   }
 
   if (options.requireOrigin) {
     const originFailure = checkOrigin(request, securityConfig.allowedOrigins);
-    if (originFailure) return originFailure;
+    if (originFailure) {
+      const origin = request.headers.get("origin");
+      logger.warn(`[${context}] origin not allowed: "${origin}"`);
+      return originFailure;
+    }
   }
 
   if (options.requireJsonContentType) {
     const contentTypeFailure = checkJsonContentType(request);
-    if (contentTypeFailure) return contentTypeFailure;
+    if (contentTypeFailure) {
+      const contentType = request.headers.get("content-type") ?? "(missing)";
+      logger.warn(`[${context}] unsupported content type: "${contentType}"`);
+      return contentTypeFailure;
+    }
   }
 }
 

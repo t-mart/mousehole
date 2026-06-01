@@ -13,6 +13,7 @@ import { config } from "./config.ts";
 import { NoCookieError } from "./error.ts";
 import { getHostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
+import { logger } from "./logger.ts";
 import { Mutex } from "./mutex.ts";
 import { serializePublicState } from "./serde.ts";
 import { stateFile } from "./store.ts";
@@ -86,7 +87,7 @@ async function coreUpdate(
   const reason = getUpdateReason(state, hostInfo, force);
 
   if (!reason) {
-    console.log("No update needed, current state is ok");
+    logger.info("No update needed, current state is ok");
     const newState: State = {
       currentCookie: state.currentCookie,
       lastMam: state.lastMam,
@@ -99,22 +100,22 @@ async function coreUpdate(
     return { state: newState, hostInfo };
   }
 
-  console.log(`Updating MAM because: ${reason}`);
+  logger.info(`Updating MAM because: ${reason}`);
 
   const mamResponse = await updateMamIp(state.currentCookie);
 
   const success = mamResponse.response.httpStatus === 200;
 
   if (success) {
-    console.log("IP address updated with MAM");
+    logger.info("IP address updated with MAM");
   } else {
-    console.error(
+    logger.error(
       `Failed to update IP address with MAM: ${mamResponse.response.httpStatus} - ${mamResponse.response.body.msg}`,
     );
   }
 
   if (!mamResponse.response.cookie) {
-    console.warn("No cookie returned in MAM response, using previous value");
+    logger.warn("No cookie returned in MAM response, using previous value");
   }
   const nextCookieValue = mamResponse.response.cookie ?? state.currentCookie;
 
@@ -178,19 +179,18 @@ function scheduleNext() {
 
   currentBackgroundTask = { nextUpdateTimeoutId: timeoutId, nextUpdateAt };
 
-  console.log(`Next automatic update scheduled for: ${nextUpdateAt}`);
+  logger.info(`Next automatic update scheduled for: ${nextUpdateAt}`);
 }
 
 function handleBackgroundUpdateError(error: unknown) {
   if (error instanceof NoCookieError) {
-    console.error("No MAM cookie set. Visit the web UI to configure one.");
+    logger.error("No MAM cookie set. Visit the web UI to configure one.");
     return;
   }
-  console.error(error);
+  logger.error(error);
 }
 
 // ── public API ────────────────────────────────────────────────────────────────
-
 
 // Called by the HTTP handler. Throws on error — caller returns 500.
 export function triggerUpdate(options?: UpdateOptions): Promise<State> {
@@ -200,6 +200,9 @@ export function triggerUpdate(options?: UpdateOptions): Promise<State> {
 // Called once at startup.
 export function startBackgroundUpdateTask() {
   runUpdate().catch(handleBackgroundUpdateError);
+  logger.info(
+    `Background check task started, running on ${config.checkIntervalSeconds} second interval`,
+  );
 }
 
 // Called on hot reload to cancel the pending timer before the module re-evaluates.

@@ -146,6 +146,8 @@ override the healthcheck command accordingly.
   where the service will store its data.
 - `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
   user agent to use for requests to MAM.
+- `MOUSEHOLE_LOG_LEVEL`: _(Default `info`)_ Log verbosity. Valid values:
+  `error`, `warn`, `info`, `debug`. Unknown values fall back to `info`.
 - `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
   in seconds between checks.
 - `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of

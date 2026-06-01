@@ -63,6 +63,7 @@ const passwordConfig = {
   allowedHosts: { type: "allowlist", hosts: ["localhost"] },
   allowedOrigins: { type: "same-origin" },
   auth: { type: "configured", password: "s3cr3t" },
+  
 } as const;
 
 const tokenConfig = {

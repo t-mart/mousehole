@@ -1,5 +1,6 @@
 import type { RequireAtLeastOne } from "type-fest";
 
+import { LogLevels } from "consola";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
@@ -101,6 +102,28 @@ export type AllowedOriginsConfig =
     }
   | { type: "all" };
 
+const LOG_LEVEL_MAP = {
+  error: LogLevels.error,
+  warn: LogLevels.warn,
+  info: LogLevels.info,
+  debug: LogLevels.debug,
+} as const satisfies Record<string, number>;
+
+type LogLevelName = keyof typeof LOG_LEVEL_MAP;
+
+const DEFAULT_LOG_LEVEL = "info" satisfies LogLevelName;
+
+function resolveLogLevel(): number {
+  const raw = getEnv("MOUSEHOLE_LOG_LEVEL")?.toLowerCase();
+  if (raw !== undefined) {
+    if (raw in LOG_LEVEL_MAP) return LOG_LEVEL_MAP[raw as LogLevelName];
+    console.warn(
+      `Unknown MOUSEHOLE_LOG_LEVEL "${raw}", defaulting to "${DEFAULT_LOG_LEVEL}"`,
+    );
+  }
+  return LOG_LEVEL_MAP[DEFAULT_LOG_LEVEL];
+}
+
 function resolveAuthConfig(): AuthConfig {
   const password = getEnv("MOUSEHOLE_AUTH_PASSWORD");
   const token = getEnv("MOUSEHOLE_AUTH_TOKEN");
@@ -139,6 +162,14 @@ function resolveAllowedOriginsConfig(): AllowedOriginsConfig {
 }
 
 export const config = {
+  /**
+   * The log level threshold. Messages below this level are suppressed.
+   *
+   * Controlled by MOUSEHOLE_LOG_LEVEL. Valid named values: silent, error, warn,
+   * info (default), debug, verbose.
+   */
+  logLevel: resolveLogLevel(),
+
   /**
    * The user agent string to use for HTTP requests.
    *
