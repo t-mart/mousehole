@@ -43,6 +43,21 @@ describe("defaults (empty env)", () => {
   });
 });
 
+describe("MOUSEHOLE_STATE_DIR_PATH", () => {
+  test("overrides the default state directory", () => {
+    expect(
+      buildConfig({ MOUSEHOLE_STATE_DIR_PATH: "/custom/path" }).stateDirPath,
+    ).toBe("/custom/path");
+  });
+
+  test("override produces no deprecation warning", () => {
+    expect(
+      buildConfig({ MOUSEHOLE_STATE_DIR_PATH: "/custom/path" })
+        .stateDirPathDeprecationWarning,
+    ).toBeUndefined();
+  });
+});
+
 describe("MOUSEHOLE_LOG_LEVEL", () => {
   for (const level of ["error", "warn", "info", "debug"] as const) {
     test(`accepts "${level}"`, () => {
