@@ -1,15 +1,19 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 
+import { useErrors } from "#frontend/lib/error-context.tsx";
+
+import { stateQueryKey } from "../hooks/invalidate-on-state-update";
 import { Button } from "./lib/button";
 import { Input } from "./lib/input";
 import { Section } from "./lib/section";
 import { Spinner } from "./lib/spinner";
 
-export function LoginPage({ onLogin }: Readonly<{ onLogin: () => void }>) {
+export function Login() {
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const passwordId = useId();
+  const queryClient = useQueryClient();
+  const { addError } = useErrors();
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (value: string) => {
@@ -21,18 +25,21 @@ export function LoginPage({ onLogin }: Readonly<{ onLogin: () => void }>) {
       if (!response.ok) {
         const body = await response.json().catch(() => undefined);
         throw new Error(
-          typeof body?.message === "string" ? body.message : "Incorrect password.",
+          typeof body?.message === "string"
+            ? body.message
+            : "Incorrect password.",
         );
       }
     },
-    onSuccess: onLogin,
-    onError: (error: Error) => setErrorMessage(error.message),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: stateQueryKey });
+    },
+    onError: (error: Error) => addError(error.message),
   });
 
   function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (password !== "") {
-      setErrorMessage(undefined);
       mutate(password);
     }
   }
@@ -41,25 +48,29 @@ export function LoginPage({ onLogin }: Readonly<{ onLogin: () => void }>) {
     <main className="space-y-4">
       <Section className="space-y-2">
         <h2 className="sr-only">Log in</h2>
-        <form onSubmit={handleSubmit} className="flex items-center gap-4 w-full">
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center gap-4 w-full"
+        >
           <label htmlFor={passwordId}>Password</label>
           <Input
             type="password"
             id={passwordId}
             value={password}
-            onChange={(event) => { setPassword(event.target.value); setErrorMessage(undefined); }}
+            onChange={(event) => setPassword(event.target.value)}
             placeholder="Enter password"
-            aria-invalid={errorMessage !== undefined || password === "" ? "true" : "false"}
+            aria-invalid={password === "" ? "true" : "false"}
             autoComplete="current-password"
             required
           />
-          <Button type="submit" aria-invalid={isPending || password === ""} className="whitespace-nowrap">
+          <Button
+            type="submit"
+            aria-invalid={isPending || password === ""}
+            className="whitespace-nowrap"
+          >
             {isPending ? <Spinner /> : "Log in"}
           </Button>
         </form>
-        {errorMessage !== undefined && (
-          <p className="text-destructive text-sm">{errorMessage}</p>
-        )}
       </Section>
     </main>
   );

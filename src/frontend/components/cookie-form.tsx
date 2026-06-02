@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useId, useState } from "react";
 
+import { useErrors } from "#frontend/lib/error-context.tsx";
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
 import { Button } from "./lib/button";
@@ -14,19 +15,26 @@ export function CookieForm({
 }: Readonly<{ onUpdated: () => void }>) {
   const [formCookie, setFormCookie] = useState("");
   const cookieInputId = useId();
+  const { addError } = useErrors();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (cookie: string) =>
-      // disregard response, websocket will update us with the new state when
-      // the update is processed. this is robust for multiple tabs/windows
-      fetch("/state", {
+    mutationFn: async (cookie: string) => {
+      const response = await fetch("/state", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentCookie: cookie }),
-      }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => undefined);
+        throw new Error(
+          typeof body?.message === "string" ? body.message : "Failed to save cookie.",
+        );
+      }
+    },
     onSuccess: () => {
       onUpdated();
     },
+    onError: (error: Error) => addError(error.message),
   });
 
   function submitForm(event: React.SubmitEvent<HTMLFormElement>) {

@@ -11,6 +11,7 @@ import { createRoot } from "react-dom/client";
 
 import "./index.css";
 import { App } from "./components/app";
+import { ErrorProvider } from "./lib/error-context";
 import logoUrl from "./logo.svg";
 
 document.head.append(
@@ -27,7 +28,9 @@ const element = document.getElementById("root")!;
 const app = (
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <ErrorProvider>
+        <App />
+      </ErrorProvider>
     </QueryClientProvider>
   </StrictMode>
 );

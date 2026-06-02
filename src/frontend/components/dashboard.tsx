@@ -1,7 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState, type ComponentPropsWithRef, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
+
+import { useErrors } from "#frontend/lib/error-context.tsx";
 
 import {
   stateQueryFunction,
@@ -11,24 +13,40 @@ import {
 } from "../hooks/invalidate-on-state-update";
 import { CookieForm } from "./cookie-form";
 import { ButtonLink } from "./lib/link";
-import { Spinner } from "./lib/spinner";
 import { MamResponse } from "./mam-response";
 import { NeedHelp } from "./need-help";
 import { Timer } from "./timer";
 
 export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
+  const queryClient = useQueryClient();
+  const { addError } = useErrors();
+
   const checkNowMutation = useMutation({
-    mutationFn: (force: boolean) =>
-      fetch("/update", {
+    mutationFn: async (force: boolean) => {
+      const response = await fetch("/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ force }),
-      }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => undefined);
+        throw new Error(
+          typeof body?.message === "string" ? body.message : "Update check failed.",
+        );
+      }
+    },
+    onError: (error: Error) => addError(error.message),
   });
   const logoutMutation = useMutation({
-    mutationFn: () => fetch("/logout", { method: "POST" }),
-    onSuccess: onLogout,
+    mutationFn: async () => {
+      const response = await fetch("/logout", { method: "POST" });
+      if (!response.ok) throw new Error("Logout failed.");
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: stateQueryKey });
+    },
+    onError: (error: Error) => addError(error.message),
   });
 
   const stateQuery = useQuery({
@@ -38,29 +56,8 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   });
   useInvalidateOnStateUpdate({ onSessionExpired: onLogout });
 
-  useEffect(() => {
-    if (stateQuery.error instanceof UnauthenticatedError) onLogout();
-  }, [stateQuery.error, onLogout]);
-
-  if (stateQuery.isPending) {
-    return (
-      <Center>
-        <Spinner className="size-32" />
-      </Center>
-    );
-  }
-
-  if (stateQuery.isError) {
-    return (
-      <Center>
-        <p className="text-destructive">
-          Error fetching state: {stateQuery.error.message || "Unknown error"}
-        </p>
-      </Center>
-    );
-  }
-
   const data = stateQuery.data;
+  if (!data) return;
 
   const isMamError = data.lastMam?.response.body.Success === false;
 
@@ -127,10 +124,6 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
       )}
     </>
   );
-}
-
-function Center({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
-  return <div {...props} className="flex items-center justify-center" />;
 }
 
 function AnimatedButton({

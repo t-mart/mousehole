@@ -6,6 +6,7 @@ import {
   type ErrorResponseBody,
   type GetStateResponseBody,
 } from "#backend/types.ts";
+import { useErrors } from "#frontend/lib/error-context.tsx";
 
 export const stateQueryKey: readonly [string] = ["state"];
 
@@ -31,14 +32,12 @@ export async function stateQueryFunction(): Promise<GetStateResponseBody> {
 const heartbeatIntervalMilliseconds = 30_000;
 const reconnectDelayMilliseconds = 3000;
 
-function handleWebSocketError(event: Event) {
-  console.error("WebSocket error:", event);
-}
 
 export function useInvalidateOnStateUpdate(options?: {
   onSessionExpired?: () => void;
 }) {
   const queryClient = useQueryClient();
+  const { addError } = useErrors();
   const websocketRef = useRef<WebSocket | undefined>(undefined);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -55,13 +54,13 @@ export function useInvalidateOnStateUpdate(options?: {
       try {
         json = JSON.parse(event.data);
       } catch {
-        console.error("Failed to parse WebSocket message as JSON:", event.data);
+        addError("Received an unreadable message from the server.");
         return;
       }
 
       const { data: message, error } = wsServerMessageSchema.safeParse(json);
       if (error) {
-        console.error("Unexpected WebSocket message shape:", error.message);
+        addError("Received an unexpected message shape from the server.");
         return;
       }
 
@@ -74,6 +73,10 @@ export function useInvalidateOnStateUpdate(options?: {
       }
 
       queryClient.setQueryData(stateQueryKey, message.data);
+    }
+
+    function handleError() {
+      addError("Lost connection to the server. Reconnecting…");
     }
 
     function connect() {
@@ -105,13 +108,13 @@ export function useInvalidateOnStateUpdate(options?: {
       // eslint-disable-next-line @eslint-react/web-api/no-leaked-event-listener
       websocket.addEventListener("close", handleClose);
       // eslint-disable-next-line @eslint-react/web-api/no-leaked-event-listener
-      websocket.addEventListener("error", handleWebSocketError);
+      websocket.addEventListener("error", handleError);
 
       cleanupListeners = () => {
         websocket.removeEventListener("open", handleOpen);
         websocket.removeEventListener("message", handleMessage);
         websocket.removeEventListener("close", handleClose);
-        websocket.removeEventListener("error", handleWebSocketError);
+        websocket.removeEventListener("error", handleError);
       };
     }
 
@@ -124,5 +127,5 @@ export function useInvalidateOnStateUpdate(options?: {
       websocketRef.current?.close();
       websocketRef.current = undefined;
     };
-  }, [queryClient]);
+  }, [queryClient, addError]);
 }

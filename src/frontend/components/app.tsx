@@ -1,5 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type JSX } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type ReactNode } from "react";
 
 import {
   stateQueryFunction,
@@ -7,58 +7,70 @@ import {
   UnauthenticatedError,
 } from "../hooks/invalidate-on-state-update";
 import { Dashboard } from "./dashboard";
+import { ErrorDisplay } from "./error-display";
 import { Footer } from "./footer";
 import { Header } from "./header";
+import { Button } from "./lib/button";
+import { Section } from "./lib/section";
 import { Spinner } from "./lib/spinner";
-import { LoginPage } from "./login-page";
+import { Login } from "./login";
 
-type AuthState = "loading" | "authenticated" | "unauthenticated";
-
-export function App() {
-  const queryClient = useQueryClient();
-  const [authState, setAuthState] = useState<AuthState>("loading");
-
-  useEffect(() => {
-    queryClient
-      .fetchQuery({ queryKey: stateQueryKey, queryFn: stateQueryFunction })
-      .then(() => setAuthState("authenticated"))
-      .catch((error) =>
-        setAuthState(
-          error instanceof UnauthenticatedError ? "unauthenticated" : "authenticated",
-        ),
-      );
-  }, [queryClient]);
-
-  function handleLogin() {
-    setAuthState("authenticated");
-    queryClient.invalidateQueries({ queryKey: stateQueryKey });
-  }
-
-  function handleLogout() {
-    // Set state synchronously before any render — the WebSocket cannot race this.
-    setAuthState("unauthenticated");
-    queryClient.removeQueries({ queryKey: stateQueryKey });
-  }
-
-  let main: JSX.Element;
-  if (authState === "loading") {
-    main = (
-      <div className="flex items-center justify-center">
-        <Spinner className="size-32" />
-      </div>
-    );
-  } else if (authState === "unauthenticated") {
-    main = <LoginPage onLogin={handleLogin} />;
-  } else {
-    main = <Dashboard onLogout={handleLogout} />;
-  }
-
+function AppLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div className="mx-auto my-0 p-8 text-center relative z-10 space-y-8 max-w-prose w-full">
       <Header />
-      {main}
+      <ErrorDisplay />
+      {children}
       <Footer />
     </div>
+  );
+}
+
+export function App() {
+  const queryClient = useQueryClient();
+  const stateQuery = useQuery({
+    queryKey: stateQueryKey,
+    queryFn: stateQueryFunction,
+    retry: (_, error) => !(error instanceof UnauthenticatedError),
+  });
+
+  function handleLogout() {
+    queryClient.removeQueries({ queryKey: stateQueryKey });
+  }
+
+  if (stateQuery.isPending) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center">
+          <Spinner className="size-32" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (stateQuery.error instanceof UnauthenticatedError) {
+    return (
+      <AppLayout>
+        <Login />
+      </AppLayout>
+    );
+  }
+
+  if (stateQuery.isError) {
+    return (
+      <AppLayout>
+        <Section className="flex-col items-center gap-4">
+          <p className="text-destructive">{stateQuery.error.message}</p>
+          <Button onClick={() => stateQuery.refetch()}>Retry</Button>
+        </Section>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <AppLayout>
+      <Dashboard onLogout={handleLogout} />
+    </AppLayout>
   );
 }
 
