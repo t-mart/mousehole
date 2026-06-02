@@ -35,7 +35,7 @@ export function App() {
   });
 
   function handleLogout() {
-    queryClient.removeQueries({ queryKey: stateQueryKey });
+    void queryClient.invalidateQueries({ queryKey: stateQueryKey });
   }
 
   if (stateQuery.isPending) {

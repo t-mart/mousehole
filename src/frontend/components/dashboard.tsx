@@ -30,7 +30,9 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
         body: JSON.stringify({ force }),
       });
       if (!response.ok) {
-        const body = (await response.json().catch(() => undefined)) as { message?: string } | undefined;
+        const body = (await response.json().catch(() => undefined)) as
+          | { message?: string }
+          | undefined;
         throw new Error(body?.message ?? "Update check failed.");
       }
     },
@@ -41,9 +43,7 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
       const response = await fetch("/logout", { method: "POST" });
       if (!response.ok) throw new Error("Logout failed.");
     },
-    onSuccess: () => {
-      queryClient.removeQueries({ queryKey: stateQueryKey });
-    },
+    onSuccess: onLogout,
     onError: (error: Error) => addError(error.message),
   });
 
