@@ -11,8 +11,10 @@ import { Section } from "./lib/section";
 import { Spinner } from "./lib/spinner";
 
 export function CookieForm({
-  onUpdated,
-}: Readonly<{ onUpdated: () => void }>) {
+  onUpdate,
+  onCancel,
+  showCancel = true,
+}: Readonly<{ onUpdate: () => void; onCancel: () => void; showCancel?: boolean }>) {
   const [formCookie, setFormCookie] = useState("");
   const cookieInputId = useId();
   const { addError } = useErrors();
@@ -25,12 +27,14 @@ export function CookieForm({
         body: JSON.stringify({ currentCookie: cookie }),
       });
       if (!response.ok) {
-        const body = (await response.json().catch(() => undefined)) as { message?: string } | undefined;
+        const body = (await response.json().catch(() => undefined)) as
+          | { message?: string }
+          | undefined;
         throw new Error(body?.message ?? "Failed to save cookie.");
       }
     },
     onSuccess: () => {
-      onUpdated();
+      onUpdate();
     },
     onError: (error: Error) => addError(error.message),
   });
@@ -60,6 +64,11 @@ export function CookieForm({
         <Button type="submit" aria-invalid={isPending || formCookie === ""}>
           {isPending ? <Spinner /> : "Set"}
         </Button>
+        {showCancel && (
+          <Button type="button" variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
       </form>
 
       <Link

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
@@ -19,7 +19,6 @@ import { Timer } from "./timer";
 
 export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
-  const queryClient = useQueryClient();
   const { addError } = useErrors();
 
   const checkNowMutation = useMutation({
@@ -73,10 +72,12 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
 
         {showCookieForm && (
           <CookieForm
-            onUpdated={() => {
+            onUpdate={() => {
               setUserWantsInputCookie(false);
               checkNowMutation.mutate(false);
             }}
+            onCancel={() => setUserWantsInputCookie(false)}
+            showCancel={data.hasCurrentCookie}
           />
         )}
 
