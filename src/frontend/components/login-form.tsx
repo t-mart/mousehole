@@ -9,7 +9,7 @@ import { Input } from "./lib/input";
 import { Section } from "./lib/section";
 import { Spinner } from "./lib/spinner";
 
-export function Login() {
+export function LoginForm() {
   const [password, setPassword] = useState("");
   const passwordId = useId();
   const queryClient = useQueryClient();
@@ -23,7 +23,9 @@ export function Login() {
         body: JSON.stringify({ password: value }),
       });
       if (!response.ok) {
-        const body = (await response.json().catch(() => undefined)) as { message?: string } | undefined;
+        const body = (await response.json().catch(() => undefined)) as
+          | { message?: string }
+          | undefined;
         throw new Error(body?.message ?? "Incorrect password.");
       }
     },

@@ -13,7 +13,7 @@ import { Header } from "./header";
 import { Button } from "./lib/button";
 import { Section } from "./lib/section";
 import { Spinner } from "./lib/spinner";
-import { Login } from "./login";
+import { LoginForm } from "./login-form";
 
 function AppLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
@@ -51,7 +51,7 @@ export function App() {
   if (stateQuery.error instanceof UnauthenticatedError) {
     return (
       <AppLayout>
-        <Login />
+        <LoginForm />
       </AppLayout>
     );
   }
@@ -61,7 +61,13 @@ export function App() {
       <AppLayout>
         <Section className="flex-col items-center gap-4">
           <p className="text-destructive">{stateQuery.error.message}</p>
-          <Button onClick={() => { void stateQuery.refetch(); }}>Retry</Button>
+          <Button
+            onClick={() => {
+              void stateQuery.refetch();
+            }}
+          >
+            Retry
+          </Button>
         </Section>
       </AppLayout>
     );
