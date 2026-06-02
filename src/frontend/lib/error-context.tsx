@@ -6,6 +6,8 @@ import {
   type ReactNode,
 } from "react";
 
+const MAX_ERRORS = 5;
+
 type AppError = { id: string; message: string };
 
 type ErrorContextValue = {
@@ -21,7 +23,12 @@ export function ErrorProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   const addError = useCallback((message: string) => {
     const id = crypto.randomUUID();
-    setErrors((previous) => [...previous, { id, message }]);
+    setErrors((previous) => {
+      const next = [...previous, { id, message }];
+      if (next.length > MAX_ERRORS) next.shift();
+      return next;
+    });
+    console.error(message);
   }, []);
 
   const dismissError = useCallback((id: string) => {
