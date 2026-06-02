@@ -3,6 +3,7 @@ import { lstat, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { Temporal } from "temporal-polyfill";
 
+import type { SecurityConfig } from "../src/backend/http-boundary.ts";
 import type { HostInfo, State } from "../src/backend/types.ts";
 
 import { handlePostLogin } from "../src/backend/handlers/login.ts";
@@ -59,24 +60,23 @@ const state: State = {
   },
 };
 
-const passwordConfig = {
+const passwordConfig: SecurityConfig = {
   allowedHosts: { type: "allowlist", hosts: ["localhost"] },
   allowedOrigins: { type: "same-origin" },
   auth: { type: "configured", password: "s3cr3t" },
-  
-} as const;
+};
 
-const tokenConfig = {
+const tokenConfig: SecurityConfig = {
   allowedHosts: { type: "allowlist", hosts: ["localhost"] },
   allowedOrigins: { type: "same-origin" },
   auth: { type: "configured", token: "api-token" },
-} as const;
+};
 
-const bothConfig = {
+const bothConfig: SecurityConfig = {
   allowedHosts: { type: "allowlist", hosts: ["localhost"] },
   allowedOrigins: { type: "same-origin" },
   auth: { type: "configured", password: "s3cr3t", token: "api-token" },
-} as const;
+};
 
 function makeRequest(pathName: string, init?: RequestInit): Request {
   return new Request(new URL(pathName, "http://localhost"), init);

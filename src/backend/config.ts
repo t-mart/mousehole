@@ -209,7 +209,7 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
      */
     stateDirPath,
 
-    /** Set when the legacy state directory is in use. Log this at startup. */
+    /** Set when the legacy state directory is in use. */
     stateDirPathDeprecationWarning,
 
     /**

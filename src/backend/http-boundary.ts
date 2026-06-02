@@ -8,7 +8,7 @@ import { config } from "./config.ts";
 import { logger } from "./logger.ts";
 import { validateRequestSession } from "./session.ts";
 
-type SecurityConfig = {
+export type SecurityConfig = {
   allowedHosts: AllowedHostsConfig;
   allowedOrigins: AllowedOriginsConfig;
   auth: AuthConfig;
