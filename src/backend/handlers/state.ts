@@ -1,4 +1,5 @@
 import { config } from "#backend/config.ts";
+import { getIsOnline } from "#backend/connectivity.ts";
 import { SchemaError } from "#backend/error.ts";
 import { getHostInfo } from "#backend/external-api/host-info.ts";
 import { parseRequestJson } from "#backend/json.ts";
@@ -29,6 +30,7 @@ export function makeStateResponseBody({
     host: hostInfo,
     nextUpdateAt: nextUpdateAt?.toString(),
     hasAuth: config.auth.type === "configured",
+    isOnline: getIsOnline(),
     ...serializePublicState(state),
   };
 }

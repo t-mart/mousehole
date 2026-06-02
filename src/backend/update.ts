@@ -10,6 +10,7 @@ import type {
 } from "./types.ts";
 
 import { config } from "./config.ts";
+import { getIsOnline } from "./connectivity.ts";
 import { NoCookieError } from "./error.ts";
 import { getHostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
@@ -145,6 +146,7 @@ async function runUpdate(options?: UpdateOptions): Promise<State> {
         host: result.hostInfo,
         nextUpdateAt: getNextUpdateAt()?.toString(),
         hasAuth: config.auth.type === "configured",
+        isOnline: getIsOnline(),
         ...serializePublicState(result.state),
       });
     }

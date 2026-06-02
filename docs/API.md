@@ -21,7 +21,7 @@ curl -H "Authorization: Bearer mytoken" http://localhost:5010/state
 
 ### `GET /state`
 
-Protected: Yes 
+Protected: Yes
 
 Retrieve the current state of the MAM service.
 
@@ -57,7 +57,7 @@ Example response bodies:
 
 ### `PUT /state`
 
-Protected: Yes 
+Protected: Yes
 
 Reset state for a new provided cookie value.
 
@@ -80,7 +80,7 @@ state.
 
 ### `POST /update`
 
-Protected: Yes 
+Protected: Yes
 
 Manually trigger an update of MAM if needed (or if forced).
 
@@ -128,7 +128,7 @@ Example response bodies:
 
 ### `GET /ok`
 
-Protected: No 
+Protected: No
 
 **This endpoint will soon be deprecated in favor of `/health`.**
 
@@ -158,27 +158,43 @@ code is 503.
 
 ### `GET /health`
 
-Protected: No 
+Protected: No
 
 Health check endpoint. Returns 200 when no MAM update is needed, 503 otherwise.
+
+The response always includes an `isOnline` field indicating whether the server
+was able to reach MAM. When `isOnline` is `false`, the network interface is
+likely down and `neededUpdateReason` is not included (because network
+connectivity is needed to ascertain that). When `isOnline` is `true`, the server
+reached MAM and `ok` reflects whether an update is needed.
+
+Possible `neededUpdateReason` values (only present when `isOnline` is `true` and
+`ok` is `false`): `no-last-response`, `last-response-error`, `ip-changed`,
+`asn-changed`, `cookie-changed`, `response-stale`.
+
+If `ok` is true, then the status code is 200. If `ok` is false, then the status
+code is 503.
 
 Example response bodies:
 
 - ```json
   {
-    "ok": true
+    "ok": true,
+    "isOnline": true
   }
   ```
 
 - ```json
   {
     "ok": false,
+    "isOnline": true,
     "neededUpdateReason": "ip-changed"
   }
   ```
 
-Possible `neededUpdateReason` values: `no-last-response`, `last-response-error`,
-`ip-changed`, `asn-changed`, `cookie-changed`, `response-stale`.
-
-If `ok` is true, then the status code is 200. If `ok` is false, then the status
-code is 503.
+- ```json
+  {
+    "ok": false,
+    "isOnline": false
+  }
+  ```

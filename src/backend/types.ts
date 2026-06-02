@@ -128,6 +128,7 @@ export const getStateResponseBodySchema = publicSerializedStateSchema.extend({
   host: hostInfoSchema,
   nextUpdateAt: z.string().optional(),
   hasAuth: z.boolean(),
+  isOnline: z.boolean(),
 });
 export type GetStateResponseBody = z.infer<typeof getStateResponseBodySchema>;
 
@@ -191,13 +192,9 @@ export type GetOkResponseBody = {
 };
 
 export type GetHealthResponseBody =
-  | {
-      ok: false;
-      neededUpdateReason: UpdateReason;
-    }
-  | {
-      ok: true;
-    };
+  | { ok: true; isOnline: true }
+  | { ok: false; isOnline: false }
+  | { ok: false; isOnline: true; neededUpdateReason: UpdateReason };
 
 //
 // Other

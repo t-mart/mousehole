@@ -1,4 +1,5 @@
 import { config } from "#backend/config.ts";
+import { setIsOnline } from "#backend/connectivity.ts";
 import { SchemaError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import { ipResponseBodySchema } from "#backend/types.ts";
@@ -6,11 +7,16 @@ import { ipResponseBodySchema } from "#backend/types.ts";
 const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
 
 export async function getHostInfo() {
-  const response = await fetch(endpointUrl, {
-    headers: {
-      "User-Agent": config.userAgent,
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(endpointUrl, {
+      headers: { "User-Agent": config.userAgent },
+    });
+    setIsOnline(true);
+  } catch (error) {
+    setIsOnline(false);
+    throw error;
+  }
 
   if (!response.ok) {
     throw new Error(

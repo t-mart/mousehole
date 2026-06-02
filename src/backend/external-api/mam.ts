@@ -1,4 +1,5 @@
 import { config } from "#backend/config.ts";
+import { setIsOnline } from "#backend/connectivity.ts";
 import { SchemaError, UnexpectedRedirectError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import {
@@ -26,10 +27,14 @@ export async function updateMamIp(
   const performedAt = getNowZdt();
 
   // Note: the IP address is determined by the server from the request.
-  const response = await fetch(endpointUrl, {
-    headers,
-    redirect: "manual",
-  });
+  let response: Response;
+  try {
+    response = await fetch(endpointUrl, { headers, redirect: "manual" });
+    setIsOnline(true);
+  } catch (error) {
+    setIsOnline(false);
+    throw error;
+  }
 
   // This is a MaM bug! Certain malformed cookies cause MaM to respond with 302 redirects to / (HTML) instead of 4xx with JSON
   if (response.status >= 300 && response.status < 400) {

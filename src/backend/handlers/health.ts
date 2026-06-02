@@ -1,5 +1,6 @@
 import type {
   GetHealthResponseBody,
+  HostInfo,
   JSONResponseArgs,
 } from "#backend/types.ts";
 
@@ -10,26 +11,28 @@ import { getUpdateReason } from "#backend/update.ts";
 export async function handleGetHealth(): Promise<
   JSONResponseArgs<GetHealthResponseBody>
 > {
-  const state = await stateFile.readIfExists();
-  const hostInfo = await getHostInfo();
-
-  const neededUpdateReason = getUpdateReason(state, hostInfo, false);
-  const ok = neededUpdateReason === undefined;
-
-  if (ok) {
+  let hostInfo: HostInfo;
+  try {
+    hostInfo = await getHostInfo();
+  } catch {
     return {
-      body: { ok: true },
+      body: { ok: false, isOnline: false },
+      init: { status: 503 },
+    };
+  }
+
+  const state = await stateFile.readIfExists();
+  const neededUpdateReason = getUpdateReason(state, hostInfo, false);
+
+  if (!neededUpdateReason) {
+    return {
+      body: { ok: true, isOnline: true },
       init: { status: 200 },
     };
   }
 
   return {
-    body: {
-      ok,
-      neededUpdateReason,
-    },
-    init: {
-      status: 503,
-    },
+    body: { ok: false, isOnline: true, neededUpdateReason },
+    init: { status: 503 },
   };
 }

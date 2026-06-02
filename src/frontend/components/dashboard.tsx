@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
 
 import { useErrors } from "#frontend/lib/error-context.tsx";
@@ -54,6 +54,15 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   useInvalidateOnStateUpdate({ onSessionExpired: onLogout });
 
   const data = stateQuery.data;
+
+  useEffect(() => {
+    if (data?.isOnline === false) {
+      addError(
+        "The server is unable to contact MAM. Check server logs for details.",
+      );
+    }
+  }, [data?.isOnline, addError]);
+
   if (!data) return;
 
   const isMamError = data.lastMam?.response.body.Success === false;
