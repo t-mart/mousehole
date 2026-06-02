@@ -204,7 +204,10 @@ startBackgroundUpdateTask();
 async function shutdown() {
   logger.info("Shutting down...");
   await updateMutex.acquire();
-  await server.stop(true);
+
+  // despite passing true to immediately stop, bun sometimes still lags, so just don't await it
+  void server.stop(true);
+  
   stopBackgroundUpdateTask();
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0);
