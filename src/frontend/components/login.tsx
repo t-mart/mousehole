@@ -23,12 +23,8 @@ export function Login() {
         body: JSON.stringify({ password: value }),
       });
       if (!response.ok) {
-        const body = await response.json().catch(() => undefined);
-        throw new Error(
-          typeof body?.message === "string"
-            ? body.message
-            : "Incorrect password.",
-        );
+        const body = (await response.json().catch(() => undefined)) as { message?: string } | undefined;
+        throw new Error(body?.message ?? "Incorrect password.");
       }
     },
     onSuccess: async () => {

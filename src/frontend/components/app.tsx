@@ -61,7 +61,7 @@ export function App() {
       <AppLayout>
         <Section className="flex-col items-center gap-4">
           <p className="text-destructive">{stateQuery.error.message}</p>
-          <Button onClick={() => stateQuery.refetch()}>Retry</Button>
+          <Button onClick={() => { void stateQuery.refetch(); }}>Retry</Button>
         </Section>
       </AppLayout>
     );

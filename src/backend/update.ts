@@ -166,7 +166,7 @@ function scheduleNext() {
   }
 
   const timeoutId = setTimeout(
-    () => runUpdate().catch(handleBackgroundUpdateError),
+    () => { void runUpdate().catch(handleBackgroundUpdateError); },
     config.checkIntervalSeconds * 1000,
   );
 
@@ -179,7 +179,7 @@ function scheduleNext() {
 
   currentBackgroundTask = { nextUpdateTimeoutId: timeoutId, nextUpdateAt };
 
-  logger.info(`Next automatic update scheduled for: ${nextUpdateAt}`);
+  logger.info(`Next automatic update scheduled for: ${nextUpdateAt.toString()}`);
 }
 
 function handleBackgroundUpdateError(error: unknown) {

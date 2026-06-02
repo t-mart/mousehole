@@ -25,10 +25,8 @@ export function CookieForm({
         body: JSON.stringify({ currentCookie: cookie }),
       });
       if (!response.ok) {
-        const body = await response.json().catch(() => undefined);
-        throw new Error(
-          typeof body?.message === "string" ? body.message : "Failed to save cookie.",
-        );
+        const body = (await response.json().catch(() => undefined)) as { message?: string } | undefined;
+        throw new Error(body?.message ?? "Failed to save cookie.");
       }
     },
     onSuccess: () => {

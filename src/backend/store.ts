@@ -24,7 +24,7 @@ class StateFileStore {
       const cause = error instanceof Error ? error : new Error(String(error));
       throw new FileReadError(statePath, { cause });
     }
-    let json;
+    let json: unknown;
     try {
       json = JSON.parse(contents);
     } catch (error) {

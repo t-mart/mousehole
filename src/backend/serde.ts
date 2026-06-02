@@ -40,7 +40,7 @@ export function serializeState(state: State): SerializedState {
 }
 
 export function serializePublicState(
-  state?: State | undefined,
+  state?: State,
 ): PublicSerializedState {
   return {
     hasCurrentCookie: Boolean(state?.currentCookie),

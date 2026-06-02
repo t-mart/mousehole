@@ -133,7 +133,7 @@ export function toJSONResponseArgs(
   error: unknown
 ): JSONResponseArgs<ErrorResponseBody> {
   const message =
-    error instanceof Error ? error.message : `Unhandled error: ${error}`;
+    error instanceof Error ? error.message : `Unhandled error: ${String(error)}`;
   const errorType =
     error instanceof MouseholeError ? error.errorType : "unhandled-error";
   const cause =

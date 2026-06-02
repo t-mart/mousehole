@@ -15,7 +15,7 @@ export default defineConfig({
 
   extends: [
     eslint.configs.recommended,
-    tseslint.configs.recommended,
+    tseslint.configs.recommendedTypeChecked,
     unicornPlugin.configs.recommended,
     reactHooks.configs.flat.recommended,
     jsxA11y.flatConfigs.recommended,

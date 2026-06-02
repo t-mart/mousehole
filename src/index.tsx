@@ -204,11 +204,11 @@ startBackgroundUpdateTask();
 async function shutdown() {
   logger.info("Shutting down...");
   await updateMutex.acquire();
-  server.stop();
+  await server.stop();
   stopBackgroundUpdateTask();
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0);
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on("SIGINT", () => { void shutdown(); });
+process.on("SIGTERM", () => { void shutdown(); });

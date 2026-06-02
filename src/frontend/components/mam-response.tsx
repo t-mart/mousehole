@@ -44,10 +44,11 @@ export function MamResponse({
 function CopyableIP({ ip }: Readonly<{ ip: string }>) {
   const [copied, setCopied] = useState(false);
 
-  async function handleCopy() {
-    await navigator.clipboard.writeText(ip);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  function handleCopy() {
+    void navigator.clipboard.writeText(ip).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   return (

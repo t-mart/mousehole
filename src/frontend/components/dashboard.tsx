@@ -30,10 +30,8 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
         body: JSON.stringify({ force }),
       });
       if (!response.ok) {
-        const body = await response.json().catch(() => undefined);
-        throw new Error(
-          typeof body?.message === "string" ? body.message : "Update check failed.",
-        );
+        const body = (await response.json().catch(() => undefined)) as { message?: string } | undefined;
+        throw new Error(body?.message ?? "Update check failed.");
       }
     },
     onError: (error: Error) => addError(error.message),

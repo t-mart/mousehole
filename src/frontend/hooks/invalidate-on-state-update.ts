@@ -86,7 +86,7 @@ export function useInvalidateOnStateUpdate(options?: {
 
       function handleOpen() {
         clearTimeout(reconnectTimeoutRef.current);
-        queryClient.invalidateQueries({ queryKey: stateQueryKey });
+        void queryClient.invalidateQueries({ queryKey: stateQueryKey });
         heartbeatRef.current = setInterval(() => {
           if (websocket.readyState === WebSocket.OPEN) {
             websocket.send(JSON.stringify({ type: "ping" }));
