@@ -2,7 +2,7 @@ import Negotiator from "negotiator";
 
 import type { JSONResponseArgs } from "#backend/types.ts";
 
-import { config, stateDirPathDeprecationWarning } from "#backend/config.ts";
+import { config } from "#backend/config.ts";
 import { toJSONResponseArgs } from "#backend/error.ts";
 import { handleGetHealth } from "#backend/handlers/health.ts";
 import { handlePostLogin } from "#backend/handlers/login.ts";
@@ -195,8 +195,8 @@ setWebSocketPublisher((topic, message) => {
 });
 
 logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
-if (stateDirPathDeprecationWarning) {
-  logger.warn(stateDirPathDeprecationWarning);
+if (config.stateDirPathDeprecationWarning) {
+  logger.warn(config.stateDirPathDeprecationWarning);
 }
 
 startBackgroundUpdateTask();
