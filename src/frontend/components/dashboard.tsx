@@ -68,6 +68,9 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   if (!data) return;
 
   const isMamError = data.lastMam?.response.body.Success === false;
+  const invalidCookie =
+    isMamError &&
+    data.lastMam?.response.body.msg === "Invalid session - Invalid Cookie";
 
   const showCookieForm =
     userWantsInputCookie ||
@@ -87,7 +90,7 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
             checkNowMutation.mutate(false);
           }}
           onCancel={() => setUserWantsInputCookie(false)}
-          showCancel={data.hasCurrentCookie}
+          showCancel={data.hasCurrentCookie && !invalidCookie}
         />
       )}
 
