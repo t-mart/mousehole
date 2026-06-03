@@ -6,15 +6,28 @@
   image's default healthcheck in
   [#104](https://github.com/t-mart/mousehole/pull/104)
 - **Deprecation**: Deprecate the `/ok` endpoint in favor of `/health`.
-- Greatly reduce the size of the docker image in
-  [#103](https://github.com/t-mart/mousehole/pull/103)
-- **Breaking**: Move to an alpine base image without `curl` (was Debian-based
-  with `curl`)
-- **Breaking**: Harden the HTTP and WebSocket boundary with public state
-  serialization, authentication, Host/Origin checks, JSON content-type
-  enforcement, and request body size limits in
+- **Breaking**: Move to an alpine base (was Debian) in
+  [#103](https://github.com/t-mart/mousehole/pull/103). This greatly reduces the
+  size of the image.
+- **Breaking**: Introduce many security features: Add authentication, make the
+  cookie write only to web UI and API endpoints, add Host/Origin checks, enforce
+  JSON content-type enforcement, and limit request body size in
   [2ac082b](https://github.com/t-mart/mousehole/commit/2ac082b). To migrate,
-  users should at least set `MOUSEHOLE_AUTH_PASSWORD`.
+  users should at least set `MOUSEHOLE_AUTH_PASSWORD`. See the
+  [security guide](/docs/security-guide.md) for more details and
+  recommendations.
+- Detect when Mousehole can't reach MAM (for example, when a VPN container
+  stops) and surface it as a new `isOnline` field on `GET /state` and
+  `GET /health`, a dashboard error, and a server log in
+  [7d3a16d](https://github.com/t-mart/mousehole/commit/7d3a16d)
+- Validate environment variables at startup. Invalid values (bad port, log
+  level, intervals, or an empty Host/Origin allowlist) now fail fast with a
+  clear message instead of being silently coerced in
+  [9f48140](https://github.com/t-mart/mousehole/commit/9f48140)
+- Make logging configurable by level with the new `MOUSEHOLE_LOG_LEVEL`
+  environment variable.
+- Surface server errors in the web UI and add a cancel button to the cookie form
+  in [3ece893](https://github.com/t-mart/mousehole/commit/3ece893)
 
 ## [v0.3.1](https://github.com/t-mart/mousehole/releases/tag/v0.3.1) - 2026-05-23
 
