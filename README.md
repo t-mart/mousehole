@@ -112,10 +112,7 @@ for help with troubleshooting.
 
 ## Security
 
-- Mousehole stores your MAM session cookie on disk in plaintext. Do not use
-  Mousehole if you cannot keep its state directory secure.
-- Enable authentication with `MOUSEHOLE_AUTH_PASSWORD` or `MOUSEHOLE_AUTH_TOKEN`
-  before exposing it beyond localhost.
+See the [security guide](docs/security-guide.md) for detailed information.
 
 ## Docker Images
 
