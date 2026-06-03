@@ -19,6 +19,10 @@ describe("defaults (empty env)", () => {
     expect(config.staleResponseSeconds).toBe(86_400);
   });
 
+  test("mamRequestTimeoutSeconds defaults to 10", () => {
+    expect(config.mamRequestTimeoutSeconds).toBe(10);
+  });
+
   test("sessionDurationSeconds defaults to 604800", () => {
     expect(config.sessionDurationSeconds).toBe(604_800);
   });
@@ -171,6 +175,40 @@ describe("MOUSEHOLE_STALE_RESPONSE_SECONDS", () => {
     expect(() =>
       buildConfig({ MOUSEHOLE_STALE_RESPONSE_SECONDS: "daily" }),
     ).toThrow("MOUSEHOLE_STALE_RESPONSE_SECONDS");
+  });
+});
+
+describe("MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS", () => {
+  test("accepts positive value", () => {
+    expect(
+      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "30" })
+        .mamRequestTimeoutSeconds,
+    ).toBe(30);
+  });
+
+  test("accepts fractional value", () => {
+    expect(
+      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "2.5" })
+        .mamRequestTimeoutSeconds,
+    ).toBe(2.5);
+  });
+
+  test("throws on zero", () => {
+    expect(() =>
+      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "0" }),
+    ).toThrow("MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS");
+  });
+
+  test("throws on negative", () => {
+    expect(() =>
+      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "-1" }),
+    ).toThrow("MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS");
+  });
+
+  test("throws on non-numeric", () => {
+    expect(() =>
+      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "soon" }),
+    ).toThrow("MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS");
   });
 });
 

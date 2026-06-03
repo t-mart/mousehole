@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Add a configurable timeout for requests to MAM via the new
+  `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS` environment variable (default `10`).
+  Previously, a stalled connection (for example, before a VPN is up) could make
+  Mousehole hang.
 - Add new healthcheck endpoint `GET /health` that is used in as the Docker
   image's default healthcheck in
   [#104](https://github.com/t-mart/mousehole/pull/104)

@@ -1,6 +1,6 @@
 import { config } from "#backend/config.ts";
 import { setIsOnline } from "#backend/connectivity.ts";
-import { NetworkError, SchemaError } from "#backend/error.ts";
+import { NetworkError, SchemaError, TimeoutError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import { ipResponseBodySchema } from "#backend/types.ts";
 
@@ -11,10 +11,18 @@ export async function getHostInfo() {
   try {
     response = await fetch(endpointUrl, {
       headers: { "User-Agent": config.userAgent },
+      signal: AbortSignal.timeout(config.mamRequestTimeoutSeconds * 1000),
     });
     setIsOnline(true);
   } catch (error) {
     setIsOnline(false);
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new TimeoutError(
+        endpointUrl.toString(),
+        config.mamRequestTimeoutSeconds,
+        { cause: error },
+      );
+    }
     throw new NetworkError(endpointUrl.toString(), { cause: error });
   }
 

@@ -124,6 +124,24 @@ export class NetworkError extends MouseholeError {
   }
 }
 
+export class TimeoutError extends MouseholeError {
+  constructor(
+    url: string,
+    timeoutSeconds: number,
+    { cause }: { cause?: unknown } = {}
+  ) {
+    super(
+      `Request to ${url} timed out after ${timeoutSeconds}s. Is the network up?`,
+      {
+        cause: cause instanceof Error ? cause : undefined,
+        httpStatus: 504,
+      }
+    );
+    this.name = "TimeoutError";
+    this.errorType = "timeout-error";
+  }
+}
+
 export class NoCookieError extends MouseholeError {
   constructor() {
     super(`No cookie has been set yet`, { httpStatus: 500 });

@@ -228,6 +228,20 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
     ),
 
     /**
+     * The number of seconds to wait for a response from MAM before aborting the
+     * request. Keeps Mousehole from hanging (e.g. when the VPN isn't up yet and
+     * the connection silently stalls).
+     *
+     * Defaults to 10 seconds.
+     */
+    mamRequestTimeoutSeconds: resolveNumber(
+      env,
+      "MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS",
+      positiveNumberSchema,
+      10,
+    ),
+
+    /**
      * The number of seconds after which a browser session expires.
      *
      * Defaults to 604800 seconds (1 week).

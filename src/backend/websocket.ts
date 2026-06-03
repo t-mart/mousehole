@@ -17,3 +17,11 @@ export function makeStateUpdateMessage(data: GetStateResponseBody): Extract<WsSe
 export function notifyWebSocketClients(data: GetStateResponseBody): void {
   webSocketPublisher?.(wsTopic, JSON.stringify(makeStateUpdateMessage(data)));
 }
+
+export function notifyWebSocketClientsOfError(message: string): void {
+  const errorMessage: Extract<WsServerMessage, { type: "error" }> = {
+    type: "error",
+    message,
+  };
+  webSocketPublisher?.(wsTopic, JSON.stringify(errorMessage));
+}

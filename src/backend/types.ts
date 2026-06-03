@@ -146,6 +146,7 @@ export const wsServerMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("pong") }),
   wsStateUpdateMessageSchema,
   z.object({ type: z.literal("session-expired") }),
+  z.object({ type: z.literal("error"), message: z.string() }),
 ]);
 export type WsServerMessage = z.infer<typeof wsServerMessageSchema>;
 

@@ -154,6 +154,9 @@ override the healthcheck command accordingly.
   seconds after which a MAM response is considered stale. This ensures that
   Mousehole is still talking with MAM at some regular interval and is detecting
   out-of-band changes to the cookie.
+- `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
+  a response from MAM before aborting the request. Prevents Mousehole from
+  hanging when the connection silently stalls (e.g. before the VPN is up).
 - `MOUSEHOLE_AUTH_PASSWORD`: Enables browser login via the web UI login page.
   Set this to a strong password.
 - `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.

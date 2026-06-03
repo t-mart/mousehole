@@ -4,12 +4,12 @@ import { Temporal } from "temporal-polyfill";
 
 import { useErrors } from "#frontend/lib/error-context.tsx";
 
+import { useServerEvents } from "../hooks/use-server-events";
 import {
   stateQueryFunction,
   stateQueryKey,
   UnauthenticatedError,
-  useInvalidateOnStateUpdate,
-} from "../hooks/invalidate-on-state-update";
+} from "../lib/state-query";
 import { CookieForm } from "./cookie-form";
 import { Button } from "./lib/button";
 import { Spinner } from "./lib/spinner";
@@ -32,7 +32,9 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
         const body = (await response.json().catch(() => undefined)) as
           | { message?: string }
           | undefined;
-        throw new Error(body?.message ?? "Update check failed.");
+        throw new Error(
+          `${body?.message ?? "Update check failed."} Check server logs for details.`,
+        );
       }
     },
     onError: (error: Error) => addError(error.message),
@@ -51,7 +53,7 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
     queryFn: stateQueryFunction,
     retry: (_, error) => !(error instanceof UnauthenticatedError),
   });
-  useInvalidateOnStateUpdate({ onSessionExpired: onLogout });
+  useServerEvents({ onSessionExpired: onLogout });
 
   const data = stateQuery.data;
 

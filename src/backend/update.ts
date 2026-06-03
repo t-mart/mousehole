@@ -1,4 +1,7 @@
-import { notifyWebSocketClients } from "#backend/websocket.ts";
+import {
+  notifyWebSocketClients,
+  notifyWebSocketClientsOfError,
+} from "#backend/websocket.ts";
 import { getNowZdt } from "#shared/time.ts";
 
 import type {
@@ -190,6 +193,14 @@ function handleBackgroundUpdateError(error: unknown) {
     return;
   }
   logger.error(error);
+  // Background failures never produce a state-update notification, so push the
+  // message to any open dashboard explicitly — otherwise the UI silently shows
+  // stale data until the next reconnect.
+  notifyWebSocketClientsOfError(
+    error instanceof Error
+      ? error.message
+      : "The background update failed unexpectedly.",
+  );
 }
 
 // ── public API ────────────────────────────────────────────────────────────────

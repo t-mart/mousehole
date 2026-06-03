@@ -3,7 +3,7 @@ import { useId, useState } from "react";
 
 import { useErrors } from "#frontend/lib/error-context.tsx";
 
-import { stateQueryKey } from "../hooks/invalidate-on-state-update";
+import { stateQueryKey } from "../lib/state-query";
 import { Button } from "./lib/button";
 import { Input } from "./lib/input";
 import { Section } from "./lib/section";

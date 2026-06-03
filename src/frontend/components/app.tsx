@@ -8,14 +8,14 @@ import {
   stateQueryFunction,
   stateQueryKey,
   UnauthenticatedError,
-} from "../hooks/invalidate-on-state-update";
+} from "../lib/state-query";
 import { Dashboard } from "./dashboard";
 import { ErrorDisplay } from "./error-display";
 import { Footer } from "./footer";
 import { Header } from "./header";
 import { Button } from "./lib/button";
+import { Loading } from "./lib/loading";
 import { Section } from "./lib/section";
-import { Spinner } from "./lib/spinner";
 import { LoginForm } from "./login-form";
 
 function AppLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -47,9 +47,7 @@ export function App() {
   if (stateQuery.isPending) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center">
-          <Spinner className="size-32" />
-        </div>
+        <Loading spinnerClassName="size-32" />
       </AppLayout>
     );
   }
