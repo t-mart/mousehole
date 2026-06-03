@@ -49,7 +49,6 @@
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",
     "temporal-polyfill": "^0.3.2",
-    "tslog": "^4.10.2",
     "zod": "^4.4.3"
   }
 }

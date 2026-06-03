@@ -4,6 +4,10 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import * as z from "zod";
 
+import type { LogLevelName } from "#backend/logger.ts";
+
+import { DEFAULT_LOG_LEVEL, LOG_LEVEL_NAMES, setLogLevel } from "#backend/logger.ts";
+
 import { version } from "../../package.json";
 
 export type AuthConfig =
@@ -38,15 +42,6 @@ export type AllowedOriginsConfig =
     }
   | { type: "all" };
 
-const LOG_LEVEL_MAP = {
-  error: 5,
-  warn: 4,
-  info: 3,
-  debug: 2,
-} as const satisfies Record<string, number>;
-
-type LogLevelName = keyof typeof LOG_LEVEL_MAP;
-
 // TODO: Remove this migration compatibility code in a future major release, after giving
 // users sufficient time to migrate.
 const LEGACY_STATE_DIR = "/srv/mousehole";
@@ -54,10 +49,7 @@ const DEFAULT_STATE_DIR = "/var/lib/mousehole";
 
 const DEFAULT_ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
 
-const logLevelSchema = z.enum(["error", "warn", "info", "debug"] as [
-  LogLevelName,
-  ...LogLevelName[]
-]);
+const logLevelSchema = z.enum(LOG_LEVEL_NAMES);
 const positiveNumberSchema = z.coerce.number().positive();
 const positiveIntSchema = z.coerce.number().int().positive();
 const portSchema = z.coerce.number().int().min(1).max(65_535);
@@ -117,10 +109,10 @@ function resolveStateDirectoryPath(env: NodeJS.ProcessEnv): {
   };
 }
 
-function resolveLogLevel(env: NodeJS.ProcessEnv): number {
+function resolveLogLevel(env: NodeJS.ProcessEnv): LogLevelName {
   const raw = getEnv(env, "MOUSEHOLE_LOG_LEVEL")?.toLowerCase();
-  if (raw === undefined) return LOG_LEVEL_MAP["info"];
-  return LOG_LEVEL_MAP[parseEnvVar("MOUSEHOLE_LOG_LEVEL", logLevelSchema, raw)];
+  if (raw === undefined) return DEFAULT_LOG_LEVEL;
+  return parseEnvVar("MOUSEHOLE_LOG_LEVEL", logLevelSchema, raw);
 }
 
 function resolveNumber(
@@ -186,7 +178,7 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
 
   return {
     /**
-     * The log level threshold. Messages below this level are suppressed.
+     * The log level threshold, by name. Messages below this level are suppressed.
      *
      * Controlled by MOUSEHOLE_LOG_LEVEL. Valid values: error, warn, info (default), debug.
      */
@@ -283,3 +275,7 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
 }
 
 export const config = buildConfig(process.env);
+
+// Wire the resolved level into the logger once, at app config load. buildConfig
+// itself stays pure so it can be unit-tested without mutating logger state.
+setLogLevel(config.logLevel);
