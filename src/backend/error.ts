@@ -110,6 +110,17 @@ export class SchemaError extends MouseholeError {
   }
 }
 
+export class NetworkError extends MouseholeError {
+  constructor(url: string, { cause }: { cause: unknown }) {
+    super(`Network request to ${url} failed`, {
+      cause: cause instanceof Error ? cause : undefined,
+      httpStatus: 500,
+    });
+    this.name = "NetworkError";
+    this.errorType = "network-error";
+  }
+}
+
 export class NoCookieError extends MouseholeError {
   constructor() {
     super(`No cookie has been set yet`, { httpStatus: 500 });

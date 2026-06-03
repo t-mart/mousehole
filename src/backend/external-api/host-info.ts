@@ -1,10 +1,10 @@
 import { config } from "#backend/config.ts";
 import { setIsOnline } from "#backend/connectivity.ts";
-import { SchemaError } from "#backend/error.ts";
+import { NetworkError, SchemaError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import { ipResponseBodySchema } from "#backend/types.ts";
 
-const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
+const endpointUrl = new URL("https://t.myanonadmouse.net/json/jsonIp.php");
 
 export async function getHostInfo() {
   let response: Response;
@@ -15,7 +15,7 @@ export async function getHostInfo() {
     setIsOnline(true);
   } catch (error) {
     setIsOnline(false);
-    throw error;
+    throw new NetworkError(endpointUrl.toString(), { cause: error });
   }
 
   if (!response.ok) {

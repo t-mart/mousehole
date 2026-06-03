@@ -1,6 +1,6 @@
 import { config } from "#backend/config.ts";
 import { setIsOnline } from "#backend/connectivity.ts";
-import { SchemaError, UnexpectedRedirectError } from "#backend/error.ts";
+import { NetworkError, SchemaError, UnexpectedRedirectError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import {
   mamUpdateDynamicSeedboxResponseBodySchema,
@@ -33,7 +33,7 @@ export async function updateMamIp(
     setIsOnline(true);
   } catch (error) {
     setIsOnline(false);
-    throw error;
+    throw new NetworkError(endpointUrl.toString(), { cause: error });
   }
 
   // This is a MaM bug! Certain malformed cookies cause MaM to respond with 302 redirects to / (HTML) instead of 4xx with JSON
