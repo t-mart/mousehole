@@ -140,57 +140,69 @@ override the healthcheck command accordingly.
 
 ## Environment Variables
 
-- `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
-  listen.
-- `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory
-  where the service will store its data.
-- `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
-  user agent to use for requests to MAM.
-- `MOUSEHOLE_LOG_LEVEL`: _(Default `info`)_ Log verbosity. Valid values:
-  `error`, `warn`, `info`, `debug`. Invalid values cause the process to exit with an error.
-- `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
-  in seconds between checks.
-- `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
-  seconds after which a MAM response is considered stale. This ensures that
-  Mousehole is still talking with MAM at some regular interval and is detecting
-  out-of-band changes to the cookie.
-- `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
-  a response from MAM before aborting the request. Prevents Mousehole from
-  hanging when the connection silently stalls (e.g. before the VPN is up).
+### Commonly set
+
 - `MOUSEHOLE_AUTH_PASSWORD`: Enables browser login via the web UI login page.
   Set this to a strong password.
-- `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
-  Clients can send HTTP headers in the format `Authorization: Bearer <token>`
-  when accessing [API endpoints](docs/API.md).
+- `TZ`: _(Default `Etc/UTC`)_ The timezone identifier for displaying localized
+  times. Use the "TZ identifier" column from this
+  [list of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+  for valid values. (Not every city is listed! Use one that follows the same
+  rules as your location.)
+
+### When hosting beyond localhost
+
 - `MOUSEHOLE_ALLOWED_HOSTS`: Comma-separated allowlist of `Host` header values
   for protected routes. Defaults to `localhost,127.0.0.1,[::1]`. If an entry in
   this list does not have a port, then any port is allowed for that host. But,
   if a port is specified (`localhost:5010`), only that port is allowed. As an
-  advanced opt-out, set to `*` to allow any host. See
+  opt-out, set to `*` to allow any host. See
   [Host Allowlist](docs/security-guide.md#host-allowlist) for more details.
 - `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of origins permitted to
   make cross-origin requests to mutating routes and WebSocket upgrades. Defaults
   to same-origin only, which only allows the origin that matches the host of the
   request. Values must be exact origins with no path, such as
-  `https://mousehole.example.com` or `http://nas.local:5010`. As an advanced
-  opt-out, set to `*` to allow any origin. See
+  `https://mousehole.example.com` or `http://nas.local:5010`. As an opt-out, set
+  to `*` to allow any origin. See
   [Origin Allowlist](docs/security-guide.md#origin-allowlist) for more details.
-- `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH`: Set to `true` to turn off all
-  authentication. Do not use in mixed-trust environments.
-- `MOUSEHOLE_SESSION_DURATION_SECONDS`: _(Default `604800` (1 week))_ How long a
-  browser login session remains valid before expiring. See
-  [Session Duration](docs/security-guide.md#session-duration) for more details.
 - `MOUSEHOLE_HTTPS_ONLY_COOKIES`: _(Default `false`)_ Set to `true` to add the
   `Secure` flag to session cookies, preventing browsers from sending them over
   plain HTTP. Enable this when Mousehole is accessed exclusively via HTTPS (e.g.
   behind a reverse proxy). HTTP sessions will not work. See
   [HTTPS-Only Cookies](docs/security-guide.md#https-only-cookies) for more
   details.
-- `TZ`: _(Default `Etc/UTC`)_ The timezone identifier for displaying localized
-  times. Use the "TZ identifier" column from this
-  [list of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-  for valid values. (Not every city is listed! Use one that follows the same
-  time rules as your location.)
+- `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
+  Clients can send HTTP headers in the format `Authorization: Bearer <token>`
+  when accessing [API endpoints](docs/API.md).
+
+### Occasional tuning
+
+- `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
+  listen.
+- `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
+  in seconds between checks.
+- `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
+  a response from MAM before aborting the request. Prevents Mousehole from
+  hanging when the connection silently stalls (e.g. before the VPN is up).
+- `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
+  seconds after which a MAM response is considered stale. This ensures that
+  Mousehole is still talking with MAM at some regular interval and is detecting
+  out-of-band changes to the cookie.
+- `MOUSEHOLE_SESSION_DURATION_SECONDS`: _(Default `604800` (1 week))_ How long a
+  browser login session remains valid before expiring. See
+  [Session Duration](docs/security-guide.md#session-duration) for more details.
+- `MOUSEHOLE_LOG_LEVEL`: _(Default `info`)_ Log verbosity. Valid values:
+  `error`, `warn`, `info`, `debug`. Invalid values cause the process to exit
+  with an error.
+- `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory
+  where the service will store its data.
+
+### Rarely needed
+
+- `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH`: Set to `true` to turn off all
+  authentication. Do not use in mixed-trust environments.
+- `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
+  user agent to use for requests to MAM.
 
 ## Contributing
 
