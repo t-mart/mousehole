@@ -43,33 +43,28 @@ export function LoginForm() {
   }
 
   return (
-    <main className="space-y-4">
-      <Section className="space-y-2">
-        <h2 className="sr-only">Log in</h2>
-        <form
-          onSubmit={handleSubmit}
-          className="flex items-center gap-4 w-full"
+    <Section className="space-y-2">
+      <h2 className="sr-only">Log in</h2>
+      <form onSubmit={handleSubmit} className="flex items-center gap-4 w-full">
+        <label htmlFor={passwordId}>Password</label>
+        <Input
+          type="password"
+          id={passwordId}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="Enter password"
+          aria-invalid={password === "" ? "true" : "false"}
+          autoComplete="current-password"
+          required
+        />
+        <Button
+          type="submit"
+          aria-invalid={isPending || password === ""}
+          className="whitespace-nowrap"
         >
-          <label htmlFor={passwordId}>Password</label>
-          <Input
-            type="password"
-            id={passwordId}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter password"
-            aria-invalid={password === "" ? "true" : "false"}
-            autoComplete="current-password"
-            required
-          />
-          <Button
-            type="submit"
-            aria-invalid={isPending || password === ""}
-            className="whitespace-nowrap"
-          >
-            {isPending ? <Spinner /> : "Log in"}
-          </Button>
-        </form>
-      </Section>
-    </main>
+          {isPending ? <Spinner /> : "Log in"}
+        </Button>
+      </form>
+    </Section>
   );
 }

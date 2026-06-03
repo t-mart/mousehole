@@ -1,5 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence } from "motion/react";
 import { type ReactNode } from "react";
+
+import { useErrors } from "#frontend/lib/error-context.tsx";
 
 import {
   stateQueryFunction,
@@ -16,11 +19,14 @@ import { Spinner } from "./lib/spinner";
 import { LoginForm } from "./login-form";
 
 function AppLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const { errors } = useErrors();
   return (
     <div className="mx-auto my-0 p-8 text-center relative z-10 space-y-8 max-w-prose w-full">
       <Header />
-      <ErrorDisplay />
-      {children}
+      {errors.length > 0 && <ErrorDisplay />}
+      <main className="space-y-4">
+        <AnimatePresence>{children}</AnimatePresence>
+      </main>
       <Footer />
     </div>
   );

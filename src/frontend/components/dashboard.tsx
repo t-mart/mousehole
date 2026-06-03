@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
 
@@ -12,7 +11,8 @@ import {
   useInvalidateOnStateUpdate,
 } from "../hooks/invalidate-on-state-update";
 import { CookieForm } from "./cookie-form";
-import { ButtonLink } from "./lib/link";
+import { Button } from "./lib/button";
+import { Spinner } from "./lib/spinner";
 import { MamResponse } from "./mam-response";
 import { NeedHelp } from "./need-help";
 import { Timer } from "./timer";
@@ -74,53 +74,53 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
 
   return (
     <>
-      <main className="space-y-4">
-        <MamResponse data={data} />
+      <MamResponse data={data} />
 
-        {isMamError && <NeedHelp />}
+      {isMamError && <NeedHelp />}
 
-        {showCookieForm && (
-          <CookieForm
-            onUpdate={() => {
-              setUserWantsInputCookie(false);
-              checkNowMutation.mutate(false);
-            }}
-            onCancel={() => setUserWantsInputCookie(false)}
-            showCancel={data.hasCurrentCookie}
-          />
+      {showCookieForm && (
+        <CookieForm
+          onUpdate={() => {
+            setUserWantsInputCookie(false);
+            checkNowMutation.mutate(false);
+          }}
+          onCancel={() => setUserWantsInputCookie(false)}
+          showCancel={data.hasCurrentCookie}
+        />
+      )}
+
+      {/* Providing a key here ensures re-render on timer expiration, good visual feedback for user */}
+      {!showCookieForm && !checkNowMutation.isPending && data.nextUpdateAt && (
+        <Timer
+          nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
+          key={data.nextUpdateAt}
+        />
+      )}
+
+      <div className="flex items-center justify-center gap-4">
+        {!showCookieForm && (
+          <ControlsButton
+            key="set-cookie"
+            onClick={() => setUserWantsInputCookie(true)}
+          >
+            Set Cookie
+          </ControlsButton>
         )}
-
-        {/* Providing a key here ensures re-render on timer expiration, good visual feedback for user */}
-        {!showCookieForm &&
-          !checkNowMutation.isPending &&
-          data.nextUpdateAt && (
-            <Timer
-              nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
-              key={data.nextUpdateAt}
-            />
-          )}
-
-        <div className="flex items-center justify-center gap-4">
-          {!showCookieForm && (
-            <>
-              <AnimatedButton onClick={() => setUserWantsInputCookie(true)}>
-                Set Cookie
-              </AnimatedButton>
-              <AnimatedButton
-                show={!checkNowMutation.isPending}
-                onClick={() => checkNowMutation.mutate(true)}
-              >
-                Check Now
-              </AnimatedButton>
-            </>
-          )}
-          {data.hasAuth && (
-            <AnimatedButton onClick={() => logoutMutation.mutate()}>
-              Log out
-            </AnimatedButton>
-          )}
-        </div>
-      </main>
+        {!showCookieForm && (
+          <ControlsButton
+            key="check-now"
+            onClick={() => checkNowMutation.mutate(true)}
+            disabled={checkNowMutation.isPending}
+          >
+            {checkNowMutation.isPending ? <Spinner /> : "Check Now"}
+          </ControlsButton>
+        )}
+        {data.hasAuth && (
+          <ControlsButton key="logout" onClick={() => logoutMutation.mutate()}>
+            Log out
+          </ControlsButton>
+        )}
+      </div>
 
       {!showCookieForm && (
         <aside>
@@ -134,35 +134,18 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   );
 }
 
-function AnimatedButton({
-  show = true,
+function ControlsButton({
   onClick,
+  disabled,
   children,
 }: Readonly<{
-  show?: boolean;
   onClick: () => void;
+  disabled?: boolean;
   children: ReactNode;
 }>) {
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0 }}
-          transition={{
-            duration: 0.3,
-            scale: { type: "spring", visualDuration: 0.4, bounce: 0.5 },
-          }}
-        >
-          <ButtonLink
-            variant={"muted-primary-background-bright"}
-            onClick={onClick}
-          >
-            {children}
-          </ButtonLink>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <Button variant="ghost" onClick={onClick} disabled={disabled}>
+      {children}
+    </Button>
   );
 }
