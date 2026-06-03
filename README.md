@@ -10,7 +10,8 @@ address is not stable.
 
 Features:
 
-- Background service that regularly updates MAM with the IP address of the host
+- Background service that regularly checks your host's IP and updates MAM when
+  it changes
 - Frontend website to manage the service
 - [API](docs/API.md) for programmatic access
 
@@ -137,6 +138,22 @@ The Dockerfile includes a default healthcheck that hits the
 [API Documentation](docs/API.md#get-health)). If you change the port on which
 Mousehole listens with the `MOUSEHOLE_PORT` environment variable, make sure to
 override the healthcheck command accordingly.
+
+## How It Works
+
+Mousehole runs on a loop. On each **check** (every
+`MOUSEHOLE_CHECK_INTERVAL_SECONDS`), it looks up your host's current public IP
+and compares it against what MAM last recorded. If they differ, your cookie
+changed, or it's been too long since the last successful exchange
+(`MOUSEHOLE_STALE_RESPONSE_SECONDS`), Mousehole performs an **update**, sending
+MAM your new IP. Otherwise the check does nothing.
+
+- **Check**: the scheduled look at your IP. Always runs on the interval.
+- **Update**: the call to MAM with your new IP. Only happens when a check finds
+  something changed.
+
+You can force an immediate check (which always updates) from the web UI with
+**Check Now**.
 
 ## Environment Variables
 
