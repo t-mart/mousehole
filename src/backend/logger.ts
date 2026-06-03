@@ -9,10 +9,8 @@ export const logger = new Logger<ILogObj>({
   type: "pretty",
   minLevel: config.logLevel,
   hideLogPositionForProduction: true,
-  prettyLogTimeZone: "local",
   stylePrettyLogs: process.stderr.isTTY ?? false,
-  prettyLogTemplate:
-    "{{yyyy}}-{{mm}}-{{dd}}T{{hh}}:{{MM}}:{{ss}}.{{ms}} [{{logLevelName}}] ",
+  prettyLogTemplate: "[{{logLevelName}}] ",
   overwrite: {
     // rigamarole so we can write to stderr
     transportFormatted: (
