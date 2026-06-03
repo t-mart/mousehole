@@ -14,6 +14,9 @@ export class MouseholeError extends Error {
     this.name = "MouseholeError";
     this.httpStatus = httpStatus;
     this.errorType = "mousehole-error";
+    // prevent these from appearing in util.inspect / JSON.stringify / tslog serialization
+    Object.defineProperty(this, "httpStatus", { enumerable: false });
+    Object.defineProperty(this, "errorType", { enumerable: false });
   }
 }
 
