@@ -22,7 +22,7 @@ import { Mutex } from "./mutex.ts";
 import { serializePublicState } from "./serde.ts";
 import { stateFile } from "./store.ts";
 
-// This prevents multiple update timers from running during development hot
+// This prevents multiple check timers from running during development hot
 // module reloading. globalThis persists across re-evaluations; module-scoped
 // `generation` does not. Old instances see a mismatch and stop scheduling
 // further work. This might be a Bun bug... normal solutions like
@@ -36,9 +36,9 @@ function __is_old_updater_from_hmr_during_development() {
 }
 
 let currentBackgroundTask: BackgroundTask | undefined;
-export const updateMutex = new Mutex();
+export const checkMutex = new Mutex();
 
-type UpdateOptions = {
+type CheckOptions = {
   force: boolean;
 };
 
@@ -75,8 +75,8 @@ export function getUpdateReason(
   }
 }
 
-async function coreUpdate(
-  options?: UpdateOptions,
+async function performCheck(
+  options?: CheckOptions,
 ): Promise<{ state: State; hostInfo: HostInfo }> {
   const force = options?.force ?? false;
 
@@ -135,11 +135,11 @@ async function coreUpdate(
   return { state: newState, hostInfo };
 }
 
-async function runUpdate(options?: UpdateOptions): Promise<State> {
-  const release = await updateMutex.acquire();
+async function runCheck(options?: CheckOptions): Promise<State> {
+  const release = await checkMutex.acquire();
   let result: { state: State; hostInfo: HostInfo } | undefined;
   try {
-    result = await coreUpdate(options);
+    result = await performCheck(options);
     await stateFile.write(result.state);
     return result.state;
   } finally {
@@ -147,7 +147,7 @@ async function runUpdate(options?: UpdateOptions): Promise<State> {
     if (result) {
       notifyWebSocketClients({
         host: result.hostInfo,
-        nextUpdateAt: getNextUpdateAt()?.toString(),
+        nextCheckAt: getNextCheckAt()?.toString(),
         hasAuth: config.auth.type === "configured",
         isOnline: getIsOnline(),
         ...serializePublicState(result.state),
@@ -160,34 +160,34 @@ async function runUpdate(options?: UpdateOptions): Promise<State> {
 // ── timer ─────────────────────────────────────────────────────────────────────
 
 /**
- * Clear any current timer and schedule the next one
+ * Clear any current timer and schedule the next check
  * `config.checkIntervalSeconds` seconds from now.
  */
 function scheduleNext() {
   if (__is_old_updater_from_hmr_during_development()) return;
 
-  if (currentBackgroundTask?.nextUpdateTimeoutId) {
-    clearTimeout(currentBackgroundTask.nextUpdateTimeoutId);
+  if (currentBackgroundTask?.nextCheckTimeoutId) {
+    clearTimeout(currentBackgroundTask.nextCheckTimeoutId);
   }
 
   const timeoutId = setTimeout(
-    () => { void runUpdate().catch(handleBackgroundUpdateError); },
+    () => { void runCheck().catch(handleBackgroundCheckError); },
     config.checkIntervalSeconds * 1000,
   );
 
   // this won't be exactly right because of the time between last statement
   // (setTimeout) and this line but it will be close enough. this is just
   // for informational/logging purposes anyway.
-  const nextUpdateAt = getNowZdt().add({
+  const nextCheckAt = getNowZdt().add({
     seconds: config.checkIntervalSeconds,
   });
 
-  currentBackgroundTask = { nextUpdateTimeoutId: timeoutId, nextUpdateAt };
+  currentBackgroundTask = { nextCheckTimeoutId: timeoutId, nextCheckAt };
 
-  logger.info(`Next automatic check scheduled for: ${nextUpdateAt.toString()}`);
+  logger.info(`Next automatic check scheduled for: ${nextCheckAt.toString()}`);
 }
 
-function handleBackgroundUpdateError(error: unknown) {
+function handleBackgroundCheckError(error: unknown) {
   if (error instanceof NoCookieError) {
     logger.error("No MAM cookie set. Visit the web UI to configure one.");
     return;
@@ -199,33 +199,33 @@ function handleBackgroundUpdateError(error: unknown) {
   notifyWebSocketClientsOfError(
     error instanceof Error
       ? error.message
-      : "The background update failed unexpectedly.",
+      : "The background check failed unexpectedly.",
   );
 }
 
 // ── public API ────────────────────────────────────────────────────────────────
 
 // Called by the HTTP handler. Throws on error — caller returns 500.
-export function triggerUpdate(options?: UpdateOptions): Promise<State> {
-  return runUpdate(options);
+export function triggerCheck(options?: CheckOptions): Promise<State> {
+  return runCheck(options);
 }
 
 // Called once at startup.
-export function startBackgroundUpdateTask() {
-  runUpdate().catch(handleBackgroundUpdateError);
+export function startBackgroundCheckTask() {
+  runCheck().catch(handleBackgroundCheckError);
   logger.info(
     `Background check task started, running on ${config.checkIntervalSeconds} second interval`,
   );
 }
 
 // Called on hot reload to cancel the pending timer before the module re-evaluates.
-export function stopBackgroundUpdateTask() {
-  if (currentBackgroundTask?.nextUpdateTimeoutId) {
-    clearTimeout(currentBackgroundTask.nextUpdateTimeoutId);
+export function stopBackgroundCheckTask() {
+  if (currentBackgroundTask?.nextCheckTimeoutId) {
+    clearTimeout(currentBackgroundTask.nextCheckTimeoutId);
     currentBackgroundTask = undefined;
   }
 }
 
-export function getNextUpdateAt() {
-  return currentBackgroundTask?.nextUpdateAt;
+export function getNextCheckAt() {
+  return currentBackgroundTask?.nextCheckAt;
 }

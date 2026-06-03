@@ -1,8 +1,8 @@
 import type { GetOkResponseBody, JSONResponseArgs } from "#backend/types.ts";
 
+import { getUpdateReason } from "#backend/check.ts";
 import { getHostInfo } from "#backend/external-api/host-info.ts";
 import { stateFile } from "#backend/store.ts";
-import { getUpdateReason } from "#backend/update.ts";
 
 export async function handleGetOk(): Promise<
   JSONResponseArgs<GetOkResponseBody>

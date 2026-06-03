@@ -126,7 +126,7 @@ export type PublicSerializedState = z.infer<typeof publicSerializedStateSchema>;
 
 export const getStateResponseBodySchema = publicSerializedStateSchema.extend({
   host: hostInfoSchema,
-  nextUpdateAt: z.string().optional(),
+  nextCheckAt: z.string().optional(),
   hasAuth: z.boolean(),
   isOnline: z.boolean(),
 });
@@ -202,6 +202,6 @@ export type GetHealthResponseBody =
 //
 
 export type BackgroundTask = {
-  nextUpdateTimeoutId: ReturnType<typeof setTimeout>;
-  nextUpdateAt: Temporal.ZonedDateTime;
+  nextCheckTimeoutId: ReturnType<typeof setTimeout>;
+  nextCheckAt: Temporal.ZonedDateTime;
 };

@@ -2,6 +2,11 @@ import Negotiator from "negotiator";
 
 import type { JSONResponseArgs } from "#backend/types.ts";
 
+import {
+  checkMutex,
+  startBackgroundCheckTask,
+  stopBackgroundCheckTask,
+} from "#backend/check.ts";
 import { config } from "#backend/config.ts";
 import { toJSONResponseArgs } from "#backend/error.ts";
 import { handleGetHealth } from "#backend/handlers/health.ts";
@@ -25,11 +30,6 @@ import {
   type WsData,
 } from "#backend/session.ts";
 import { wsClientMessageSchema } from "#backend/types.ts";
-import {
-  startBackgroundUpdateTask,
-  stopBackgroundUpdateTask,
-  updateMutex,
-} from "#backend/update.ts";
 import { setWebSocketPublisher, wsTopic } from "#backend/websocket.ts";
 import index from "#frontend/index.html";
 import { gitHash } from "#shared/git-hash.ts";
@@ -56,7 +56,6 @@ async function makeProtectedJSONResponse<T>(
 
   return makeJSONResponse(await handler());
 }
-
 
 const maxJsonRequestBodyBytes = 8 * 1024;
 
@@ -199,16 +198,16 @@ if (config.stateDirPathDeprecationWarning) {
   logger.warn(config.stateDirPathDeprecationWarning);
 }
 
-startBackgroundUpdateTask();
+startBackgroundCheckTask();
 
 async function shutdown() {
   logger.info("Shutting down...");
-  await updateMutex.acquire();
+  await checkMutex.acquire();
 
   // despite passing true to immediately stop, bun sometimes still lags, so just don't await it
   void server.stop(true);
 
-  stopBackgroundUpdateTask();
+  stopBackgroundCheckTask();
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0);
 }

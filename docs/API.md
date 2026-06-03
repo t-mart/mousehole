@@ -30,7 +30,7 @@ Example response bodies:
 - ```json
   {
     "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
-    "nextUpdateAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]",
+    "nextCheckAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]",
     "hasCurrentCookie": true,
     "lastMam": {
       "request": {

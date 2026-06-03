@@ -24,7 +24,7 @@ const requestAt = Temporal.ZonedDateTime.from(
 const updateAt = Temporal.ZonedDateTime.from(
   "2025-06-21T14:22:28.111+00:00[UTC]",
 );
-const nextUpdateAt = Temporal.ZonedDateTime.from(
+const nextCheckAt = Temporal.ZonedDateTime.from(
   "2025-06-21T14:27:28.113+00:00[UTC]",
 );
 
@@ -116,7 +116,7 @@ describe("state serialization boundary", () => {
   test("public GET /state shape exposes only the cookie presence flag", () => {
     const body = makeStateResponseBody({
       hostInfo,
-      nextUpdateAt,
+      nextCheckAt,
       state,
     });
 
@@ -134,7 +134,7 @@ describe("state serialization boundary", () => {
   test("WebSocket state-update payload does not include cookie fields", () => {
     const body = makeStateResponseBody({
       hostInfo,
-      nextUpdateAt,
+      nextCheckAt,
       state,
     });
     const message = makeStateUpdateMessage(body);

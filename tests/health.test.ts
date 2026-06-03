@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 
 import type { HostInfo, State } from "../src/backend/types.ts";
 
-import { getUpdateReason } from "../src/backend/update.ts";
+import { getUpdateReason } from "../src/backend/check.ts";
 
 // getUpdateReason is the pure core of handleGetHealth — it decides whether an
 // update is needed and why. Testing it directly covers all health check
@@ -42,11 +42,15 @@ describe("health check logic", () => {
   });
 
   test("no-last-response: state is undefined", () => {
-    expect(getUpdateReason(undefined, hostInfo, false)).toBe("no-last-response");
+    expect(getUpdateReason(undefined, hostInfo, false)).toBe(
+      "no-last-response",
+    );
   });
 
   test("no-last-response: state exists but has no lastMam", () => {
-    expect(getUpdateReason({ currentCookie: "cookie" }, hostInfo, false)).toBe("no-last-response");
+    expect(getUpdateReason({ currentCookie: "cookie" }, hostInfo, false)).toBe(
+      "no-last-response",
+    );
   });
 
   test("last-response-error: last MAM response was not 200", () => {
@@ -61,11 +65,15 @@ describe("health check logic", () => {
   });
 
   test("ip-changed: host IP differs from last response", () => {
-    expect(getUpdateReason(goodState, { ...hostInfo, ip: "9.9.9.9" }, false)).toBe("ip-changed");
+    expect(
+      getUpdateReason(goodState, { ...hostInfo, ip: "9.9.9.9" }, false),
+    ).toBe("ip-changed");
   });
 
   test("asn-changed: ASN differs from last response", () => {
-    expect(getUpdateReason(goodState, { ...hostInfo, asn: 99_999 }, false)).toBe("asn-changed");
+    expect(
+      getUpdateReason(goodState, { ...hostInfo, asn: 99_999 }, false),
+    ).toBe("asn-changed");
   });
 
   test("cookie-changed: current cookie differs from last response cookie", () => {

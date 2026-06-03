@@ -1,3 +1,4 @@
+import { getNextCheckAt } from "#backend/check.ts";
 import { config } from "#backend/config.ts";
 import { getIsOnline } from "#backend/connectivity.ts";
 import { SchemaError } from "#backend/error.ts";
@@ -14,21 +15,20 @@ import {
   type PutStateResponseBody,
   type State,
 } from "#backend/types.ts";
-import { getNextUpdateAt } from "#backend/update.ts";
 import { notifyWebSocketClients } from "#backend/websocket.ts";
 
 export function makeStateResponseBody({
   hostInfo,
-  nextUpdateAt,
+  nextCheckAt,
   state,
 }: {
   hostInfo: HostInfo;
-  nextUpdateAt?: { toString: () => string };
+  nextCheckAt?: { toString: () => string };
   state?: State;
 }): GetStateResponseBody {
   return {
     host: hostInfo,
-    nextUpdateAt: nextUpdateAt?.toString(),
+    nextCheckAt: nextCheckAt?.toString(),
     hasAuth: config.auth.type === "configured",
     isOnline: getIsOnline(),
     ...serializePublicState(state),
@@ -40,10 +40,10 @@ export async function handleGetState(): Promise<
 > {
   const hostInfo = await getHostInfo();
   const state = await stateFile.readIfExists();
-  const nextUpdateAt = getNextUpdateAt();
+  const nextCheckAt = getNextCheckAt();
 
   return {
-    body: makeStateResponseBody({ hostInfo, nextUpdateAt, state }),
+    body: makeStateResponseBody({ hostInfo, nextCheckAt, state }),
   };
 }
 
@@ -63,7 +63,7 @@ export async function handlePutState(
   const hostInfo = await getHostInfo();
   const body = makeStateResponseBody({
     hostInfo,
-    nextUpdateAt: getNextUpdateAt(),
+    nextCheckAt: getNextCheckAt(),
     state,
   });
 

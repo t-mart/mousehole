@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- **Breaking**: Rename the `nextUpdateAt` field on `GET /state` (and the
+  WebSocket state messages) to `nextCheckAt`, to match Mousehole's check/update
+  terminology: a "check" runs on the interval and only performs an "update" to
+  MAM when something changed. API clients reading `nextUpdateAt` should switch
+  to `nextCheckAt`.
 - Add a configurable timeout for requests to MAM via the new
   `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS` environment variable (default `10`).
   Previously, a stalled connection (for example, before a VPN is up) could make

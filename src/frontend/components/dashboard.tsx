@@ -95,10 +95,10 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
       )}
 
       {/* Providing a key here ensures re-render on timer expiration, good visual feedback for user */}
-      {!showCookieForm && !checkNowMutation.isPending && data.nextUpdateAt && (
+      {!showCookieForm && !checkNowMutation.isPending && data.nextCheckAt && (
         <Timer
-          nextUpdateAt={Temporal.ZonedDateTime.from(data.nextUpdateAt)}
-          key={data.nextUpdateAt}
+          nextCheckAt={Temporal.ZonedDateTime.from(data.nextCheckAt)}
+          key={data.nextCheckAt}
         />
       )}
 
