@@ -184,7 +184,7 @@ function scheduleNext() {
 
   currentBackgroundTask = { nextUpdateTimeoutId: timeoutId, nextUpdateAt };
 
-  logger.info(`Next automatic update scheduled for: ${nextUpdateAt.toString()}`);
+  logger.info(`Next automatic check scheduled for: ${nextUpdateAt.toString()}`);
 }
 
 function handleBackgroundUpdateError(error: unknown) {
