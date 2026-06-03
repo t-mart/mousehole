@@ -180,22 +180,24 @@ override the healthcheck command accordingly.
 - `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
   listen.
 - `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
-  in seconds between checks.
+  in seconds between checks. Checks do not necessarily update MAM: if your IP
+  address hasn't changed since the last MAM response, Mousehole will skip the
+  update to avoid unnecessary requests.
+- `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
+  seconds after which a MAM response is considered stale. Mousehole will force
+  an update after this period. This ensures that Mousehole is still talking with
+  MAM at some regular interval and is detecting out-of-band changes to the
+  cookie.
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
   a response from MAM before aborting the request. Prevents Mousehole from
   hanging when the connection silently stalls (e.g. before the VPN is up).
-- `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
-  seconds after which a MAM response is considered stale. This ensures that
-  Mousehole is still talking with MAM at some regular interval and is detecting
-  out-of-band changes to the cookie.
 - `MOUSEHOLE_SESSION_DURATION_SECONDS`: _(Default `604800` (1 week))_ How long a
   browser login session remains valid before expiring. See
   [Session Duration](docs/security-guide.md#session-duration) for more details.
 - `MOUSEHOLE_LOG_LEVEL`: _(Default `info`)_ Log verbosity. Valid values:
-  `error`, `warn`, `info`, `debug`. Invalid values cause the process to exit
-  with an error.
+  `error`, `warn`, `info`, `debug`.
 - `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory
-  where the service will store its data.
+  where the service will store its internal data.
 
 ### Rarely needed
 
