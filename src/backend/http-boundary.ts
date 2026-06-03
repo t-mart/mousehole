@@ -93,7 +93,7 @@ export function checkProtectedRequest(
   if (options.requireAuth !== false) {
     const authFailure = checkAuthentication(request, securityConfig.auth);
     if (authFailure) {
-      logger.warn(`[${context}] authentication required`);
+      logger.debug(`[${context}] authentication required`);
       return authFailure;
     }
   }

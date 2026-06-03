@@ -57,7 +57,6 @@ async function makeProtectedJSONResponse<T>(
   return makeJSONResponse(await handler());
 }
 
-validateRuntimeSecurityConfig();
 
 const maxJsonRequestBodyBytes = 8 * 1024;
 
@@ -195,6 +194,7 @@ setWebSocketPublisher((topic, message) => {
 });
 
 logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
+validateRuntimeSecurityConfig();
 if (config.stateDirPathDeprecationWarning) {
   logger.warn(config.stateDirPathDeprecationWarning);
 }
@@ -207,7 +207,7 @@ async function shutdown() {
 
   // despite passing true to immediately stop, bun sometimes still lags, so just don't await it
   void server.stop(true);
-  
+
   stopBackgroundUpdateTask();
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0);

@@ -4,7 +4,7 @@ import { NetworkError, SchemaError } from "#backend/error.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import { ipResponseBodySchema } from "#backend/types.ts";
 
-const endpointUrl = new URL("https://t.myanonadmouse.net/json/jsonIp.php");
+const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
 
 export async function getHostInfo() {
   let response: Response;
