@@ -1,6 +1,5 @@
 import type { RequireAtLeastOne } from "type-fest";
 
-import { LogLevels } from "consola";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import * as z from "zod";
@@ -40,10 +39,10 @@ export type AllowedOriginsConfig =
   | { type: "all" };
 
 const LOG_LEVEL_MAP = {
-  error: LogLevels.error,
-  warn: LogLevels.warn,
-  info: LogLevels.info,
-  debug: LogLevels.debug,
+  error: 5,
+  warn: 4,
+  info: 3,
+  debug: 2,
 } as const satisfies Record<string, number>;
 
 type LogLevelName = keyof typeof LOG_LEVEL_MAP;
