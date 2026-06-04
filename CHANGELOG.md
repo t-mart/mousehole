@@ -2,22 +2,6 @@
 
 ## [Unreleased]
 
-- **Breaking**: Rename the `nextUpdateAt` field on `GET /state` (and the
-  WebSocket state messages) to `nextCheckAt`, to match Mousehole's check/update
-  terminology: a "check" runs on the interval and only performs an "update" to
-  MAM when something changed. API clients reading `nextUpdateAt` should switch
-  to `nextCheckAt`.
-- Add a configurable timeout for requests to MAM via the new
-  `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS` environment variable (default `10`).
-  Previously, a stalled connection (for example, before a VPN is up) could make
-  Mousehole hang.
-- Add new healthcheck endpoint `GET /health` that is used in as the Docker
-  image's default healthcheck in
-  [#104](https://github.com/t-mart/mousehole/pull/104)
-- **Deprecation**: Deprecate the `/ok` endpoint in favor of `/health`.
-- **Breaking**: Move to an alpine base (was Debian) in
-  [#103](https://github.com/t-mart/mousehole/pull/103). This greatly reduces the
-  size of the image.
 - **Breaking**: Introduce many security features: Add authentication, make the
   cookie write only to web UI and API endpoints, add Host/Origin checks, enforce
   JSON content-type enforcement, and limit request body size in
@@ -25,6 +9,20 @@
   users should at least set `MOUSEHOLE_AUTH_PASSWORD`. See the
   [security guide](/docs/security-guide.md) for more details and
   recommendations.
+- **Breaking**: Move to an alpine base (was Debian) in
+  [#103](https://github.com/t-mart/mousehole/pull/103). This greatly reduces the
+  size of the image.
+- **Breaking**: Rename the `nextUpdateAt` field on `GET /state` to
+  `nextCheckAt`, to make terminology more consistent around the app. API clients
+  reading `nextUpdateAt` should switch to `nextCheckAt`.
+- **Deprecation**: Deprecate the `/ok` endpoint in favor of `/health`.
+- Add a configurable timeout for requests to MAM via the new
+  `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS` environment variable (default `10`).
+  Previously, a stalled connection (for example, before a VPN is up) could make
+  Mousehole hang.
+- Add new healthcheck endpoint `GET /health` that is used in as the Docker
+  image's default healthcheck in
+  [#104](https://github.com/t-mart/mousehole/pull/104)
 - Detect when Mousehole can't reach MAM (for example, when a VPN container
   stops) and surface it as a new `isOnline` field on `GET /state` and
   `GET /health`, a dashboard error, and a server log in
