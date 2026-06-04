@@ -30,22 +30,3 @@ export function Link({
   // eslint-disable-next-line jsx-a11y/anchor-has-content
   return <a className={cn(linkVariants({ variant, className }))} {...props} />;
 }
-
-export function ButtonLink({
-  className,
-  variant,
-  type,
-  ...props
-}: Readonly<
-  ComponentPropsWithRef<"button"> & VariantProps<typeof linkVariants>
->) {
-  return (
-    <button
-      type={type}
-      className={cn(
-        linkVariants({ variant, className: ` cursor-pointer ${className}` }),
-      )}
-      {...props}
-    />
-  );
-}

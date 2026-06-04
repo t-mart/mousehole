@@ -11,6 +11,7 @@ export async function getHostInfo() {
   try {
     response = await fetch(endpointUrl, {
       headers: { "User-Agent": config.userAgent },
+      redirect: "manual",
       signal: AbortSignal.timeout(config.mamRequestTimeoutSeconds * 1000),
     });
     setIsOnline(true);

@@ -7,7 +7,7 @@ import type {
   State,
 } from "./types";
 
-export function serializeUpdate(
+function serializeUpdate(
   update: State["lastUpdate"],
 ): SerializedUpdate | undefined {
   return update

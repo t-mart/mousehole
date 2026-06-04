@@ -1,7 +1,6 @@
 import type { ComponentPropsWithRef } from "react";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { motion } from "motion/react";
 
 import { cn } from "#frontend/lib/cn.ts";
 
@@ -34,5 +33,3 @@ export function Button({
     />
   );
 }
-
-export const MotionButton = motion.create(Button);

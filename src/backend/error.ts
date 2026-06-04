@@ -2,7 +2,7 @@ import type { ZodError } from "zod/v4";
 
 import type { ErrorResponseBody, JSONResponseArgs } from "./types";
 
-export class MouseholeError extends Error {
+class MouseholeError extends Error {
   public httpStatus: number;
   public errorType: string;
 
