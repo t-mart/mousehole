@@ -1,15 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { useErrors } from "#frontend/lib/error-context.tsx";
-
-import { useServerEvents } from "../hooks/use-server-events";
-import {
-  stateQueryFunction,
-  stateQueryKey,
-  UnauthenticatedError,
-} from "../lib/state-query";
+import { useDashboard } from "../hooks/use-dashboard";
 import { CookieForm } from "./cookie-form";
 import { Button } from "./lib/button";
 import { Spinner } from "./lib/spinner";
@@ -19,51 +11,7 @@ import { Timer } from "./timer";
 
 export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
-  const { addError } = useErrors();
-
-  const checkNowMutation = useMutation({
-    mutationFn: async (force: boolean) => {
-      const response = await fetch("/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ force }),
-      });
-      if (!response.ok) {
-        const body = (await response.json().catch(() => undefined)) as
-          | { message?: string }
-          | undefined;
-        throw new Error(
-          `${body?.message ?? "Update check failed."} Check server logs for details.`,
-        );
-      }
-    },
-    onError: (error: Error) => addError(error.message),
-  });
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/logout", { method: "POST" });
-      if (!response.ok) throw new Error("Logout failed.");
-    },
-    onSuccess: onLogout,
-    onError: (error: Error) => addError(error.message),
-  });
-
-  const stateQuery = useQuery({
-    queryKey: stateQueryKey,
-    queryFn: stateQueryFunction,
-    retry: (_, error) => !(error instanceof UnauthenticatedError),
-  });
-  useServerEvents({ onSessionExpired: onLogout });
-
-  const data = stateQuery.data;
-
-  useEffect(() => {
-    if (data?.isOnline === false) {
-      addError(
-        "The server is unable to contact MAM. Check server logs for details.",
-      );
-    }
-  }, [data?.isOnline, addError]);
+  const { data, checkNow, isCheckingNow, logout } = useDashboard(onLogout);
 
   if (!data) return;
 
@@ -87,7 +35,7 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
         <CookieForm
           onUpdate={() => {
             setUserWantsInputCookie(false);
-            checkNowMutation.mutate(false);
+            checkNow(false);
           }}
           onCancel={() => setUserWantsInputCookie(false)}
           showCancel={data.hasCurrentCookie && !invalidCookie}
@@ -95,7 +43,7 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
       )}
 
       {/* Providing a key here ensures re-render on timer expiration, good visual feedback for user */}
-      {!showCookieForm && !checkNowMutation.isPending && data.nextCheckAt && (
+      {!showCookieForm && !isCheckingNow && data.nextCheckAt && (
         <Timer
           nextCheckAt={Temporal.ZonedDateTime.from(data.nextCheckAt)}
           key={data.nextCheckAt}
@@ -114,14 +62,14 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
         {!showCookieForm && (
           <ControlsButton
             key="check-now"
-            onClick={() => checkNowMutation.mutate(true)}
-            disabled={checkNowMutation.isPending}
+            onClick={() => checkNow(true)}
+            disabled={isCheckingNow}
           >
-            {checkNowMutation.isPending ? <Spinner /> : "Check Now"}
+            {isCheckingNow ? <Spinner /> : "Check Now"}
           </ControlsButton>
         )}
         {data.hasAuth && (
-          <ControlsButton key="logout" onClick={() => logoutMutation.mutate()}>
+          <ControlsButton key="logout" onClick={logout}>
             Log out
           </ControlsButton>
         )}
