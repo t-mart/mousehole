@@ -17,7 +17,7 @@ import { Timer } from "./timer";
 // rides alongside since the help text can appear in either mode. Extracting
 // this into a separate function helps confine all the boolean logic for this in
 // one place.
-export function getDashboardView(
+function getDashboardView(
   data: GetStateResponseBody,
   userWantsInputCookie: boolean,
 ): {

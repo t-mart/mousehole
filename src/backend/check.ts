@@ -56,21 +56,27 @@ export function getUpdateReason(
   hostInfo: HostInfo,
   force: boolean,
 ): UpdateReason | undefined {
-  const lastMamResponse = state?.lastMam;
-
   if (force) {
     return "force-update";
-  } else if (!lastMamResponse) {
+  }
+
+  const lastMamResponse = state?.lastMam;
+  if (!lastMamResponse) {
     return "no-last-response";
-  } else if (lastMamResponse.response.httpStatus !== 200) {
+  }
+  if (lastMamResponse.response.httpStatus !== 200) {
     return "last-response-error";
-  } else if (hostInfo.ip !== lastMamResponse.response.body.ip) {
+  }
+  if (hostInfo.ip !== lastMamResponse.response.body.ip) {
     return "ip-changed";
-  } else if (hostInfo.asn !== lastMamResponse.response.body.ASN) {
+  }
+  if (hostInfo.asn !== lastMamResponse.response.body.ASN) {
     return "asn-changed";
-  } else if (state.currentCookie !== lastMamResponse.response.cookie) {
+  }
+  if (state.currentCookie !== lastMamResponse.response.cookie) {
     return "cookie-changed";
-  } else if (responseIsStale(lastMamResponse)) {
+  }
+  if (responseIsStale(lastMamResponse)) {
     return "response-stale";
   }
 }
@@ -170,10 +176,9 @@ function scheduleNext() {
     clearTimeout(currentBackgroundTask.nextCheckTimeoutId);
   }
 
-  const timeoutId = setTimeout(
-    () => { void runCheck().catch(handleBackgroundCheckError); },
-    config.checkIntervalSeconds * 1000,
-  );
+  const timeoutId = setTimeout(() => {
+    void runCheck().catch(handleBackgroundCheckError);
+  }, config.checkIntervalSeconds * 1000);
 
   // this won't be exactly right because of the time between last statement
   // (setTimeout) and this line but it will be close enough. this is just
