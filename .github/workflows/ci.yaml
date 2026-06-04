@@ -17,3 +17,11 @@ jobs:
       - run: bun check-types
       - run: bun lint
       - run: bun test
+      
+      # Informational only for now — failures here must not fail the build.
+      - run: bun dead-code
+        continue-on-error: true
+      - run: bun dupes
+        continue-on-error: true
+      - run: bun health
+        continue-on-error: true
