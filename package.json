@@ -9,7 +9,10 @@
     "dev": "PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) bun run --hot --no-clear-screen src/index.tsx",
     "start": "PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) NODE_ENV=production bun src/index.tsx",
     "lint": "eslint src",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "dead-code": "bunx fallow dead-code",
+    "dupes": "bunx fallow dupes",
+    "health": "bunx fallow health"
   },
   "imports": {
     "#*": "./src/*"
