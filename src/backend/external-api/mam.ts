@@ -1,11 +1,5 @@
-import { config } from "#backend/config.ts";
-import { setIsOnline } from "#backend/connectivity.ts";
-import {
-  NetworkError,
-  SchemaError,
-  TimeoutError,
-  UnexpectedRedirectError,
-} from "#backend/error.ts";
+import { SchemaError } from "#backend/error.ts";
+import { fetchExternal } from "#backend/external-api/fetch.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 import {
   mamUpdateDynamicSeedboxResponseBodySchema,
@@ -21,44 +15,13 @@ const cookieKey = "mam_id";
 export async function updateMamIp(
   currentCookieValue: string,
 ): Promise<MamResponse> {
-  const headers = {
-    // Identify us to MAM if they even care
-    "User-Agent": config.userAgent,
-
-    // must supply cookie
-    Cookie: `${cookieKey}=${currentCookieValue}`,
-  };
-
   const performedAt = getNowZdt();
 
   // Note: the IP address is determined by the server from the request.
-  let response: Response;
-  try {
-    response = await fetch(endpointUrl, {
-      headers,
-      redirect: "manual",
-      signal: AbortSignal.timeout(config.mamRequestTimeoutSeconds * 1000),
-    });
-    setIsOnline(true);
-  } catch (error) {
-    setIsOnline(false);
-    if (error instanceof DOMException && error.name === "TimeoutError") {
-      throw new TimeoutError(
-        endpointUrl.toString(),
-        config.mamRequestTimeoutSeconds,
-        { cause: error },
-      );
-    }
-    throw new NetworkError(endpointUrl.toString(), { cause: error });
-  }
-
-  // This is a MaM bug! Certain malformed cookies cause MaM to respond with 302 redirects to / (HTML) instead of 4xx with JSON
-  if (response.status >= 300 && response.status < 400) {
-    throw new UnexpectedRedirectError(
-      endpointUrl.toString(),
-      response.headers.get("location"),
-    );
-  }
+  const response = await fetchExternal(endpointUrl, {
+    // must supply cookie
+    Cookie: `${cookieKey}=${currentCookieValue}`,
+  });
 
   const json = await parseJsonResponse(response);
   const { data: body, error: parseError } =

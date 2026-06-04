@@ -150,17 +150,6 @@ export class NoCookieError extends MouseholeError {
   }
 }
 
-export class UnexpectedRedirectError extends MouseholeError {
-  constructor(url: string, location: string | null) {
-    super(
-      `Unexpected redirect from ${url}${location ? ` to ${location}` : ""} — the cookie may be invalid or expired`,
-      { httpStatus: 500 }
-    );
-    this.name = "UnexpectedRedirectError";
-    this.errorType = "unexpected-redirect-error";
-  }
-}
-
 export function toJSONResponseArgs(
   error: unknown
 ): JSONResponseArgs<ErrorResponseBody> {
