@@ -26,12 +26,8 @@ import {
   clearSessionCookie,
   deleteRequestSession,
   extractSessionId,
-  registerSessionSocket,
-  unregisterSessionSocket,
-  type WsData,
 } from "#backend/session.ts";
-import { wsClientMessageSchema } from "#backend/types.ts";
-import { setWebSocketPublisher, wsTopic } from "#backend/websocket.ts";
+import { registerSseClient } from "#backend/sse.ts";
 import index from "#frontend/index.html";
 import { gitHash } from "#shared/git-hash.ts";
 
@@ -126,7 +122,7 @@ const server = Bun.serve({
       GET: async () => makeJSONResponse(await handleGetHealth()),
     },
     "/web": index,
-    "/web/ws": (request, server) => {
+    "/web/events": (request, server) => {
       const boundaryResponse = guardProtectedRequest(request, {
         requireOrigin: true,
       });
@@ -134,12 +130,28 @@ const server = Bun.serve({
         return boundaryResponse;
       }
 
-      const success = server.upgrade(request, {
-        data: { sessionId: extractSessionId(request) ?? "" },
+      // Bun closes idle connections after 10s by default, and a quiet SSE stream
+      // counts as idle — disable the timeout for this stream.
+      server.timeout(request, 0);
+
+      const sessionId = extractSessionId(request) ?? "";
+      let unregister: (() => void) | undefined;
+      const stream = new ReadableStream<string>({
+        start(controller) {
+          unregister = registerSseClient({ sessionId, controller });
+        },
+        cancel() {
+          unregister?.();
+        },
       });
-      return success
-        ? undefined
-        : new Response("WebSocket upgrade error", { status: 400 });
+
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
     },
   },
 
@@ -155,33 +167,6 @@ const server = Bun.serve({
     return makeJSONResponse(toJSONResponseArgs(error));
   },
 
-  websocket: {
-    // TypeScript: specify the type of ws.data like this
-    // https://bun.com/docs/runtime/http/websockets#contextual-data
-    data: {} as WsData,
-    open(ws) {
-      ws.subscribe(wsTopic);
-      registerSessionSocket(ws.data.sessionId, ws);
-    },
-    message(ws, message) {
-      if (typeof message !== "string") return;
-      let json: unknown;
-      try {
-        json = JSON.parse(message);
-      } catch {
-        return;
-      }
-      const { data: parsed } = wsClientMessageSchema.safeParse(json);
-      if (parsed?.type === "ping") {
-        ws.send(JSON.stringify({ type: "pong" }));
-      }
-    },
-    close(ws) {
-      ws.unsubscribe(wsTopic);
-      unregisterSessionSocket(ws.data.sessionId, ws);
-    },
-  },
-
   development: process.env.NODE_ENV !== "production" && {
     // Enable browser hot reloading in development
     hmr: true,
@@ -189,10 +174,6 @@ const server = Bun.serve({
     // Echo console logs from the browser to the server
     console: true,
   },
-});
-
-setWebSocketPublisher((topic, message) => {
-  server.publish(topic, message);
 });
 
 logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
