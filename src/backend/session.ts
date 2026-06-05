@@ -1,17 +1,15 @@
-import { CookieMap, type BunRequest, type ServerWebSocket } from "bun";
+import { CookieMap, type BunRequest } from "bun";
 
 import { config } from "./config";
+import { closeSessionStreams } from "./sse";
 
 export const SESSION_COOKIE_NAME = "mousehole-session";
 
 const SESSION_DURATION_MS = config.sessionDurationSeconds * 1000;
 
-export type WsData = { sessionId: string };
-
 type SessionEntry = {
   expiry: number;
   expiryTimeoutId: ReturnType<typeof setTimeout>;
-  sockets: Set<ServerWebSocket<WsData>>;
 };
 
 const sessions = new Map<string, SessionEntry>();
@@ -25,7 +23,6 @@ export function createSession(durationMs = SESSION_DURATION_MS): string {
   sessions.set(sessionId, {
     expiry: Date.now() + durationMs,
     expiryTimeoutId,
-    sockets: new Set(),
   });
   return sessionId;
 }
@@ -48,24 +45,15 @@ export function deleteSession(sessionId: string): void {
   sessions.delete(sessionId);
   if (entry) {
     clearTimeout(entry.expiryTimeoutId);
-    for (const ws of entry.sockets) {
-      ws.send(JSON.stringify({ type: "session-expired" }));
-      ws.close(1008, "Session expired");
-    }
+    // Close this session's SSE streams; the client repulls GET /state, gets 401,
+    // and shows the login screen.
+    closeSessionStreams(sessionId);
   }
 }
 
 export function deleteRequestSession(request: Request): void {
   const sessionId = extractSessionId(request);
   if (sessionId) deleteSession(sessionId);
-}
-
-export function registerSessionSocket(sessionId: string, ws: ServerWebSocket<WsData>): void {
-  sessions.get(sessionId)?.sockets.add(ws);
-}
-
-export function unregisterSessionSocket(sessionId: string, ws: ServerWebSocket<WsData>): void {
-  sessions.get(sessionId)?.sockets.delete(ws);
 }
 
 export function extractSessionId(request: Request): string | undefined {

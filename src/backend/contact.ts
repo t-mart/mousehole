@@ -10,6 +10,7 @@ import { getHostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { logger } from "./logger.ts";
 import { Mutex } from "./mutex.ts";
+import { notifyClients } from "./sse.ts";
 import { stateFile } from "./store.ts";
 
 // This prevents multiple contact timers from running during development hot
@@ -110,6 +111,7 @@ export async function commitContact(newCookie?: string): Promise<State> {
       newCookie === undefined ? diskState : { ...diskState, cookie: newCookie };
     const state = await contactMam(base);
     await stateFile.write(state);
+    notifyClients();
     return state;
   } finally {
     scheduleNext();
