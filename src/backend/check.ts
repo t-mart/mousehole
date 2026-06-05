@@ -189,7 +189,7 @@ function scheduleNext() {
 
   currentBackgroundTask = { nextCheckTimeoutId: timeoutId, nextCheckAt };
 
-  logger.info(`Next automatic check scheduled for: ${nextCheckAt.toString()}`);
+  logger.info(`Next automatic check scheduled for ${nextCheckAt.toString()}`);
 }
 
 function handleBackgroundCheckError(error: unknown) {
