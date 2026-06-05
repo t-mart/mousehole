@@ -142,14 +142,6 @@ export class TimeoutError extends MouseholeError {
   }
 }
 
-export class NoCookieError extends MouseholeError {
-  constructor() {
-    super(`No cookie has been set yet`, { httpStatus: 500 });
-    this.name = "NoCookieError";
-    this.errorType = "no-cookie-error";
-  }
-}
-
 export function toJSONResponseArgs(
   error: unknown
 ): JSONResponseArgs<ErrorResponseBody> {

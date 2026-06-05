@@ -143,7 +143,7 @@ export type ContactStatus =
 
 // Interpret a contact from status code only (never `msg`).
 export function classify(
-  contact: MamContact | SerializedMamContact | undefined,
+  contact?: MamContact | SerializedMamContact,
 ): ContactStatus {
   if (!contact) return "pending";
   if (!contact.reached) return "unreachable";

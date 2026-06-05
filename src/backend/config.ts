@@ -216,18 +216,6 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
     ),
 
     /**
-     * The number of seconds after which to consider a response stale.
-     *
-     * Defaults to 86400 seconds (1 day).
-     */
-    staleResponseSeconds: resolveNumber(
-      env,
-      "MOUSEHOLE_STALE_RESPONSE_SECONDS",
-      positiveNumberSchema,
-      60 * 60 * 24,
-    ),
-
-    /**
      * The number of seconds to wait for a response from MAM before aborting the
      * request. Keeps Mousehole from hanging (e.g. when the VPN isn't up yet and
      * the connection silently stalls).

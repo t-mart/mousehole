@@ -91,18 +91,14 @@ override the healthcheck command accordingly.
 ## How It Works
 
 Mousehole runs on a loop. On each **check** (every
-`MOUSEHOLE_CHECK_INTERVAL_SECONDS`), it looks up your host's current public IP
-and compares it against what MAM last recorded. If they differ, your cookie
-changed, or it's been too long since the last successful exchange
-(`MOUSEHOLE_STALE_RESPONSE_SECONDS`), Mousehole performs an **update**, sending
-MAM your new IP. Otherwise the check does nothing.
+`MOUSEHOLE_CHECK_INTERVAL_SECONDS`), it contacts MAM. If you've configured a
+cookie, it sends MAM your current IP through their dynamic-seedbox API — MAM
+commits any change, or simply replies "No change" if your IP is already correct.
+If you haven't set a cookie yet, the check just looks up your public IP so you
+can see it during setup.
 
-- **Check**: the scheduled look at your IP. Always runs on the interval.
-- **Update**: the call to MAM with your new IP. Only happens when a check finds
-  something changed.
-
-You can force an immediate check (which always updates) from the web UI with
-**Check Now**.
+You can trigger an immediate check from the web UI with **Check Now**, and the
+dashboard updates live as checks happen (in this and any other open tab).
 
 ## Environment Variables
 
@@ -125,7 +121,7 @@ You can force an immediate check (which always updates) from the web UI with
   opt-out, set to `*` to allow any host. See
   [Host Allowlist](docs/security-guide.md#host-allowlist) for more details.
 - `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of origins permitted to
-  make cross-origin requests to mutating routes and WebSocket upgrades. Defaults
+  make cross-origin requests to mutating routes and the live-update stream. Defaults
   to same-origin only, which only allows the origin that matches the host of the
   request. Values must be exact origins with no path, such as
   `https://mousehole.example.com` or `http://nas.local:5010`. As an opt-out, set
@@ -146,14 +142,9 @@ You can force an immediate check (which always updates) from the web UI with
 - `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
   listen.
 - `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
-  in seconds between checks. Checks do not necessarily update MAM: if your IP
-  address hasn't changed since the last MAM response, Mousehole will skip the
-  update to avoid unnecessary requests.
-- `MOUSEHOLE_STALE_RESPONSE_SECONDS`: _(Default `86400` (1 day))_ The number of
-  seconds after which a MAM response is considered stale. Mousehole will force
-  an update after this period. This ensures that Mousehole is still talking with
-  MAM at some regular interval and is detecting out-of-band changes to the
-  cookie.
+  in seconds between automatic checks. Each check contacts MAM; if your IP is
+  unchanged, MAM simply replies "No change", so there's no harm in a short
+  interval.
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
   a response from MAM before aborting the request. Prevents Mousehole from
   hanging when the connection silently stalls (e.g. before the VPN is up).
