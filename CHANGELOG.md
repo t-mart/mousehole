@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [v0.4.0](https://github.com/t-mart/mousehole/releases/tag/v0.4.0) - 2026-06-04
 
 - **Breaking**: Introduce many security features: Add authentication, make the
   cookie write only to web UI and API endpoints, add Host/Origin checks, enforce
