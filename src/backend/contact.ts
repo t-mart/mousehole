@@ -146,7 +146,7 @@ function scheduleNext() {
   currentBackgroundTask = { nextContactTimeoutId: timeoutId, nextContactAt };
 
   logger.info(
-    `Next automatic contact scheduled for: ${nextContactAt.toString()}`,
+    `Next automatic contact scheduled for ${nextContactAt.toString()}`,
   );
 }
 
