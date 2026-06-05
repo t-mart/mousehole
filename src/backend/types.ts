@@ -48,8 +48,6 @@ const updateReasons = [
 const updateReasonSchema = z.literal(updateReasons);
 export type UpdateReason = z.infer<typeof updateReasonSchema>;
 
-export type OkResponseUpdateReason = UpdateReason | "no-update-needed";
-
 const serializedUpdateSchema = z.object({
   at: z.string(),
   mamUpdated: z.boolean(),
@@ -121,20 +119,6 @@ export const wsServerMessageSchema = z.discriminatedUnion("type", [
 export type WsServerMessage = z.infer<typeof wsServerMessageSchema>;
 
 //
-// Handler request types (with zod schemas)
-//
-
-export const postIpRequestBodySchema = z
-  .object({
-    force: z.boolean().default(false),
-  })
-  .optional();
-
-export const putStateRequestBodySchema = z.object({
-  currentCookie: z.string(),
-});
-
-//
 // Handler Response types
 //
 
@@ -149,15 +133,4 @@ export type ErrorResponseBody = {
   [key: string]: unknown; // For additional error details, like zod issues or other supplemental data
 };
 
-export type PutStateResponseBody = GetStateResponseBody;
-
-export type GetOkResponseBody = {
-  ok: boolean;
-  reason: OkResponseUpdateReason;
-};
-
-export type GetHealthResponseBody =
-  | { ok: true; isOnline: true }
-  | { ok: false; isOnline: false }
-  | { ok: false; isOnline: true; neededUpdateReason: UpdateReason };
 

@@ -133,17 +133,21 @@ export function toPublicState(
 
 // ── classification ──────────────────────────────────────────────────────────
 
-export type CheckClass = "ok" | "throttled" | "rejected" | "unreachable";
+export type ContactStatus =
+  | "ok" // reached, update applied or already in sync (200)
+  | "throttled" // reached, update quashed as too-recent (429)
+  | "rejected" // reached, MAM refused the cookie (403)
+  | "unreachable" // never got a response
+  | "no-cookie" // reached, but only a lookup (no cookie to update with)
+  | "pending"; // no contact has happened yet
 
-// Interpret a contact from status code only (never `msg`). Returns undefined for
-// the setup case (reached, no ipUpdate) and when there is no contact yet — both are
-// "not a sync result," surfaced via `hasCookie` upstream.
+// Interpret a contact from status code only (never `msg`).
 export function classify(
   contact: MamContact | SerializedMamContact | undefined,
-): CheckClass | undefined {
-  if (!contact) return undefined;
+): ContactStatus {
+  if (!contact) return "pending";
   if (!contact.reached) return "unreachable";
-  if (!contact.ipUpdate) return undefined;
+  if (!contact.ipUpdate) return "no-cookie";
   const { httpStatus } = contact.ipUpdate;
   if (httpStatus === 200) return "ok";
   if (httpStatus === 429) return "throttled";

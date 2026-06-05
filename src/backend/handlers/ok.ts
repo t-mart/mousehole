@@ -1,25 +1,17 @@
-import type { GetOkResponseBody, JSONResponseArgs } from "#backend/types.ts";
+import type { JSONResponseArgs } from "#backend/types.ts";
 
-import { getUpdateReason } from "#backend/check.ts";
-import { getHostInfo } from "#backend/external-api/host-info.ts";
+import { classify, type ContactStatus } from "#backend/serde.ts";
 import { stateFile } from "#backend/store.ts";
 
+export type GetOkResponseBody = { ok: boolean; reason: ContactStatus };
+
+// A pure read of the last contact: ok when the most recent contact reached MAM and
+// the IP update applied (200). No network call.
 export async function handleGetOk(): Promise<
   JSONResponseArgs<GetOkResponseBody>
 > {
   const state = await stateFile.readIfExists();
-  const hostInfo = await getHostInfo();
-
-  const updateReason = getUpdateReason(state, hostInfo, false);
-  const ok = updateReason === undefined;
-
-  return {
-    body: {
-      ok,
-      reason: ok ? "no-update-needed" : updateReason,
-    },
-    init: {
-      status: ok ? 200 : 503,
-    },
-  };
+  const reason = classify(state?.lastMamContact);
+  const ok = reason === "ok";
+  return { body: { ok, reason }, init: { status: ok ? 200 : 503 } };
 }
