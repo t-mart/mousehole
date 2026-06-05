@@ -1,7 +1,6 @@
 // I used to have these types littered around the project, but, because there
 // are so many layers of abstraction, I consolidate them here for readability
 
-import type { Temporal } from "temporal-polyfill";
 
 import * as z from "zod";
 
@@ -162,11 +161,3 @@ export type GetHealthResponseBody =
   | { ok: false; isOnline: false }
   | { ok: false; isOnline: true; neededUpdateReason: UpdateReason };
 
-//
-// Other
-//
-
-export type BackgroundTask = {
-  nextCheckTimeoutId: ReturnType<typeof setTimeout>;
-  nextCheckAt: Temporal.ZonedDateTime;
-};

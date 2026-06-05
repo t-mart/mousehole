@@ -1,22 +1,29 @@
 import { SchemaError } from "#backend/error.ts";
 import { fetchExternal } from "#backend/external-api/fetch.ts";
 import { parseJsonResponse } from "#backend/json.ts";
-import {
-  mamUpdateDynamicSeedboxResponseBodySchema,
-  type MamResponse,
-} from "#backend/types.ts";
-import { getNowZdt } from "#shared/time.ts";
+import { mamUpdateDynamicSeedboxResponseBodySchema } from "#backend/types.ts";
 
 const endpointUrl = new URL(
   "https://t.myanonamouse.net/json/dynamicSeedbox.php",
 );
 const cookieKey = "mam_id";
 
+// The result of contacting dynamicSeedbox. MAM always returns the host IP/ASN/AS
+// (even on 429/403), plus whether the update was applied. `httpStatus` drives our
+// logic (200 ok, 429 throttled, 403 rejected); `msg` is for display only.
+export type MamUpdateResult = {
+  ip: string;
+  asn: number;
+  as: string;
+  success: boolean;
+  msg: string;
+  httpStatus: number;
+  rotatedCookie?: string;
+};
+
 export async function updateMamIp(
   currentCookieValue: string,
-): Promise<MamResponse> {
-  const performedAt = getNowZdt();
-
+): Promise<MamUpdateResult> {
   // Note: the IP address is determined by the server from the request.
   const response = await fetchExternal(endpointUrl, {
     // must supply cookie
@@ -33,21 +40,15 @@ export async function updateMamIp(
     });
   }
 
-  const nextCookieValue = getResponseCookieValue(response);
-
-  const mamResponse: MamResponse = {
-    request: {
-      cookie: currentCookieValue,
-      at: performedAt,
-    },
-    response: {
-      cookie: nextCookieValue,
-      httpStatus: response.status,
-      body,
-    },
+  return {
+    ip: body.ip,
+    asn: body.ASN,
+    as: body.AS,
+    success: body.Success,
+    msg: body.msg,
+    httpStatus: response.status,
+    rotatedCookie: getResponseCookieValue(response),
   };
-
-  return mamResponse;
 }
 
 function getResponseCookieValue(response: Response): string | undefined {
