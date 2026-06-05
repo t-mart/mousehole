@@ -1,6 +1,6 @@
 # API
 
-Mousehole provides a API for programmatic access to its functionality.
+Mousehole provides an API for programmatic access to its functionality.
 
 ## Authentication
 
@@ -17,184 +17,104 @@ Example with curl:
 curl -H "Authorization: Bearer mytoken" http://localhost:5010/state
 ```
 
-## `/state`
+## State shape
 
-### `GET /state`
+`GET /state`, `PUT /cookie`, and `POST /checks` all return the same public state
+object. It never contains your cookie — only whether one is set.
+
+```jsonc
+{
+  "hasCookie": true,                 // is a MAM cookie configured?
+  "hasAuth": true,                   // is the web UI password-protected?
+  "nextCheckAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]", // RFC 9557
+  // The most recent contact with MAM. Absent until the first check runs.
+  "lastMamContact": {
+    "at": "2025-06-21T14:22:28.111-05:00[America/Chicago]",
+    "reached": true,                 // we got an HTTP response from MAM
+    "ip": "123.123.123.123",
+    "asn": 12345,
+    "as": "MegaCorp",
+    // Present only when a cookie drove an update (the dynamicSeedbox call).
+    "ipUpdate": { "success": true, "msg": "No change", "httpStatus": 200 }
+  }
+}
+```
+
+`lastMamContact` is a tagged union on `reached`:
+
+- **Reached, with a cookie** — has `ip`/`asn`/`as` and an `ipUpdate`
+  (`httpStatus` is `200` ok, `429` throttled, `403` rejected; `msg` is MAM's
+  text, for display only).
+- **Reached, no cookie yet** (setup lookup) — has `ip`/`asn`/`as`, no `ipUpdate`.
+- **Unreachable** (transport failure) — no host fields:
+  ```json
+  { "at": "…", "reached": false,
+    "error": { "type": "timeout-error", "message": "Request to … timed out after 10s. Is the network up?" } }
+  ```
+
+## `GET /state`
 
 Protected: Yes
 
-Retrieve the current state of the MAM service.
+A pure read of the current state — it does **not** contact MAM, so it always
+responds quickly and can't fail on a network blip. Returns the [state
+shape](#state-shape).
 
-Example response bodies:
-
-- ```json
-  {
-    "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
-    "nextCheckAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]",
-    "hasCurrentCookie": true,
-    "lastMam": {
-      "request": {
-        "at": "2025-06-21T13:26:50.536-05:00[America/Chicago]"
-      },
-      "response": {
-        "httpStatus": 200,
-        "body": {
-          "Success": true,
-          "msg": "No change",
-          "ip": "123.123.123.123",
-          "ASN": 12345,
-          "AS": "MegaCorp"
-        }
-      }
-    },
-    "lastUpdate": {
-      "hostIp": "123.123.123.123",
-      "mamUpdated": false,
-      "at": "2025-06-21T14:22:28.111-05:00[America/Chicago]"
-    }
-  }
-  ```
-
-### `PUT /state`
+## `PUT /cookie`
 
 Protected: Yes
 
-Reset state for a new provided cookie value.
+Set the MAM session cookie. This stores the credential **and** immediately
+contacts MAM with it, so the response reflects whether the cookie works (e.g. a
+`403` rejection shows up right away). Returns the [state shape](#state-shape).
 
-If a cookie is applied successfully, this endpoint also deletes the state
-related to the last MAM response and last update. This is because the cookie is
-tied to those states.
+Example request body:
 
-Example request bodies:
+```json
+{ "value": "<your-mam_id-cookie-value>" }
+```
 
-- ```json
-  {
-    "currentCookie": "<new-cookie>"
-  }
-  ```
-
-Responses are identical to the `GET /state` response, reflecting the updated
-state.
-
-## `/update`
-
-### `POST /update`
+## `POST /checks`
 
 Protected: Yes
 
-Manually trigger an update of MAM if needed (or if forced).
+Run a check now: contact MAM and persist the result. Takes no body. Returns the
+[state shape](#state-shape).
 
-Example request bodies:
-
-- ```jsonc
-  {
-    "force": true, // Optional, defaults to false
-  }
-  ```
-- ```json
-  {}
-  ```
-
-Example response bodies:
-
-- ```json
-  {
-    "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
-    "mamUpdated": true,
-    "mamUpdateReason": "forced",
-    "at": "2025-06-21T14:45:16.576-05:00[America/Chicago]"
-  }
-  ```
-
-- ```json
-  {
-    "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
-    "mamUpdated": true,
-    "mamUpdateReason": "last-response-error",
-    "at": "2025-06-21T14:45:16.576-05:00[America/Chicago]"
-  }
-  ```
-
-- ```json
-  {
-    "host": { "ip": "123.123.123.123", "asn": 12345, "as": "MegaCorp" },
-    "mamUpdated": true,
-    "mamUpdateReason": "last-response-error",
-    "at": "2025-06-21T14:45:16.576-05:00[America/Chicago]"
-  }
-  ```
-
-## `/ok`
-
-### `GET /ok`
+## `GET /ok`
 
 Protected: No
 
-**This endpoint will soon be deprecated in favor of `/health`.**
+**Deprecated in favor of `/health`.** A convenience endpoint summarizing the last
+check. Returns `200` when the last check reached MAM and the IP update applied,
+`503` otherwise.
 
-A convenience endpoint to check if MAM needs to be updated with the host IP
-address.
+```jsonc
+{ "ok": true,  "reason": "ok" }          // 200
+{ "ok": false, "reason": "unreachable" } // 503
+```
 
-Example response bodies:
+`reason` is one of: `ok`, `throttled` (429), `rejected` (403), `unreachable`,
+`no-cookie` (set one up), `pending` (no check has run yet).
 
-- ```json
-  {
-    "ok": true,
-    "reason": "no-update-needed"
-  }
-  ```
-
-- ```json
-  {
-    "ok": false,
-    "reason": "no-last-response"
-  }
-  ```
-
-If `ok` is true, then the status code is 200. If `ok` is false, then the status
-code is 503.
-
-## `/health`
-
-### `GET /health`
+## `GET /health`
 
 Protected: No
 
-Health check endpoint. Returns 200 when no MAM update is needed, 503 otherwise.
+Health check endpoint, same body and status semantics as `/ok` (`200` healthy /
+`503` otherwise). It's a pure read of the last check — it makes no network call,
+so a `curl`/Docker healthcheck never hits MAM.
 
-The response always includes an `isOnline` field indicating whether the server
-was able to reach MAM. When `isOnline` is `false`, the network interface is
-likely down and `neededUpdateReason` is not included (because network
-connectivity is needed to ascertain that). When `isOnline` is `true`, the server
-reached MAM and `ok` reflects whether an update is needed.
+```jsonc
+{ "ok": true,  "reason": "ok" }
+{ "ok": false, "reason": "rejected" }
+```
 
-Possible `neededUpdateReason` values (only present when `isOnline` is `true` and
-`ok` is `false`): `no-last-response`, `last-response-error`, `ip-changed`,
-`asn-changed`, `cookie-changed`, `response-stale`.
+## `GET /web/events`
 
-If `ok` is true, then the status code is 200. If `ok` is false, then the status
-code is 503.
+Protected: Yes (origin-checked)
 
-Example response bodies:
-
-- ```json
-  {
-    "ok": true,
-    "isOnline": true
-  }
-  ```
-
-- ```json
-  {
-    "ok": false,
-    "isOnline": true,
-    "neededUpdateReason": "ip-changed"
-  }
-  ```
-
-- ```json
-  {
-    "ok": false,
-    "isOnline": false
-  }
-  ```
+A [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+stream the web UI subscribes to. The events are **contentless** — each one just
+signals "something changed, re-pull `GET /state`". Used by the dashboard to update
+live without polling; not generally useful to API clients.

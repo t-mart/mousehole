@@ -138,7 +138,7 @@ MOUSEHOLE_ALLOWED_HOSTS: "*"
 
 `MOUSEHOLE_ALLOWED_ORIGINS` controls which web origins can make
 [cross-origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) requests
-to Mousehole's API and WebSocket endpoint. Tightening this down prevents
+to Mousehole's API and live-update (SSE) endpoint. Tightening this down prevents
 [Cross-Origin Request Forgery (CSRF)](https://portswigger.net/web-security/csrf).
 
 The default is same-origin only, which only allows the origin that matches the

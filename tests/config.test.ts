@@ -15,10 +15,6 @@ describe("defaults (empty env)", () => {
     expect(config.checkIntervalSeconds).toBe(300);
   });
 
-  test("staleResponseSeconds defaults to 86400", () => {
-    expect(config.staleResponseSeconds).toBe(86_400);
-  });
-
   test("mamRequestTimeoutSeconds defaults to 10", () => {
     expect(config.mamRequestTimeoutSeconds).toBe(10);
   });
@@ -154,27 +150,6 @@ describe("MOUSEHOLE_CHECK_INTERVAL_SECONDS", () => {
     expect(() =>
       buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "never" }),
     ).toThrow("MOUSEHOLE_CHECK_INTERVAL_SECONDS");
-  });
-});
-
-describe("MOUSEHOLE_STALE_RESPONSE_SECONDS", () => {
-  test("accepts positive value", () => {
-    expect(
-      buildConfig({ MOUSEHOLE_STALE_RESPONSE_SECONDS: "3600" })
-        .staleResponseSeconds,
-    ).toBe(3600);
-  });
-
-  test("throws on zero", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_STALE_RESPONSE_SECONDS: "0" }),
-    ).toThrow("MOUSEHOLE_STALE_RESPONSE_SECONDS");
-  });
-
-  test("throws on non-numeric", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_STALE_RESPONSE_SECONDS: "daily" }),
-    ).toThrow("MOUSEHOLE_STALE_RESPONSE_SECONDS");
   });
 });
 

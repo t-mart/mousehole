@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+This release reworks how Mousehole talks to MAM and how the web UI stays in sync,
+and flattens the state model. Existing `state.json` files are migrated
+automatically (your cookie is preserved).
+
+- **Breaking**: Live updates now use Server-Sent Events instead of WebSockets.
+  The `GET /web/ws` endpoint is replaced by `GET /web/events`, which carries
+  contentless "re-pull `GET /state`" signals (no state in the payload).
+- **Breaking**: Setting the cookie moved from `PUT /state` (`{ "currentCookie":
+  … }`) to `PUT /cookie` (`{ "value": … }`). It now also contacts MAM
+  immediately, so the response reflects whether the cookie works.
+- **Breaking**: Triggering a check moved from `POST /update` (with an optional
+  `force` body) to `POST /checks` (no body).
+- **Breaking**: The `GET /state` response is reshaped. `host`, `lastMam`,
+  `lastUpdate`, `hasCurrentCookie`, and `isOnline` are gone; it now returns
+  `hasCookie`, `hasAuth`, `nextCheckAt`, and a `lastMamContact` tagged union. See
+  [the API docs](/docs/API.md).
+- **Breaking**: `GET /ok` and `GET /health` now return `{ ok, reason }`, where
+  `reason` is a contact status (`ok`, `throttled`, `rejected`, `unreachable`,
+  `no-cookie`, `pending`). The old `isOnline` / `neededUpdateReason` fields are
+  removed.
+- **Breaking**: Removed `MOUSEHOLE_STALE_RESPONSE_SECONDS`. Every check now
+  contacts MAM (which replies "No change" when nothing changed), so the
+  stale-forcing mechanism is no longer needed.
+- **Changed**: `GET /state`, `/ok`, and `/health` are now pure reads — they never
+  call MAM, so a network blip can't make them fail or hang. The background check
+  is the only thing that contacts MAM.
+
 ## [v0.4.0](https://github.com/t-mart/mousehole/releases/tag/v0.4.0) - 2026-06-04
 
 - **Breaking**: Introduce many security features: Add authentication, make the
