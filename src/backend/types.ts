@@ -51,28 +51,6 @@ export type UpdateReason = z.infer<typeof updateReasonSchema>;
 
 export type OkResponseUpdateReason = UpdateReason | "no-update-needed";
 
-export type State = {
-  currentCookie?: string;
-  lastMam?: {
-    request: {
-      cookie: string;
-      at: Temporal.ZonedDateTime;
-    };
-    response: {
-      cookie?: string;
-      httpStatus: number;
-      body: MamUpdateDynamicSeedboxResponseBody;
-    };
-  };
-  lastUpdate?: {
-    at: Temporal.ZonedDateTime;
-    mamUpdated: boolean;
-    mamUpdateReason?: UpdateReason;
-  };
-};
-
-export type MamResponse = NonNullable<State["lastMam"]>;
-
 const serializedUpdateSchema = z.object({
   at: z.string(),
   mamUpdated: z.boolean(),

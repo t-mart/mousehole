@@ -7,10 +7,9 @@ import {
   FileWriteError,
   DirectoryCreateError,
   JSONParseError,
-  SchemaError,
 } from "./error";
-import { deserializeState, serializeState } from "./serde";
-import { serializedStateSchema, type State } from "./types";
+import { migrateToCurrent } from "./migrate";
+import { deserializeState, serializeState, type State } from "./serde";
 
 const statePath = path.join(config.stateDirPath, "state.json");
 
@@ -31,12 +30,7 @@ class StateFileStore {
       const cause = error instanceof Error ? error : new Error(String(error));
       throw JSONParseError.fromFile(statePath, { cause });
     }
-    const { data: serializedState, error } =
-      serializedStateSchema.safeParse(json);
-    if (error) {
-      throw SchemaError.fromExternalSource(statePath, { cause: error });
-    }
-    return deserializeState(serializedState);
+    return deserializeState(migrateToCurrent(json, statePath));
   }
 
   async readIfExists(): Promise<State | undefined> {
