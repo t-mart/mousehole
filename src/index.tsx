@@ -1,6 +1,6 @@
 import Negotiator from "negotiator";
 
-import type { JSONResponseArgs } from "#backend/types.ts";
+import type { JSONResponseArgs } from "#backend/http.ts";
 
 import { config } from "#backend/config.ts";
 import {

@@ -1,7 +1,5 @@
-import type {
-  ErrorResponseBody,
-  GetStateResponseBody,
-} from "#backend/types.ts";
+import type { ErrorResponseBody } from "#backend/http.ts";
+import type { PublicState } from "#backend/serde.ts";
 
 export const stateQueryKey: readonly [string] = ["state"];
 
@@ -12,14 +10,14 @@ export class UnauthenticatedError extends Error {
   }
 }
 
-export async function stateQueryFunction(): Promise<GetStateResponseBody> {
+export async function stateQueryFunction(): Promise<PublicState> {
   const response = await fetch("/state");
   if (response.status === 401) throw new UnauthenticatedError();
-  const body = (await response.json()) as GetStateResponseBody | ErrorResponseBody;
+  const body = (await response.json()) as PublicState | ErrorResponseBody;
   if (!response.ok) {
     throw new Error(
       `Bad response from GET /state: ${response.status} - ${JSON.stringify(body)}`,
     );
   }
-  return body as GetStateResponseBody;
+  return body as PublicState;
 }

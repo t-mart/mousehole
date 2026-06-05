@@ -1,5 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { PublicState } from "#backend/serde.ts";
 
 import { useErrors } from "#frontend/lib/error-context.tsx";
 import {
@@ -11,30 +12,28 @@ import {
 import { useServerEvents } from "./use-server-events";
 
 /**
- * Bundles the dashboard's server interactions: fetches and live-syncs the
- * server state, exposes the "check now" and "log out" actions, and surfaces
- * connectivity problems as errors. The component is left to render whatever
- * this returns.
+ * Bundles the dashboard's server interactions: fetches and live-syncs the server
+ * state, exposes the "check now" and "log out" actions, and surfaces failed
+ * requests as errors. The component is left to render whatever this returns.
  */
 export function useDashboard(onLogout: () => void) {
   const { addError } = useErrors();
+  const queryClient = useQueryClient();
 
   const checkNowMutation = useMutation({
-    mutationFn: async (force: boolean) => {
-      const response = await fetch("/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ force }),
-      });
+    mutationFn: async () => {
+      const response = await fetch("/checks", { method: "POST" });
       if (!response.ok) {
         const body = (await response.json().catch(() => undefined)) as
           | { message?: string }
           | undefined;
         throw new Error(
-          `${body?.message ?? "Update check failed."} Check server logs for details.`,
+          `${body?.message ?? "Check failed."} Check server logs for details.`,
         );
       }
+      return (await response.json()) as PublicState;
     },
+    onSuccess: (data) => queryClient.setQueryData(stateQueryKey, data),
     onError: (error: Error) => addError(error.message),
   });
 
@@ -52,21 +51,11 @@ export function useDashboard(onLogout: () => void) {
     queryFn: stateQueryFunction,
     retry: (_, error) => !(error instanceof UnauthenticatedError),
   });
-  useServerEvents({ onSessionExpired: onLogout });
-
-  const data = stateQuery.data;
-
-  useEffect(() => {
-    if (data?.isOnline === false) {
-      addError(
-        "The server is unable to contact MAM. Check server logs for details.",
-      );
-    }
-  }, [data?.isOnline, addError]);
+  useServerEvents();
 
   return {
-    data,
-    checkNow: (force: boolean) => checkNowMutation.mutate(force),
+    data: stateQuery.data,
+    checkNow: () => checkNowMutation.mutate(),
     isCheckingNow: checkNowMutation.isPending,
     logout: () => logoutMutation.mutate(),
   };

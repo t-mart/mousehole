@@ -1,11 +1,21 @@
+import * as z from "zod";
+
 import { SchemaError } from "#backend/error.ts";
 import { fetchExternal } from "#backend/external-api/fetch.ts";
 import { parseJsonResponse } from "#backend/json.ts";
-import { ipResponseBodySchema } from "#backend/types.ts";
 
 const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
 
-export async function getHostInfo() {
+// MAM's jsonIp.php returns just the host IP/ASN/AS (uppercase keys are MAM's).
+const responseBodySchema = z.object({
+  ip: z.ipv4(),
+  ASN: z.number(),
+  AS: z.string(),
+});
+
+export type HostInfo = { ip: string; asn: number; as: string };
+
+export async function getHostInfo(): Promise<HostInfo> {
   const response = await fetchExternal(endpointUrl);
 
   if (!response.ok) {
@@ -16,7 +26,7 @@ export async function getHostInfo() {
 
   const body = await parseJsonResponse(response);
 
-  const { data, error } = ipResponseBodySchema.safeParse(body);
+  const { data, error } = responseBodySchema.safeParse(body);
 
   if (error) {
     throw SchemaError.fromExternalSource(endpointUrl.toString(), {

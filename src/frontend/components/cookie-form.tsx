@@ -1,7 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 
+import type { PublicState } from "#backend/serde.ts";
+
 import { useErrors } from "#frontend/lib/error-context.tsx";
+import { stateQueryKey } from "#frontend/lib/state-query.ts";
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
 import { Button } from "./lib/button";
@@ -18,13 +21,16 @@ export function CookieForm({
   const [formCookie, setFormCookie] = useState("");
   const cookieInputId = useId();
   const { addError } = useErrors();
+  const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
+    // PUT /cookie sets the credential and contacts MAM in one shot, returning the
+    // resulting state — so the status (incl. a bad-cookie rejection) shows at once.
     mutationFn: async (cookie: string) => {
-      const response = await fetch("/state", {
+      const response = await fetch("/cookie", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentCookie: cookie }),
+        body: JSON.stringify({ value: cookie }),
       });
       if (!response.ok) {
         const body = (await response.json().catch(() => undefined)) as
@@ -32,8 +38,10 @@ export function CookieForm({
           | undefined;
         throw new Error(body?.message ?? "Failed to save cookie.");
       }
+      return (await response.json()) as PublicState;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateQueryKey, data);
       onUpdate();
     },
     onError: (error: Error) => addError(error.message),

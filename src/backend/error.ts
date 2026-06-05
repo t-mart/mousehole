@@ -1,6 +1,6 @@
 import type { ZodError } from "zod/v4";
 
-import type { ErrorResponseBody, JSONResponseArgs } from "./types";
+import type { ErrorResponseBody, JSONResponseArgs } from "./http";
 
 class MouseholeError extends Error {
   public httpStatus: number;
