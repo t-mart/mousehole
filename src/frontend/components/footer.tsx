@@ -22,11 +22,11 @@ export function Footer() {
         </li>
         <li>
           <Link
-            href="https://github.com/t-mart/mousehole#sponsor"
+            href="https://github.com/t-mart/mousehole#donate"
             target="_blank"
             variant="disco"
           >
-            Sponsor Me
+            Donate
           </Link>
         </li>
       </ol>
