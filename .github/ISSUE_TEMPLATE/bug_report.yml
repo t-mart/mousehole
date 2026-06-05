@@ -31,34 +31,13 @@ body:
       required: true
 
   - type: textarea
-    id: version
-    attributes:
-      label: Mousehole version
-      description: |
-        Please paste the Mousehole version and hexadecimal git hash listed on
-        the web UI or in the server logs.
-      placeholder: "Mousehole v0.3.1 (8810cf0)"
-    validations:
-      required: true
-
-  - type: textarea
-    id: browser
-    attributes:
-      label: Browser version
-      description: |
-        Please post the browser version on which you are accessing Mousehole, 
-        or N/A if not a browser issue.
-      placeholder: "Firefox 112.0"
-    validations:
-      required: true
-
-  - type: textarea
-    id: compose-file
+    id: server-logs
     attributes:
       label: Server logs
       description: |
-        Please post your server logs. On docker, you can run `docker logs 
-        mousehole > mousehole-logs.txt` to save the logs to a file.
+        Please post your server logs. Copy-paste, or, on docker, you can run 
+        `docker logs mousehole > mousehole-logs.txt` to save the logs to a file.
+    validations:
       required: true
 
   - type: textarea
