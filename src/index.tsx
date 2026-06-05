@@ -9,11 +9,12 @@ import {
   stopBackgroundContactTask,
 } from "#backend/contact.ts";
 import { toJSONResponseArgs } from "#backend/error.ts";
+import { handlePostCheck } from "#backend/handlers/checks.ts";
+import { handlePutCookie } from "#backend/handlers/cookie.ts";
 import { handleGetHealth } from "#backend/handlers/health.ts";
 import { handlePostLogin } from "#backend/handlers/login.ts";
 import { handleGetOk } from "#backend/handlers/ok.ts";
-import { handleGetState, handlePutState } from "#backend/handlers/state.ts";
-import { handlePostUpdate } from "#backend/handlers/update.ts";
+import { handleGetState } from "#backend/handlers/state.ts";
 import {
   guardProtectedRequest,
   validateRuntimeSecurityConfig,
@@ -36,8 +37,9 @@ import { gitHash } from "#shared/git-hash.ts";
 
 import { version } from "../package.json";
 
-export const updateEndpointPath = "/update";
+export const checksEndpointPath = "/checks";
 export const stateEndpointPath = "/state";
+export const cookieEndpointPath = "/cookie";
 export const okEndpointPath = "/ok";
 
 function makeJSONResponse<T>({ body, init }: JSONResponseArgs<T>): Response {
@@ -100,18 +102,19 @@ const server = Bun.serve({
       }
       return Response.redirect(okEndpointPath);
     },
-    [updateEndpointPath]: {
+    [checksEndpointPath]: {
       POST: async (request) =>
-        makeProtectedJSONResponse(request, () => handlePostUpdate(request), {
-          requireJsonContentType: true,
+        makeProtectedJSONResponse(request, () => handlePostCheck(), {
           requireOrigin: true,
         }),
     },
     [stateEndpointPath]: {
       GET: async (request) =>
         makeProtectedJSONResponse(request, () => handleGetState()),
+    },
+    [cookieEndpointPath]: {
       PUT: async (request) =>
-        makeProtectedJSONResponse(request, () => handlePutState(request), {
+        makeProtectedJSONResponse(request, () => handlePutCookie(request), {
           requireJsonContentType: true,
           requireOrigin: true,
         }),

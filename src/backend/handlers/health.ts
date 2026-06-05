@@ -1,38 +1,18 @@
-import type {
-  GetHealthResponseBody,
-  HostInfo,
-  JSONResponseArgs,
-} from "#backend/types.ts";
+import type { JSONResponseArgs } from "#backend/types.ts";
 
-import { getUpdateReason } from "#backend/check.ts";
-import { getHostInfo } from "#backend/external-api/host-info.ts";
+import { classify, type ContactStatus } from "#backend/serde.ts";
 import { stateFile } from "#backend/store.ts";
 
+export type GetHealthResponseBody = { ok: boolean; reason: ContactStatus };
+
+// A pure read of the last contact: ok when the most recent contact reached MAM and
+// the IP update applied (200). No network call, so the Docker healthcheck doesn't
+// hammer MAM.
 export async function handleGetHealth(): Promise<
   JSONResponseArgs<GetHealthResponseBody>
 > {
-  let hostInfo: HostInfo;
-  try {
-    hostInfo = await getHostInfo();
-  } catch {
-    return {
-      body: { ok: false, isOnline: false },
-      init: { status: 503 },
-    };
-  }
-
   const state = await stateFile.readIfExists();
-  const neededUpdateReason = getUpdateReason(state, hostInfo, false);
-
-  if (!neededUpdateReason) {
-    return {
-      body: { ok: true, isOnline: true },
-      init: { status: 200 },
-    };
-  }
-
-  return {
-    body: { ok: false, isOnline: true, neededUpdateReason },
-    init: { status: 503 },
-  };
+  const reason = classify(state?.lastMamContact);
+  const ok = reason === "ok";
+  return { body: { ok, reason }, init: { status: ok ? 200 : 503 } };
 }

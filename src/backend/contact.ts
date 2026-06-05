@@ -37,8 +37,7 @@ export const contactMutex = new Mutex();
 // dynamicSeedbox (which also reports the host IP); without one it just looks up the
 // IP via jsonIp so a not-yet-configured user can still see it. Transport failures
 // are recorded as an unreachable contact, not thrown.
-async function contactMam(): Promise<State> {
-  const prior = await stateFile.readIfExists();
+async function contactMam(prior: State | undefined): Promise<State> {
   const cookie = prior?.cookie;
   const at = getNowZdt();
 
@@ -89,14 +88,27 @@ async function contactMam(): Promise<State> {
   }
 }
 
-// Runs one contact to completion and makes it official: serialized by the mutex,
-// persisted, and with the next contact rescheduled. This is the entry point for
-// both the startup/interval loop and on-demand HTTP contacts. Throws on an
-// unexpected failure (e.g. a failed write) — an HTTP caller turns that into a 500.
-export async function commitContactAndReschedule(): Promise<State> {
+/**
+ * Contact MAM, persist the result, and reschedule the next automatic contact.
+ * Serialized by a mutex, so the whole read-modify-write is atomic against the
+ * background loop or any other requests that use this method.
+ *
+ * The single entry point for every contact — startup, the interval timer, `POST
+ * /checks`, and `PUT /cookie`.
+ *
+ * @param newCookie - When provided, the cookie is replaced with this value
+ *   *before* contacting MAM, inside the same locked section. Omit to contact
+ *   with the cookie already on disk (startup, interval, `POST /checks`).
+ * @returns the persisted state after the contact. Throws on an unexpected
+ *   failure (e.g. a failed write) — an HTTP caller turns that into a 500.
+ */
+export async function commitContact(newCookie?: string): Promise<State> {
   const release = await contactMutex.acquire();
   try {
-    const state = await contactMam();
+    const diskState = await stateFile.readIfExists();
+    const base =
+      newCookie === undefined ? diskState : { ...diskState, cookie: newCookie };
+    const state = await contactMam(base);
     await stateFile.write(state);
     return state;
   } finally {
@@ -119,7 +131,7 @@ function scheduleNext() {
   }
 
   const timeoutId = setTimeout(() => {
-    void commitContactAndReschedule().catch(handleBackgroundContactError);
+    void commitContact().catch(handleBackgroundContactError);
   }, config.checkIntervalSeconds * 1000);
 
   // this isn't totally accurate; impossible to get end time of a setTimeout and
@@ -146,7 +158,7 @@ function handleBackgroundContactError(error: unknown) {
 
 // Called once at startup.
 export function startBackgroundContactTask() {
-  commitContactAndReschedule().catch(handleBackgroundContactError);
+  commitContact().catch(handleBackgroundContactError);
   logger.info(
     `Background contact task started, running on ${config.checkIntervalSeconds} second interval`,
   );
