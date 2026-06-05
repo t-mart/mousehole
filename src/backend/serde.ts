@@ -130,3 +130,22 @@ export function toPublicState(
     lastMamContact: state?.lastMamContact && serializeMamContact(state.lastMamContact),
   };
 }
+
+// ── classification ──────────────────────────────────────────────────────────
+
+export type CheckClass = "ok" | "throttled" | "rejected" | "unreachable";
+
+// Interpret a contact from status code only (never `msg`). Returns undefined for
+// the setup case (reached, no ipUpdate) and when there is no contact yet — both are
+// "not a sync result," surfaced via `hasCookie` upstream.
+export function classify(
+  contact: MamContact | SerializedMamContact | undefined,
+): CheckClass | undefined {
+  if (!contact) return undefined;
+  if (!contact.reached) return "unreachable";
+  if (!contact.ipUpdate) return undefined;
+  const { httpStatus } = contact.ipUpdate;
+  if (httpStatus === 200) return "ok";
+  if (httpStatus === 429) return "throttled";
+  return "rejected";
+}

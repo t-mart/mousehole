@@ -12,7 +12,7 @@ describe("migrateToCurrent", () => {
       const result = migrateToCurrent({ currentCookie: "abc" }, source);
       expect(result.version).toBe(STATE_VERSION);
       expect(result.cookie).toBe("abc");
-      expect(result.lastMam).toBeUndefined();
+      expect(result.lastMamContact).toBeUndefined();
     });
 
     test("drops everything but the cookie", () => {
@@ -25,7 +25,7 @@ describe("migrateToCurrent", () => {
         source,
       );
       expect(result.cookie).toBe("abc");
-      expect(result.lastMam).toBeUndefined();
+      expect(result.lastMamContact).toBeUndefined();
     });
 
     test("yields no cookie when none is present", () => {

@@ -2,12 +2,12 @@ import Negotiator from "negotiator";
 
 import type { JSONResponseArgs } from "#backend/types.ts";
 
-import {
-  checkMutex,
-  startBackgroundCheckTask,
-  stopBackgroundCheckTask,
-} from "#backend/check.ts";
 import { config } from "#backend/config.ts";
+import {
+  contactMutex,
+  startBackgroundContactTask,
+  stopBackgroundContactTask,
+} from "#backend/contact.ts";
 import { toJSONResponseArgs } from "#backend/error.ts";
 import { handleGetHealth } from "#backend/handlers/health.ts";
 import { handlePostLogin } from "#backend/handlers/login.ts";
@@ -198,16 +198,16 @@ if (config.stateDirPathDeprecationWarning) {
   logger.warn(config.stateDirPathDeprecationWarning);
 }
 
-startBackgroundCheckTask();
+startBackgroundContactTask();
 
 async function shutdown() {
   logger.info("Shutting down...");
-  await checkMutex.acquire();
+  await contactMutex.acquire();
 
   // despite passing true to immediately stop, bun sometimes still lags, so just don't await it
   void server.stop(true);
 
-  stopBackgroundCheckTask();
+  stopBackgroundContactTask();
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(0);
 }
