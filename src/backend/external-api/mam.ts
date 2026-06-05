@@ -1,12 +1,23 @@
+import * as z from "zod";
+
 import { SchemaError } from "#backend/error.ts";
 import { fetchExternal } from "#backend/external-api/fetch.ts";
 import { parseJsonResponse } from "#backend/json.ts";
-import { mamUpdateDynamicSeedboxResponseBodySchema } from "#backend/types.ts";
 
 const endpointUrl = new URL(
   "https://t.myanonamouse.net/json/dynamicSeedbox.php",
 );
 const cookieKey = "mam_id";
+
+// MAM returns the host IP/ASN/AS on every response (even 429/403), plus the update
+// outcome. Uppercase keys are MAM's; we map them to our lowercase domain shape.
+const responseBodySchema = z.object({
+  Success: z.boolean(),
+  msg: z.string(),
+  ip: z.ipv4(),
+  ASN: z.number(),
+  AS: z.string(),
+});
 
 // The result of contacting dynamicSeedbox. MAM always returns the host IP/ASN/AS
 // (even on 429/403), plus whether the update was applied. `httpStatus` drives our
@@ -31,8 +42,7 @@ export async function updateMamIp(
   });
 
   const json = await parseJsonResponse(response);
-  const { data: body, error: parseError } =
-    mamUpdateDynamicSeedboxResponseBodySchema.safeParse(json);
+  const { data: body, error: parseError } = responseBodySchema.safeParse(json);
 
   if (parseError) {
     throw SchemaError.fromExternalSource(endpointUrl.toString(), {

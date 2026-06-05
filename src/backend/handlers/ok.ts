@@ -1,4 +1,4 @@
-import type { JSONResponseArgs } from "#backend/types.ts";
+import type { JSONResponseArgs } from "#backend/http.ts";
 
 import { classify, type ContactStatus } from "#backend/serde.ts";
 import { stateFile } from "#backend/store.ts";

@@ -1,19 +1,22 @@
 import { Check, Copy } from "lucide-react";
 import { type ComponentPropsWithRef, useState } from "react";
 
-import type { GetStateResponseBody } from "#backend/types.ts";
-
+import { classify, type PublicState } from "#backend/serde.ts";
 import { cn } from "#frontend/lib/cn.ts";
 
 import { Section } from "./lib/section";
 
-export function MamResponse({
-  data,
-}: Readonly<{ data: GetStateResponseBody }>) {
+export function MamResponse({ data }: Readonly<{ data: PublicState }>) {
   const inDemoMode = process.env.PUBLIC_DEMO_MODE === "true";
-  const ip = inDemoMode ? "123.123.123.123" : data.host.ip;
-  const asn = inDemoMode ? "12345" : data.host.asn;
-  const as = inDemoMode ? "MegaCorp Networks" : data.host.as;
+  const contact = data.lastMamContact;
+  // The IP/AS rows show only when we actually reached MAM — there's no cached
+  // value, and a stale IP wouldn't help a user whose network is down.
+  const host = inDemoMode
+    ? { ip: "123.123.123.123", asn: 12_345, as: "MegaCorp Networks" }
+    : contact?.reached
+      ? { ip: contact.ip, asn: contact.asn, as: contact.as }
+      : undefined;
+
   return (
     <Section className="space-y-2">
       <h2 className="sr-only">Status</h2>
@@ -24,18 +27,22 @@ export function MamResponse({
             <StatusContent data={data} />
           </DD>
         </DLRow>
-        <DLRow>
-          <DT>Host IP</DT>
-          <DD>
-            <CopyableIP ip={ip} />
-          </DD>
-        </DLRow>
-        <DLRow>
-          <DT>Host AS</DT>
-          <DD>
-            <span className="font-mono">{asn}</span>, {as}
-          </DD>
-        </DLRow>
+        {host && (
+          <>
+            <DLRow>
+              <DT>Host IP</DT>
+              <DD>
+                <CopyableIP ip={host.ip} />
+              </DD>
+            </DLRow>
+            <DLRow>
+              <DT>Host AS</DT>
+              <DD>
+                <span className="font-mono">{host.asn}</span>, {host.as}
+              </DD>
+            </DLRow>
+          </>
+        )}
       </dl>
     </Section>
   );
@@ -83,16 +90,39 @@ function DD({ ...props }: Readonly<ComponentPropsWithRef<"dd">>) {
   return <dd className="ml-auto font-bold text-right" {...props} />;
 }
 
-function StatusContent({ data }: Readonly<{ data: GetStateResponseBody }>) {
-  if (!data.hasCurrentCookie) {
+// MAM's `msg` when we reached it (display only, never branched on for logic).
+function mamMessage(contact: PublicState["lastMamContact"]): string | undefined {
+  return contact?.reached ? contact.ipUpdate?.msg : undefined;
+}
+
+function StatusContent({ data }: Readonly<{ data: PublicState }>) {
+  if (!data.hasCookie) {
     return <StatusLine state="warn" text="No cookie set" />;
-  } else if (data.lastMam) {
-    const success = data.lastMam.response.body.Success;
-    const state = success ? "ok" : "error";
-    const text = success ? "OK" : data.lastMam.response.body.msg;
-    return <StatusLine state={state} text={text} />;
-  } else {
-    return <StatusLine state="warn" text="Pending check" />;
+  }
+
+  const contact = data.lastMamContact;
+  switch (classify(contact)) {
+    case "ok": {
+      return <StatusLine state="ok" text={mamMessage(contact) ?? "OK"} />;
+    }
+    case "throttled": {
+      return (
+        <StatusLine state="warn" text={mamMessage(contact) ?? "Change pending"} />
+      );
+    }
+    case "rejected": {
+      return (
+        <StatusLine state="error" text={mamMessage(contact) ?? "Session rejected"} />
+      );
+    }
+    case "unreachable": {
+      return <StatusLine state="error" text="Couldn't reach MAM" />;
+    }
+    // "no-cookie" here means a pre-cookie lookup is still the latest contact — a
+    // brief window after setting a cookie. Treat it as pending.
+    default: {
+      return <StatusLine state="warn" text="Pending check" />;
+    }
   }
 }
 

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import type { GetStateResponseBody } from "#backend/types.ts";
+import { classify, type PublicState } from "#backend/serde.ts";
 
 import { useDashboard } from "../hooks/use-dashboard";
 import { CookieForm } from "./cookie-form";
@@ -18,30 +18,23 @@ import { Timer } from "./timer";
 // this into a separate function helps confine all the boolean logic for this in
 // one place.
 function getDashboardView(
-  data: GetStateResponseBody,
+  data: PublicState,
   userWantsInputCookie: boolean,
 ): {
   showNeedHelp: boolean;
   panel: { kind: "cookie-setup"; showCancel: boolean } | { kind: "running" };
 } {
-  const mam = data.lastMam?.response;
-  const isMamError = mam?.body.Success === false;
-  const isRateLimited = mam?.httpStatus === 429;
-  const invalidCookie =
-    isMamError && mam?.body.msg === "Invalid session - Invalid Cookie";
+  const status = classify(data.lastMamContact);
+  const rejected = status === "rejected"; // 403 — the cookie/session is bad
+  const mamProblem = rejected || status === "throttled"; // MAM returned Success:false
 
   const needsCookieForm =
-    userWantsInputCookie ||
-    !data.hasCurrentCookie ||
-    (isMamError && !isRateLimited);
+    userWantsInputCookie || !data.hasCookie || rejected;
 
   return {
-    showNeedHelp: isMamError,
+    showNeedHelp: mamProblem,
     panel: needsCookieForm
-      ? {
-          kind: "cookie-setup",
-          showCancel: data.hasCurrentCookie && !invalidCookie,
-        }
+      ? { kind: "cookie-setup", showCancel: data.hasCookie && !rejected }
       : { kind: "running" },
   };
 }
@@ -62,10 +55,7 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
 
       {panel.kind === "cookie-setup" && (
         <CookieForm
-          onUpdate={() => {
-            setUserWantsInputCookie(false);
-            checkNow(false);
-          }}
+          onUpdate={() => setUserWantsInputCookie(false)}
           onCancel={() => setUserWantsInputCookie(false)}
           showCancel={panel.showCancel}
         />
@@ -90,7 +80,7 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
             </ControlsButton>
             <ControlsButton
               key="check-now"
-              onClick={() => checkNow(true)}
+              onClick={() => checkNow()}
               disabled={isCheckingNow}
             >
               {isCheckingNow ? <Spinner /> : "Check Now"}
