@@ -1,86 +1,132 @@
 import { Temporal } from "temporal-polyfill";
+import * as z from "zod";
 
-import type {
-  PublicSerializedState,
-  SerializedState,
-  SerializedUpdate,
-  State,
-} from "./types";
+// This module owns the shape of our state: the in-memory domain types, their
+// on-disk/wire serialized forms, and the conversions between them. Other modules
+// import these rather than re-deriving the shape.
+//
+// In memory we use `Temporal.ZonedDateTime`; on disk and over the wire we use RFC
+// 9557 strings (what `ZonedDateTime.toString()` emits and `from()` round-trips).
 
-function serializeUpdate(
-  update: State["lastUpdate"],
-): SerializedUpdate | undefined {
-  return update
-    ? {
-        mamUpdated: update.mamUpdated,
-        mamUpdateReason: update.mamUpdateReason,
-        at: update.at.toString(),
-      }
-    : undefined;
+export const STATE_VERSION = 2;
+
+// ── in-memory domain types ──────────────────────────────────────────────────
+
+export type MamContact = { at: Temporal.ZonedDateTime } & (
+  | { reached: false; error: { type: string; message: string } }
+  | {
+      reached: true;
+      ip: string;
+      asn: number;
+      as: string;
+      // present only when a cookie drove a dynamicSeedbox update
+      ipUpdate?: { success: boolean; msg: string; httpStatus: number };
+    }
+);
+
+export type State = {
+  cookie?: string;
+  lastMamContact?: MamContact;
+};
+
+// ── serialized form (disk + wire): `at` is an RFC 9557 string ───────────────
+
+const ipUpdateSchema = z.object({
+  success: z.boolean(),
+  // MAM's `msg`, verbatim — for display only, never branch on it
+  msg: z.string(),
+  httpStatus: z.number(),
+});
+
+const serializedMamContactSchema = z.discriminatedUnion("reached", [
+  z.object({
+    at: z.string(),
+    reached: z.literal(false),
+    error: z.object({ type: z.string(), message: z.string() }),
+  }),
+  z.object({
+    at: z.string(),
+    reached: z.literal(true),
+    ip: z.ipv4(),
+    asn: z.number(),
+    as: z.string(),
+    ipUpdate: ipUpdateSchema.optional(),
+  }),
+]);
+export type SerializedMamContact = z.infer<typeof serializedMamContactSchema>;
+
+export const serializedStateSchema = z.object({
+  version: z.literal(STATE_VERSION),
+  cookie: z.string().optional(),
+  lastMamContact: serializedMamContactSchema.optional(),
+});
+export type SerializedState = z.infer<typeof serializedStateSchema>;
+
+// ── public form (wire): the serialized state minus the credential ───────────
+
+export const publicStateSchema = z.object({
+  hasCookie: z.boolean(),
+  hasAuth: z.boolean(),
+  nextCheckAt: z.string().optional(),
+  // identical to the on-disk MamContact — it carries no secret to strip
+  lastMamContact: serializedMamContactSchema.optional(),
+});
+export type PublicState = z.infer<typeof publicStateSchema>;
+
+// ── conversions ─────────────────────────────────────────────────────────────
+
+function serializeMamContact(contact: MamContact): SerializedMamContact {
+  if (!contact.reached) {
+    return { at: contact.at.toString(), reached: false, error: contact.error };
+  }
+  return {
+    at: contact.at.toString(),
+    reached: true,
+    ip: contact.ip,
+    asn: contact.asn,
+    as: contact.as,
+    ipUpdate: contact.ipUpdate,
+  };
+}
+
+function deserializeMamContact(contact: SerializedMamContact): MamContact {
+  const at = Temporal.ZonedDateTime.from(contact.at);
+  if (!contact.reached) {
+    return { at, reached: false, error: contact.error };
+  }
+  return {
+    at,
+    reached: true,
+    ip: contact.ip,
+    asn: contact.asn,
+    as: contact.as,
+    ipUpdate: contact.ipUpdate,
+  };
 }
 
 export function serializeState(state: State): SerializedState {
   return {
-    currentCookie: state.currentCookie,
-    lastMam: state.lastMam
-      ? {
-          request: {
-            cookie: state.lastMam.request.cookie,
-            at: state.lastMam.request.at.toString(),
-          },
-          response: {
-            cookie: state.lastMam.response.cookie,
-            httpStatus: state.lastMam.response.httpStatus,
-            body: state.lastMam.response.body,
-          },
-        }
-      : undefined,
-    lastUpdate: serializeUpdate(state.lastUpdate),
+    version: STATE_VERSION,
+    cookie: state.cookie,
+    lastMamContact: state.lastMamContact && serializeMamContact(state.lastMamContact),
   };
 }
 
-export function serializePublicState(
-  state?: State,
-): PublicSerializedState {
+export function deserializeState(serialized: SerializedState): State {
   return {
-    hasCurrentCookie: Boolean(state?.currentCookie),
-    lastMam: state?.lastMam
-      ? {
-          request: {
-            at: state.lastMam.request.at.toString(),
-          },
-          response: {
-            httpStatus: state.lastMam.response.httpStatus,
-            body: state.lastMam.response.body,
-          },
-        }
-      : undefined,
-    lastUpdate: serializeUpdate(state?.lastUpdate),
+    cookie: serialized.cookie,
+    lastMamContact: serialized.lastMamContact && deserializeMamContact(serialized.lastMamContact),
   };
 }
 
-export function deserializeState(ser: SerializedState): State {
+export function toPublicState(
+  state: State | undefined,
+  derived: { hasAuth: boolean; nextCheckAt?: string },
+): PublicState {
   return {
-    currentCookie: ser.currentCookie,
-    lastMam: ser.lastMam
-      ? {
-          request: {
-            cookie: ser.lastMam.request.cookie,
-            at: Temporal.ZonedDateTime.from(ser.lastMam.request.at),
-          },
-          response: {
-            cookie: ser.lastMam.response.cookie,
-            httpStatus: ser.lastMam.response.httpStatus,
-            body: ser.lastMam.response.body,
-          },
-        }
-      : undefined,
-    lastUpdate: ser.lastUpdate
-      ? {
-          at: Temporal.ZonedDateTime.from(ser.lastUpdate.at),
-          mamUpdated: ser.lastUpdate.mamUpdated,
-          mamUpdateReason: ser.lastUpdate.mamUpdateReason,
-        }
-      : undefined,
+    hasCookie: Boolean(state?.cookie),
+    hasAuth: derived.hasAuth,
+    nextCheckAt: derived.nextCheckAt,
+    lastMamContact: state?.lastMamContact && serializeMamContact(state.lastMamContact),
   };
 }
