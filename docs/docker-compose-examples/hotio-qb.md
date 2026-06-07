@@ -19,18 +19,14 @@ services:
     ports:
       - "5010:5010" # Mousehole port
       - "8080:8080" # qBittorrent Web UI port
-      - "6881:6881/tcp" # qBittorrent TCP torrent port
-      - "6881:6881/udp" # qBittorrent UDP torrent port
     environment:
       PUID: 1000
       PGID: 1000
       UMASK: "002"
       TZ: Etc/UTC
       WEBUI_PORTS: 8080/tcp
-      VPN_ENABLED: "true"
-      VPN_CONF: wg0
-      VPN_PROVIDER: generic
-      VPN_LAN_NETWORK: 192.168.1.0/24 # Set to your LAN subnet
+      LIBTORRENT: v1
+      VPN_EXPOSE_PORTS_ON_LAN: "5010/tcp"
     volumes:
       - qbittorrent-config:/config
       - /path/to/data:/data
