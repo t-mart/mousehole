@@ -26,7 +26,11 @@ services:
       TZ: Etc/UTC
       WEBUI_PORTS: 8080/tcp
       LIBTORRENT: v1
-      VPN_EXPOSE_PORTS_ON_LAN: "5010/tcp"
+      VPN_ENABLED: "true"
+      VPN_CONF: wg0 # Reads /config/wireguard/wg0.conf
+      VPN_EXPOSE_PORTS_ON_LAN: "5010/tcp" # Allow LAN access to Mousehole's port
+      VPN_PROVIDER: generic # or proton, pia
+      # more is needed here -- see hotio/qbittorrent documentation for your use case
     volumes:
       - qbittorrent-config:/config
       - /path/to/data:/data
