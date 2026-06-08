@@ -26,55 +26,6 @@ To use Mousehole, you need to:
 
 #### Docker Compose (recommended)
 
-```yaml
-services:
-  gluetun:
-    image: qmcgaw/gluetun:latest
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    ports:
-      - "127.0.0.1:5010:5010" # Mousehole port
-      - "8080:8080" # qBittorrent Web UI port
-      - "6881:6881/tcp" # qBittorrent TCP torrent port
-      - "6881:6881/udp" # qBittorrent UDP torrent port
-    environment:
-      VPN_SERVICE_PROVIDER: "your-vpn-provider"
-      FIREWALL_VPN_INPUT_PORTS: "6881" # qBittorrent torrent
-      # more is needed here -- see Gluetun documentation
-      # https://github.com/qdm12/gluetun-wiki
-      # https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers
-    restart: unless-stopped
-
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    network_mode: "service:gluetun"
-    environment:
-      TZ: Etc/UTC # Set to your timezone for localization
-      WEBUI_PORT: 8080
-      TORRENTING_PORT: 6881
-    restart: unless-stopped
-
-  mousehole:
-    image: tmmrtn/mousehole:latest
-    network_mode: "service:gluetun"
-    environment:
-      TZ: Etc/UTC # Set to your timezone for localization
-      MOUSEHOLE_AUTH_PASSWORD: replace-with-a-long-random-password
-    volumes:
-      # persist cookie data across container restarts
-      - "mousehole:/var/lib/mousehole"
-    restart: unless-stopped
-
-volumes:
-  mousehole:
-```
-
-<!-- prettier-ignore -->
-> [!NOTE]  
-> See the [Security Guide](docs/security-guide.md) if you are exposing Mousehole beyond localhost, such as through a reverse proxy.
-
 Starter Docker Compose examples:
 
 - ⭐
@@ -84,17 +35,18 @@ Starter Docker Compose examples:
 - [binhex/arch-qbittorrentvpn + Mousehole](docs/docker-compose-examples/binhex-qb.md)
 - [Non-VPN Example](docs/docker-compose-examples/non-vpn.md)
 
-[Any Docker Compose setup can be adapted to include Mousehole as a sidecar](docs/compose-setups.md).
+Any Docker Compose setup can be adapted to include [Mousehole as a sidecar](docs/compose-setups.md).
 
 #### Unraid
 
 See the [Unraid Installation Guide](contrib/unraid/README.md) for instructions.
 
-#### Local
+#### From Source
 
 Run the server with:
 
 ```bash
+cd /path/to/mousehole
 bun run start
 ```
 

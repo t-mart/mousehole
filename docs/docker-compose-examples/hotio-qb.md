@@ -5,11 +5,10 @@ WireGuard VPN client directly into the qBittorrent container, so there is no
 separate VPN container. Mousehole attaches to qBittorrent's network namespace as
 a sidecar.
 
-<!-- prettier-ignore -->
-> [!IMPORTANT]  
+> [!IMPORTANT]
+>
 > This is just a starting point! You will need to
 > [customize](../compose-setups.md) it to your needs.
-
 
 ```yaml
 services:
@@ -26,7 +25,7 @@ services:
       PUID: 1000
       PGID: 1000
       UMASK: "002"
-      TZ: Etc/UTC         # Set to your timezone for localization
+      TZ: Etc/UTC
       WEBUI_PORTS: 8080/tcp
       VPN_ENABLED: "true"
       VPN_CONF: wg0

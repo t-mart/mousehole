@@ -10,8 +10,8 @@ in this example.
 (Gluetun may be easier to set up for beginners. See the
 [Gluetun example](gluetun-qb.md).)
 
-<!-- prettier-ignore -->
-> [!IMPORTANT]  
+> [!IMPORTANT]
+>
 > This is just a starting point! You will need to
 > [customize](../compose-setups.md) it to your needs.
 

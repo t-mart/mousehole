@@ -1,12 +1,14 @@
 # Custom Docker Compose Setups
 
-No documentation can cover every Docker Compose setup — the combinations of
-BitTorrent client, VPN provider, and container configurations are endless.
+No documentation can cover every Docker Compose setup: the combinations of
+BitTorrent client, VPN provider, container configuration, and platform are
+innumerable.
 
 But, you can be successful with Mousehole if you understand the following
 concepts.
 
 - [Mousehole as a VPN sidecar](#mousehole-as-a-vpn-sidecar)
+- [Security Settings](#security-settings)
 - [Reading Documentation](#reading-documentation)
 - [Getting More Help](#getting-more-help)
 
@@ -25,9 +27,6 @@ You can achieve a sidecar setup by using these Docker Compose attributes.
 2. Map Mousehole's port (default `5010`) on the VPN container, not Mousehole's
    container.
 
-If you do that, you can adapt any Docker Compose VPN setup to include Mousehole
-as a sidecar.
-
 ### Non-Functional but Illustrative Example
 
 ```yaml
@@ -41,18 +40,22 @@ services:
   vpn:
     image: your-vpn-image:latest
     ports:
-      - "127.0.0.1:5010:5010" # Point 2: Map Mousehole's port on the VPN container
+      - "5010:5010" # Point 2: Map Mousehole's port on the VPN container
 ```
 
-See [Port Binding](./security-guide.md#port-binding) in the Security Guide for
-why the `127.0.0.1:` prefix in the port mapping matters.
+## Security Settings
+
+Mousehole defaults to using tight security settings. If your setup needs to
+relax or adjust those settings (reverse proxy, Unraid, etc), the
+[Security Guide](/docs/security-guide.md) covers the environment variables to do
+so.
 
 ## Reading Documentation
 
 There are many technologies involved in a VPN + BitTorrent + Mousehole setup. If
 you are new to this, it can be overwhelming. But, don't fret. Take it one step
 at a time. Read the documentation for each project involved. Here are some
-examples.
+references:
 
 - [YAML Reference](https://yaml.org/spec/1.2/spec.html) or
   [YAML cheatsheet](https://quickref.me/yaml.html) for understanding the syntax

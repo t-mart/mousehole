@@ -4,8 +4,8 @@
 support for many providers. This example also uses
 [linuxserver/qbittorrent](https://docs.linuxserver.io/images/docker-qbittorrent).
 
-<!-- prettier-ignore -->
-> [!IMPORTANT]  
+> [!IMPORTANT]
+>
 > This is just a starting point! You will need to
 > [customize](../compose-setups.md) it to your needs.
 

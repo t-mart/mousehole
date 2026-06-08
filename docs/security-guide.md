@@ -31,9 +31,9 @@ environment:
 
 ### Reverse Proxy Access
 
-If you access Mousehole through a reverse proxy (Caddy, Traefik, Nginx, other
-NAS software), add that hostname to the host and origin allowlists. For example,
-if you want access Mousehole at `https://mousehole.myhomelab.lan` and
+If you access Mousehole through a reverse proxy (Caddy, Traefik, Nginx, Unraid,
+other NAS software), add that hostname to the host and origin allowlists. For
+example, if you want access Mousehole at `https://mousehole.myhomelab.lan` and
 `http://localhost:5010`:
 
 ```yaml
@@ -49,8 +49,8 @@ environment:
 Before v0.4.0, Mousehole had no authentication or host/origin checks. To restore
 that behavior, disable authentication and allow all hosts and origins.
 
-<!-- prettier-ignore -->
 > [!WARNING]
+>
 > Only use this on a private, trusted network.
 
 ```yaml
@@ -71,13 +71,22 @@ In Docker setups, treat the volume that stores this directory in the same way.
 
 ## Port Binding
 
-In Docker Compose
-[`ports` mappings](https://docs.docker.com/reference/compose-file/services/#ports),
-if you do not specify an IP address, Docker binds to _all_ interfaces, which can
-bypass firewall rules and expose Mousehole directly to the internet.
+Throughout Mousehole's Docker documentation, you will see examples that bind
+port `5010` to all interfaces.
 
-The form for specifying an IP address is `IP:HOST_PORT:CONTAINER_PORT`. The IP
-part controls which network interface the port is published on.
+```yaml
+# mousehole or VPN service definition in compose.yml
+ports:
+  - "5010:5010" # all interfaces
+```
+
+> [!IMPORTANT]
+>
+> Binding to all interfaces exposes Mousehole to anyone who can access the
+> networks of those interfaces. If an interface has a public IP address,
+> Mousehole is exposed to the internet.
+
+To instead only bind to the localhost interface, change it to:
 
 ```yaml
 # mousehole or VPN service definition in compose.yml

@@ -4,8 +4,8 @@
 bundles qBittorrent with an OpenVPN or WireGuard client in a single container.
 Mousehole attaches to its network namespace as a sidecar.
 
-<!-- prettier-ignore -->
-> [!IMPORTANT]  
+> [!IMPORTANT]
+>
 > This is just a starting point! You will need to
 > [customize](../compose-setups.md) it to your needs.
 
