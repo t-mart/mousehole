@@ -19,8 +19,6 @@ services:
     ports:
       - "5010:5010" # Mousehole port
       - "8080:8080" # qBittorrent Web UI port
-      - "58946:58946/tcp" # qBittorrent TCP torrent port
-      - "58946:58946/udp" # qBittorrent UDP torrent port
     environment:
       PUID: 1000
       PGID: 1000
@@ -32,6 +30,7 @@ services:
       VPN_PASS: "" # not required for custom WireGuard configs
       LAN_NETWORK: 192.168.1.0/24 # Set to your LAN subnet
       WEBUI_PORT: 8080
+      VPN_INPUT_PORTS: 5010 # Allow LAN access to Mousehole's port through binhex's firewall
     volumes:
       - qbittorrentvpn-config:/config
       - /path/to/data:/data
