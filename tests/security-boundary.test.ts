@@ -1,6 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { lstat, readdir, readFile } from "node:fs/promises";
-import path from "node:path";
 import { Temporal } from "temporal-polyfill";
 
 import type { SecurityConfig } from "../src/backend/http-boundary.ts";
@@ -215,7 +213,9 @@ describe("protected HTTP boundary", () => {
     const sessionId = createSession();
 
     const viaSession = checkProtectedRequest(
-      makeRequest("/state", { headers: { Cookie: makeSessionCookie(sessionId) } }),
+      makeRequest("/state", {
+        headers: { Cookie: makeSessionCookie(sessionId) },
+      }),
       {},
       bothConfig,
     );
@@ -413,7 +413,10 @@ describe("protected HTTP boundary", () => {
     const failure = checkProtectedRequest(
       makeRequest("/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Origin: "http://localhost" },
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "http://localhost",
+        },
         body: "{}",
       }),
       { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
@@ -427,7 +430,10 @@ describe("protected HTTP boundary", () => {
     const failure = checkProtectedRequest(
       makeRequest("/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Origin: "http://evil.example" },
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "http://evil.example",
+        },
         body: "{}",
       }),
       { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
@@ -437,7 +443,6 @@ describe("protected HTTP boundary", () => {
     expect(failure?.status).toBe(403);
     expect(failure?.type).toBe("origin-not-allowed");
   });
-
 });
 
 const passwordAuthConfig = {
@@ -455,25 +460,36 @@ function loginRequest(password: string): Request {
 
 describe("login handler", () => {
   test("correct password returns ok with a sessionId", async () => {
-    const result = await handlePostLogin(loginRequest("s3cr3t"), passwordAuthConfig);
+    const result = await handlePostLogin(
+      loginRequest("s3cr3t"),
+      passwordAuthConfig,
+    );
 
     expect(result.ok).toBe(true);
     expect(result.ok && result.sessionId).toBeTruthy();
   });
 
   test("wrong password returns not-ok with 401 status", async () => {
-    const result = await handlePostLogin(loginRequest("wrong"), passwordAuthConfig);
+    const result = await handlePostLogin(
+      loginRequest("wrong"),
+      passwordAuthConfig,
+    );
 
     expect(result.ok).toBe(false);
     expect(!result.ok && result.status).toBe(401);
   });
 
   test("session created by login is accepted by checkProtectedRequest", async () => {
-    const result = await handlePostLogin(loginRequest("s3cr3t"), passwordAuthConfig);
+    const result = await handlePostLogin(
+      loginRequest("s3cr3t"),
+      passwordAuthConfig,
+    );
     if (!result.ok) throw new Error("Login should have succeeded");
 
     const failure = checkProtectedRequest(
-      makeRequest("/state", { headers: { Cookie: makeSessionCookie(result.sessionId) } }),
+      makeRequest("/state", {
+        headers: { Cookie: makeSessionCookie(result.sessionId) },
+      }),
       {},
       passwordConfig,
     );
@@ -484,13 +500,18 @@ describe("login handler", () => {
 
 describe("session deletion", () => {
   test("deleting a session invalidates it", async () => {
-    const loginResult = await handlePostLogin(loginRequest("s3cr3t"), passwordAuthConfig);
+    const loginResult = await handlePostLogin(
+      loginRequest("s3cr3t"),
+      passwordAuthConfig,
+    );
     if (!loginResult.ok) throw new Error("Login should have succeeded");
 
     deleteSession(loginResult.sessionId);
 
     const failure = checkProtectedRequest(
-      makeRequest("/state", { headers: { Cookie: makeSessionCookie(loginResult.sessionId) } }),
+      makeRequest("/state", {
+        headers: { Cookie: makeSessionCookie(loginResult.sessionId) },
+      }),
       {},
       passwordConfig,
     );
@@ -507,7 +528,9 @@ describe("session deletion", () => {
     await sleep(30);
 
     const failure = checkProtectedRequest(
-      makeRequest("/state", { headers: { Cookie: makeSessionCookie(sessionId) } }),
+      makeRequest("/state", {
+        headers: { Cookie: makeSessionCookie(sessionId) },
+      }),
       {},
       passwordConfig,
     );
