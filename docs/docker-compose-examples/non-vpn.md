@@ -21,7 +21,7 @@ services:
       TZ: Etc/UTC # Set to your timezone for localization
       MOUSEHOLE_AUTH_PASSWORD: replace-with-a-long-random-password
     ports:
-      - "127.0.0.1:5010:5010" # Mousehole port
+      - "5010:5010" # Mousehole port
     volumes:
       # persist cookie data across container restarts
       - "mousehole:/var/lib/mousehole"

@@ -91,7 +91,7 @@ To instead only bind to the localhost interface, change it to:
 ```yaml
 # mousehole or VPN service definition in compose.yml
 ports:
-  - "127.0.0.1:5010:5010" # localhost only
+  - "5010:5010" # localhost only
 ```
 
 See the

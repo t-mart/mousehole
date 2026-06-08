@@ -17,7 +17,7 @@ services:
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     ports:
-      - "127.0.0.1:5010:5010" # Mousehole port
+      - "5010:5010" # Mousehole port
       - "8080:8080" # qBittorrent Web UI port
       - "58946:58946/tcp" # qBittorrent TCP torrent port
       - "58946:58946/udp" # qBittorrent UDP torrent port
