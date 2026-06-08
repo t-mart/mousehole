@@ -31,9 +31,9 @@ environment:
 
 ### Reverse Proxy Access
 
-If you access Mousehole through a reverse proxy (Caddy, Traefik, Nginx, Unraid,
-other NAS software), add that hostname to the host and origin allowlists. For
-example, if you want access Mousehole at `https://mousehole.myhomelab.lan` and
+If you access Mousehole through a reverse proxy (Caddy, Traefik, Nginx, other
+NAS software), add that hostname to the host and origin allowlists. For example,
+if you want access Mousehole at `https://mousehole.myhomelab.lan` and
 `http://localhost:5010`:
 
 ```yaml
@@ -49,8 +49,8 @@ environment:
 Before v0.4.0, Mousehole had no authentication or host/origin checks. To restore
 that behavior, disable authentication and allow all hosts and origins.
 
+<!-- prettier-ignore -->
 > [!WARNING]
->
 > Only use this on a private, trusted network.
 
 ```yaml
@@ -71,27 +71,20 @@ In Docker setups, treat the volume that stores this directory in the same way.
 
 ## Port Binding
 
-Throughout Mousehole's Docker documentation, you will see examples that bind
-port `5010` to all interfaces.
+Throughout Mousehole's Docker documentation, you will see examples that bind port `5010` for the localhost interface only. This is the most secure way to run Mousehole:
+
+```yaml
+# mousehole or VPN service definition in compose.yml
+ports:
+  - "127.0.0.1:5010:5010" # localhost only
+```
+
+However, if you understand the risks and want to access Mousehole from other devices on your network (e.g., other computer, phone), you can bind to all interfaces:
 
 ```yaml
 # mousehole or VPN service definition in compose.yml
 ports:
   - "5010:5010" # all interfaces
-```
-
-> [!IMPORTANT]
->
-> Binding to all interfaces exposes Mousehole to anyone who can access the
-> networks of those interfaces. If an interface has a public IP address,
-> Mousehole is exposed to the internet.
-
-To instead only bind to the localhost interface, change it to:
-
-```yaml
-# mousehole or VPN service definition in compose.yml
-ports:
-  - "5010:5010" # localhost only
 ```
 
 See the
