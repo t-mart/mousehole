@@ -36,9 +36,10 @@ to create a session for it. Each session is tied to a cookie value.
 
    ![Session Cookie Value](/docs/images/mam-cookie.png)
 
-   **Do not share this cookie with any other client.** The session rotates the
-   cookie value for each request, so any other client sharing this cookie will
-   be invalidated the moment Mousehole makes a request (and vice versa).
+   **Do not share this cookie with any other client (Prowlarr, Jackett, etc).**
+   MAM rotates the cookie value each API call, so any other client sharing this
+   cookie will be invalidated the moment Mousehole makes a request, and vice
+   versa.
 
 4. Back in Mousehole, paste the cookie into the text box and click the "Set"
    button.
