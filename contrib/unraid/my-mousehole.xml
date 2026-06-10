@@ -4,29 +4,28 @@
   <Repository>tmmrtn/mousehole:latest</Repository>
   <Registry>https://hub.docker.com/r/tmmrtn/mousehole</Registry>
   <Network>bridge</Network>
-  <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/tmmrtn/mousehole</Support>
-  <Project>https://github.com/tmmrtn/mousehole</Project>
-  <Overview>Mousehole is a background service to update a seedbox IP for MAM and an HTTP server to manage it. Mousehole stores a MAM session cookie; keep authentication enabled and avoid exposing the WebUI to mixed-trust networks.</Overview>
-  <Category>Tools:</Category>
+  <Support>https://github.com/t-mart/mousehole</Support>
+  <Project>https://github.com/t-mart/mousehole</Project>
+  <Overview>Mousehole is a background service to update a seedbox IP for MAM and an HTTP server to manage it. Run it on your VPN container's network (set Network Type to your VPN container) so its traffic shares the tunnel. Mousehole stores a MAM session cookie; keep authentication enabled and avoid exposing the WebUI to mixed-trust networks.&#13;&#13;Docs: https://github.com/t-mart/mousehole/blob/master/README.md&#13;Security Guide: https://github.com/t-mart/mousehole/blob/master/docs/security-guide.md</Overview>
+  <Category>Downloaders:</Category>
   <WebUI>http://[IP]:[PORT:5010]</WebUI>
-  <TemplateURL/>
-  <Icon/>
-  <ExtraParams>--health-cmd="curl -fs http://localhost:5010/ok || exit 1" --health-interval=30s --health-timeout=10s --health-retries=3</ExtraParams>
-  <PostArgs/>
-  <CPUset/>
-  <DateInstalled>1693180800</DateInstalled>
-  <DonateText/>
-  <DonateLink/>
-  <Requires/>
-  <Config Name="WebUI Port" Target="5010" Default="5010" Mode="tcp" Description="Port for accessing the Mousehole web interface" Type="Port" Display="always" Required="true" Mask="false">5010</Config>
-  <Config Name="Auth Password" Target="MOUSEHOLE_AUTH_PASSWORD" Default="" Mode="" Description="Password for Mousehole web UI, API, and WebSocket authentication" Type="Variable" Display="always" Required="true" Mask="true"></Config>
-  <Config Name="Allowed Hosts" Target="MOUSEHOLE_ALLOWED_HOSTS" Default="" Mode="" Description="Comma-separated hostnames or IP addresses allowed to access Mousehole, such as your Unraid server IP or hostname. Set this when opening the WebUI through http://[IP]:5010." Type="Variable" Display="always" Required="false" Mask="false"></Config>
-  <Config Name="Timezone" Target="TZ" Default="Etc/UTC" Mode="" Description="Timezone for localization of API times (e.g., America/New_York, Europe/London)" Type="Variable" Display="always" Required="false" Mask="false">Etc/UTC</Config>
-  <Config Name="Data Directory" Target="/var/lib/mousehole" Default="/mnt/user/appdata/mousehole" Mode="rw" Description="Directory to persist cookie data and application state" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mousehole</Config>
-  <Config Name="PUID" Target="PUID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">99</Config>
-  <Config Name="PGID" Target="PGID" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">100</Config>
-  <Config Name="UMASK" Target="UMASK" Default="" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false">022</Config>
+  <Icon>https://raw.githubusercontent.com/t-mart/mousehole/refs/heads/master/docs/images/logo/logo.png</Icon>
+  <Requires>A running VPN container for Mousehole to route through. Set Network Type to that container after adding.</Requires>
+  <Config Name="WebUI Port" Target="5010" Default="5010" Mode="tcp" Description="Port for accessing the Mousehole web interface. When running on a VPN container's network (Network Type set to your VPN container), this mapping does not apply: publish 5010 on the VPN container instead." Type="Port" Display="always" Required="true" Mask="false">5010</Config>
+  <Config Name="Auth Password" Target="MOUSEHOLE_AUTH_PASSWORD" Default="" Mode="" Description="Password for the web UI login page. Set a long, random value. See the Security Guide." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Timezone" Target="TZ" Default="Etc/UTC" Mode="" Description="Timezone identifier for displaying localized times, e.g. America/New_York or Europe/London. Default: Etc/UTC." Type="Variable" Display="always" Required="false" Mask="false">Etc/UTC</Config>
+  <Config Name="Data Directory" Target="/var/lib/mousehole" Default="/mnt/user/appdata/mousehole" Mode="rw" Description="Directory to persist the MAM session cookie and application state. Stored in plaintext, so restrict access to it." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mousehole</Config>
+  <Config Name="Allowed Hosts" Target="MOUSEHOLE_ALLOWED_HOSTS" Default="" Mode="" Description="Comma-separated Host header values allowed to reach Mousehole. Default: localhost,127.0.0.1,[::1]. Set this to your Unraid IP/hostname when opening the WebUI at http://[IP]:5010. Use * to allow any host. See the Security Guide." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="Allowed Origins" Target="MOUSEHOLE_ALLOWED_ORIGINS" Default="" Mode="" Description="Comma-separated origins (scheme+host+port, no path) allowed to make cross-origin requests. Default: same-origin only. Most setups never need this; configure it only for a separate web app calling Mousehole's API. Use * to allow any origin. See the Security Guide." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="HTTPS-Only Cookies" Target="MOUSEHOLE_HTTPS_ONLY_COOKIES" Default="false" Mode="" Description="Set to true to add the Secure flag to session cookies. Enable only when reaching Mousehole over HTTPS (e.g. behind a reverse proxy); it breaks plain-HTTP logins. Default: false." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="API Token" Target="MOUSEHOLE_AUTH_TOKEN" Default="" Mode="" Description="Optional Bearer token for API clients (send Authorization: Bearer &lt;token&gt;). For scripts and tools; independent of the web UI password." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Check Interval (seconds)" Target="MOUSEHOLE_CHECK_INTERVAL_SECONDS" Default="300" Mode="" Description="Seconds between checks of your public IP. A check only contacts MAM if the IP changed. Default: 300 (5 minutes)." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Stale Response (seconds)" Target="MOUSEHOLE_STALE_RESPONSE_SECONDS" Default="86400" Mode="" Description="Force an update if MAM has not been contacted within this many seconds, catching out-of-band cookie changes. Default: 86400 (1 day)." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="MAM Request Timeout (seconds)" Target="MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS" Default="10" Mode="" Description="Seconds to wait for a MAM response before aborting, so Mousehole doesn't hang when the VPN isn't up yet. Default: 10." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Session Duration (seconds)" Target="MOUSEHOLE_SESSION_DURATION_SECONDS" Default="604800" Mode="" Description="How long a browser login stays valid before re-authentication is required. Default: 604800 (1 week)." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Log Level" Target="MOUSEHOLE_LOG_LEVEL" Default="info" Mode="" Description="Log verbosity: error, warn, info, or debug. Default: info." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Insecure: Allow No Auth" Target="MOUSEHOLE_INSECURE_ALLOW_NO_AUTH" Default="false" Mode="" Description="Set to true to disable ALL authentication. Only do this on a private, trusted network. Default: false." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="User Agent" Target="MOUSEHOLE_USER_AGENT" Default="" Mode="" Description="User agent string for requests to MAM. Defaults to mousehole-by-timtimtim/&lt;version&gt;." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
 </Container>

@@ -1,77 +1,81 @@
-# Manual Unraid Template Installation
+# Running Mousehole on Unraid
 
-A guide for manually adding custom Docker application templates to your Unraid server.
-
-## Overview
-
-This guide covers the manual process of installing XML templates for Docker containers in Unraid. Templates define container configuration including ports, volumes, environment variables, and other Docker settings.
+The Unraid template at [`my-mousehole.xml`](./my-mousehole.xml) can be placed on
+your Unraid server to pre-fill Mousehole's settings in the **Add Container**
+screen. Install it manually with the steps below.
 
 ## Prerequisites
 
-- Unraid server with Docker enabled
-- SSH or terminal access to your Unraid server
-- Basic understanding of Docker containers and XML
+- SSH or terminal access or terminal access to your Unraid server
+- An already-running VPN container for Mousehole to route through, such as
+  [Gluetun](https://github.com/passteque/gluetun),
+  [WireGuard](https://docs.linuxserver.io/images/docker-wireguard/), or
+  [Hotio](https://hotio.dev/containers/qbittorrent/).
 
-## Installation Process
+## Installation
 
-### Step 1: Access the Templates Directory
+### Get the Template
 
-Templates are stored in the following directory:
-```
-/boot/config/plugins/dockerMan/templates-user/
-```
+1. Get to a terminal on your Unraid server, such as through SSH or the web UI's
+   terminal.
+2. Download the template into Unraid's user-templates directory:
+   ```bash
+   cd /boot/config/plugins/dockerMan/templates-user/
+   wget https://raw.githubusercontent.com/t-mart/mousehole/master/contrib/unraid/my-mousehole.xml
+   ```
 
-Navigate to this directory via SSH or the Unraid terminal:
-```bash
-cd /boot/config/plugins/dockerMan/templates-user/
-```
+### Add the Container
 
-### Step 2: Download or Create Template File
+1. In the web UI, open the **Docker** tab and click **Add Container**.
+2. Choose **Mousehole** from the **Template** dropdown.
+3. Fill in the fields. You may want to set:
+   - **Network Type** to your VPN container.
+   - **WebUI Port** to `5010` (or your preferred port, but keep it consistent
+     with the port you publish on your VPN container).
+   - **Auth Password** to a long, random password.
+   - **Timezone** to your timezone identifier
+   - **Allowed Hosts** if you want to access Mousehole on a custom domain.
 
-#### Option A: Download from Repository
-```bash
-wget https://raw.githubusercontent.com/t-mart/mousehole/master/unraid/my-mousehole.xml
-```
+   Most other fields can be left at their defaults, but feel free to adjust as
+   needed. See the [environment variable documentation](/README.md) and the
+   [Security Guide](/docs/security-guide.md) for more details on how to set
+   these fields.
 
-#### Option B: Create Template Manually
-Create a new XML file with a descriptive name:
-```bash
-nano my-mousehole.xml
-```
-Copy the XML template data from the provided file and paste it (right click - paste)
-Ctrl + X - Exit
-Y - Save Changes
-Enter - Save File Name
+4. Click **Apply**.
 
-### Step 3: Add Container
-1. Go to the Docker page and click **Add Container**
-2. This will bring up a new container window
-3. Select the **mousehole** template from the template dropdown
-4. Verify all settings are correct for your setup
-5. Click **Apply**
+### Publish the Port on Your VPN Container
 
-### Accessing the WebUI by Unraid IP or Hostname
+Setting **Network Type** to your VPN container means that you must now publish
+Mousehole's port on that VPN container.
 
-If you use the Unraid WebUI link at `http://[IP]:[PORT:5010]`, set the
-template's **Allowed Hosts** field to the exact Unraid IP address or hostname
-you use in the browser.
+1. Open the **Docker** tab, click your **VPN container**, and choose **Edit**.
+2. Click **Add another Path, Port, Variable, Label or Device**.
+3. Set **Config Type** to **Port**, then set both **Container Port** and **Host
+   Port** to `5010` (match whatever you used for Mousehole's **WebUI Port**).
+4. Click **Apply**. Unraid recreates the VPN container with the new mapping,
+   which briefly restarts it.
+5. Restart the Mousehole container to connect to the VPN container's new network
+   configuration.
+6. Reach Mousehole at `http://<your-unraid-ip>:5010`.
 
-Normal same-origin LAN access does not usually require
-`MOUSEHOLE_ALLOWED_ORIGINS`. See the
-[LAN or Headless NAS Access](../../README.md#lan-or-headless-nas-access)
-section for reverse proxy and cross-origin cases.
+### Hotio-Specific Note
 
-## Running qBittorrent with VPN
+If you are using the hotio/qBittorrent container, set the
+`VPN_EXPOSE_PORTS_ON_LAN` environment variable on that container to `5010/tcp`
+to allow Mousehole's port to be accessible on your LAN. This is in addition to
+the port mapping you set up.
 
-If you're running mousehole through qBittorrent's VPN connection using `network_mode: "service:qbittorrent"`, mousehole will share qBittorrent's network stack. This means:
+## Container Lifecycles
 
-> [!WARNING]
-> Mousehole stores a MAM session cookie. Do not expose port `5010` to a
-> mixed-trust LAN, VPN, or public interface without authentication and explicit
-> Host/Origin allowlists.
+**This is SUPER important**: If you restart or recreate the VPN container, you
+must also restart the Mousehole container AFTERWARDS. If you don't, Mousehole
+will still be running, but it won't be able to access the internet.
 
-1. **Expose port 5010 through qBittorrent** - Add `-p 127.0.0.1:5010:5010` to qBittorrent's docker run command, or add `127.0.0.1:5010:5010` to qBittorrent's ports in docker-compose
-2. **Remove mousehole's port mapping** - Don't publish port `5010` on mousehole since it's using qBittorrent's network
-3. **Allow LAN access only if needed** - Keep authentication enabled and add the environment variable to qBittorrent to expose the port on your local network (exact variable depends on your qBittorrent container image)
+This is one of the most common support issues, so keep it in mind when managing
+your containers.
 
-Mousehole will be accessible at `http://localhost:5010`
+**This especially applies to users that use the Appdata.Backup plugin**, which
+recreates containers when restoring. See the
+[plugin's support thread](https://forums.unraid.net/topic/137710-plugin-appdatabackup/#:~:text=The%20plugin%20sent%20me%20here%20for%20help%20with%20the%20grouping%20function)
+for an automated way of doing this safely under the heading "The plugin sent me
+here for help with the grouping function".
