@@ -1,9 +1,20 @@
 import { NetworkError, TimeoutError } from "#backend/error.ts";
 
+/**
+ * The shape of fetch we rely on. Tests inject a fake (the fake MAM app's
+ * fetch); production uses the global.
+ */
+export type FetchLike = (
+  input: URL | Request | string,
+  init?: RequestInit,
+) => Promise<Response>;
+
 /** Request behavior threaded from config (see context.ts / contact.ts). */
 export type ExternalFetchOptions = {
   userAgent: string;
   timeoutSeconds: number;
+  /** Defaults to the global fetch. */
+  fetchImpl?: FetchLike;
 };
 
 // Fetches an external endpoint, mapping low-level failures onto our error types.
@@ -14,8 +25,9 @@ export async function fetchExternal(
   options: ExternalFetchOptions,
   extraHeaders?: Record<string, string>,
 ): Promise<Response> {
+  const fetchImpl = options.fetchImpl ?? fetch;
   try {
-    const response = await fetch(url, {
+    const response = await fetchImpl(url, {
       headers: {
         "User-Agent": options.userAgent,
         ...extraHeaders,

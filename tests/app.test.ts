@@ -1,14 +1,16 @@
-import { afterAll, afterEach, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, test } from "bun:test";
 import { rmSync } from "node:fs";
 import path from "node:path";
 
 import type { AppContext } from "../src/backend/context.ts";
+import type { FetchLike } from "../src/backend/external-api/fetch.ts";
 
 import { createApp } from "../src/backend/app.ts";
 import { buildConfig } from "../src/backend/config.ts";
 import { createAppContext } from "../src/backend/context.ts";
 import { DEFAULT_LOG_LEVEL, setLogLevel } from "../src/backend/logger.ts";
 import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
+import { createFakeMam } from "./fake-mam.ts";
 
 // The mocked contact flows log at info; keep test output quiet.
 setLogLevel("error");
@@ -22,7 +24,14 @@ afterAll(() => {
   rmSync(temporaryStateRoot, { recursive: true, force: true });
 });
 
-function makeTestContext(envOverrides: NodeJS.ProcessEnv = {}): {
+// Tests must never touch the real network; contexts built without an explicit
+// fetchImpl fail loudly if anything tries.
+const rejectExternalFetch: FetchLike = () =>
+  Promise.reject(new Error("unexpected external fetch in test"));
+
+function makeTestContext(
+  options: { env?: NodeJS.ProcessEnv; fetchImpl?: FetchLike } = {},
+): {
   ctx: AppContext;
   app: ReturnType<typeof createApp>;
 } {
@@ -33,9 +42,11 @@ function makeTestContext(envOverrides: NodeJS.ProcessEnv = {}): {
       `${process.pid}-${stateDirectoryCounter++}`,
     ),
     MOUSEHOLE_CHECK_INTERVAL_SECONDS: "3600",
-    ...envOverrides,
+    ...options.env,
   });
-  const ctx = createAppContext(config);
+  const ctx = createAppContext(config, {
+    fetchImpl: options.fetchImpl ?? rejectExternalFetch,
+  });
   return { ctx, app: createApp(ctx) };
 }
 
@@ -55,37 +66,6 @@ async function login(
   const match = new RegExp(`${SESSION_COOKIE_NAME}=([^;]+)`).exec(setCookie);
   if (!match?.[1]) throw new Error(`No session cookie in: "${setCookie}"`);
   return `${SESSION_COOKIE_NAME}=${match[1]}`;
-}
-
-// A MAM dynamicSeedbox.php response; the IP-update flows stub global fetch with
-// this so no test ever touches the network.
-function mamResponse(
-  overrides: Partial<{
-    Success: boolean;
-    msg: string;
-    status: number;
-  }> = {},
-): Response {
-  return Response.json(
-    {
-      Success: overrides.Success ?? true,
-      msg: overrides.msg ?? "Completed",
-      ip: "203.0.113.7",
-      ASN: 64_496,
-      AS: "Test AS",
-    },
-    { status: overrides.status ?? 200 },
-  );
-}
-
-const realFetch = globalThis.fetch;
-afterEach(() => {
-  globalThis.fetch = realFetch;
-});
-
-function stubExternalFetch(response: () => Response): void {
-  globalThis.fetch = (() =>
-    Promise.resolve(response())) as unknown as typeof fetch;
 }
 
 describe("GET / content negotiation", () => {
@@ -226,6 +206,41 @@ describe("public probes", () => {
   });
 });
 
+describe("session lifecycle", () => {
+  test("an expired session stops authenticating without any intervening request", async () => {
+    const { ctx, app } = makeTestContext();
+    const cookie = `${SESSION_COOKIE_NAME}=${ctx.sessions.create(5)}`;
+
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    const response = await app.request("/state", {
+      headers: { Cookie: cookie },
+    });
+    expect(response.status).toBe(401);
+  });
+
+  test("session expiry closes an open /events stream", async () => {
+    const { ctx, app } = makeTestContext();
+    const cookie = `${SESSION_COOKIE_NAME}=${ctx.sessions.create(75)}`;
+
+    const response = await app.request("/events", {
+      headers: { Cookie: cookie },
+    });
+    expect(response.status).toBe(200);
+
+    // When the 75ms session expires, its stream is closed and the read resolves
+    // done — the browser would then re-pull, get a 401, and show the login form.
+    const reader = response.body!.getReader();
+    const { done } = await reader.read();
+    expect(done).toBe(true);
+  });
+
+  test("deleting an unknown session is a no-op", () => {
+    const { ctx } = makeTestContext();
+    expect(() => ctx.sessions.deleteSession("not-a-real-session")).not.toThrow();
+  });
+});
+
 describe("server-sent events", () => {
   test("an authenticated stream receives the changed signal and closes on logout", async () => {
     const { ctx, app } = makeTestContext();
@@ -260,17 +275,26 @@ describe("server-sent events", () => {
   });
 });
 
-describe("cookie flow (external fetch stubbed)", () => {
-  test("PUT /cookie runs an update, persists, and flips /ok to healthy", async () => {
-    const { app } = makeTestContext();
-    const cookie = await login(app);
-    stubExternalFetch(() => mamResponse());
+// PUT /cookie with the session cookie + a MAM cookie value (the contact flows).
+async function putMamCookie(
+  app: ReturnType<typeof createApp>,
+  sessionCookie: string,
+  value = "mam-session-cookie",
+): Promise<Response> {
+  return app.request("/cookie", {
+    method: "PUT",
+    headers: { Cookie: sessionCookie, "Content-Type": "application/json" },
+    body: JSON.stringify({ value }),
+  });
+}
 
-    const putResponse = await app.request("/cookie", {
-      method: "PUT",
-      headers: { Cookie: cookie, "Content-Type": "application/json" },
-      body: JSON.stringify({ value: "mam-session-cookie" }),
-    });
+describe("contact flows (simulated MAM)", () => {
+  test("PUT /cookie runs an update, persists, and flips /ok to healthy", async () => {
+    const fakeMam = createFakeMam();
+    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const cookie = await login(app);
+
+    const putResponse = await putMamCookie(app, cookie);
     expect(putResponse.status).toBe(200);
     const putState = (await putResponse.json()) as {
       hasCookie: boolean;
@@ -289,6 +313,12 @@ describe("cookie flow (external fetch stubbed)", () => {
       httpStatus: 200,
     });
 
+    // MAM saw our credentials: the mam_id cookie and Mousehole's user agent.
+    const seen = fakeMam.received.at(-1);
+    expect(seen?.path).toBe("/json/dynamicSeedbox.php");
+    expect(seen?.mamId).toBe("mam-session-cookie");
+    expect(seen?.userAgent).toStartWith("mousehole-by-timtimtim/");
+
     const okResponse = await app.request("/ok");
     expect(okResponse.status).toBe(200);
     expect(await okResponse.json()).toEqual({ ok: true, reason: "ok" });
@@ -304,29 +334,24 @@ describe("cookie flow (external fetch stubbed)", () => {
   });
 
   test("a throttled update (429) is persisted and surfaces via /ok", async () => {
-    const { app } = makeTestContext();
+    const fakeMam = createFakeMam({ outcome: "lastChangeTooRecent" });
+    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
     const cookie = await login(app);
-    stubExternalFetch(() =>
-      mamResponse({
-        Success: false,
-        msg: "Last change too recent",
-        status: 429,
-      }),
-    );
 
-    const putResponse = await app.request("/cookie", {
-      method: "PUT",
-      headers: { Cookie: cookie, "Content-Type": "application/json" },
-      body: JSON.stringify({ value: "mam-session-cookie" }),
-    });
+    const putResponse = await putMamCookie(app, cookie);
     expect(putResponse.status).toBe(200);
     const putState = (await putResponse.json()) as {
       hasCookie: boolean;
-      lastMamContact: { ipUpdate: { success: boolean; httpStatus: number } };
+      lastMamContact: {
+        ipUpdate: { success: boolean; msg: string; httpStatus: number };
+      };
     };
     expect(putState.hasCookie).toBe(true);
-    expect(putState.lastMamContact.ipUpdate.success).toBe(false);
-    expect(putState.lastMamContact.ipUpdate.httpStatus).toBe(429);
+    expect(putState.lastMamContact.ipUpdate).toEqual({
+      success: false,
+      msg: "Last change too recent",
+      httpStatus: 429,
+    });
 
     const okResponse = await app.request("/ok");
     expect(okResponse.status).toBe(503);
@@ -334,5 +359,119 @@ describe("cookie flow (external fetch stubbed)", () => {
       ok: false,
       reason: "throttled",
     });
+  });
+
+  test("a rejected session (403) is persisted and surfaces via /ok", async () => {
+    const fakeMam = createFakeMam({ outcome: "ipMismatch" });
+    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const cookie = await login(app);
+
+    const putResponse = await putMamCookie(app, cookie);
+    expect(putResponse.status).toBe(200);
+
+    const okResponse = await app.request("/ok");
+    expect(okResponse.status).toBe(503);
+    expect(await okResponse.json()).toEqual({
+      ok: false,
+      reason: "rejected",
+    });
+  });
+
+  test("a rotated mam_id (Set-Cookie) is persisted and presented on the next contact", async () => {
+    const fakeMam = createFakeMam({ rotateCookieTo: "rotated-mam-id" });
+    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const cookie = await login(app);
+
+    await putMamCookie(app, cookie, "original-mam-id");
+    expect(fakeMam.received.at(-1)?.mamId).toBe("original-mam-id");
+
+    // POST /checks contacts again with whatever cookie is on disk — which must
+    // now be the rotated one.
+    const checksResponse = await app.request("/checks", {
+      method: "POST",
+      headers: { Cookie: cookie },
+    });
+    expect(checksResponse.status).toBe(200);
+    expect(fakeMam.received.at(-1)?.mamId).toBe("rotated-mam-id");
+  });
+
+  test("without a MAM cookie, a check is just an IP lookup via jsonIp.php", async () => {
+    const fakeMam = createFakeMam();
+    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const cookie = await login(app);
+
+    const checksResponse = await app.request("/checks", {
+      method: "POST",
+      headers: { Cookie: cookie },
+    });
+    expect(checksResponse.status).toBe(200);
+    const state = (await checksResponse.json()) as {
+      hasCookie: boolean;
+      lastMamContact: { reached: boolean; ip: string; ipUpdate?: unknown };
+    };
+    expect(state.hasCookie).toBe(false);
+    expect(state.lastMamContact.reached).toBe(true);
+    expect(state.lastMamContact.ip).toBe("203.0.113.7");
+    expect(state.lastMamContact.ipUpdate).toBeUndefined();
+    expect(fakeMam.received.at(-1)?.path).toBe("/json/jsonIp.php");
+
+    const okResponse = await app.request("/ok");
+    expect(okResponse.status).toBe(503);
+    expect(await okResponse.json()).toEqual({
+      ok: false,
+      reason: "no-cookie",
+    });
+  });
+
+  test("a network failure is recorded as an unreachable contact, not an error", async () => {
+    const { app } = makeTestContext({
+      fetchImpl: () => Promise.reject(new Error("connection refused")),
+    });
+    const cookie = await login(app);
+
+    const checksResponse = await app.request("/checks", {
+      method: "POST",
+      headers: { Cookie: cookie },
+    });
+    expect(checksResponse.status).toBe(200);
+    const state = (await checksResponse.json()) as {
+      lastMamContact: { reached: boolean; error: { type: string } };
+    };
+    expect(state.lastMamContact.reached).toBe(false);
+    expect(state.lastMamContact.error.type).toBe("network-error");
+
+    const okResponse = await app.request("/ok");
+    expect(okResponse.status).toBe(503);
+    expect(await okResponse.json()).toEqual({
+      ok: false,
+      reason: "unreachable",
+    });
+  });
+
+  test("a stalled MAM connection times out and is recorded as unreachable", async () => {
+    // Hangs until the request's AbortSignal (AbortSignal.timeout in
+    // fetchExternal) fires, like a connection that never answers.
+    const hangingFetch: FetchLike = (_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          reject(init.signal?.reason as Error);
+        });
+      });
+    const { app } = makeTestContext({
+      env: { MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "0.05" },
+      fetchImpl: hangingFetch,
+    });
+    const cookie = await login(app);
+
+    const checksResponse = await app.request("/checks", {
+      method: "POST",
+      headers: { Cookie: cookie },
+    });
+    expect(checksResponse.status).toBe(200);
+    const state = (await checksResponse.json()) as {
+      lastMamContact: { reached: boolean; error: { type: string } };
+    };
+    expect(state.lastMamContact.reached).toBe(false);
+    expect(state.lastMamContact.error.type).toBe("timeout-error");
   });
 });

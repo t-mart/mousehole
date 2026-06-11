@@ -1,14 +1,18 @@
 import { describe, expect, test } from "bun:test";
 
-import type { SecurityConfig } from "../src/backend/http-boundary.ts";
+import type {
+  BoundaryDeps,
+  SecurityConfig,
+} from "../src/backend/http-boundary.ts";
 
-import { handlePostLogin } from "../src/backend/handlers/login.ts";
 import { checkProtectedRequest } from "../src/backend/http-boundary.ts";
-import {
-  SESSION_COOKIE_NAME,
-  createSessionStore,
-} from "../src/backend/session.ts";
-import { createSseRegistry } from "../src/backend/sse.ts";
+import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
+
+// The boundary consults the session store only through this dep, so the matrix
+// is tested against its verdict; real store behavior is covered by the
+// app-level suite (app.test.ts) and session lifecycle tests.
+const sessionAccepted: BoundaryDeps = { validateSession: () => true };
+const sessionRejected: BoundaryDeps = { validateSession: () => false };
 
 const passwordConfig: SecurityConfig = {
   allowedHosts: { type: "allowlist", hosts: ["localhost"] },
@@ -28,42 +32,11 @@ const bothConfig: SecurityConfig = {
   auth: { type: "configured", password: "s3cr3t", token: "api-token" },
 };
 
-// One store/registry pair for the whole file; sessions are keyed by random ids,
-// so tests don't collide.
-const sse = createSseRegistry();
-const sessions = createSessionStore({
-  durationSeconds: 60 * 60,
-  httpsOnlyCookies: false,
-  onSessionDeleted: (sessionId) => sse.closeSessionStreams(sessionId),
-});
-const boundaryDeps = { validateSession: sessions.validateRequest };
-
 function makeRequest(pathName: string, init?: RequestInit): Request {
   return new Request(new URL(pathName, "http://localhost"), init);
 }
 
-function makeSessionCookie(sessionId: string): string {
-  return `${SESSION_COOKIE_NAME}=${sessionId}`;
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function makeFakeController() {
-  let closed = false;
-  return {
-    controller: {
-      enqueue() {},
-      close() {
-        closed = true;
-      },
-    } as unknown as ReadableStreamDefaultController<string>,
-    isClosed: () => closed,
-  };
-}
-
-describe("protected HTTP boundary", () => {
+describe("authentication", () => {
   test("token auth accepts valid Bearer token", () => {
     const failure = checkProtectedRequest(
       makeRequest("/state", {
@@ -71,7 +44,7 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       tokenConfig,
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure).toBeUndefined();
@@ -84,7 +57,7 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       tokenConfig,
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure?.status).toBe(401);
@@ -98,56 +71,51 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       passwordConfig,
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure?.status).toBe(401);
   });
 
-  test("session cookie auth accepts a valid session", () => {
-    const sessionId = sessions.create();
+  test("a valid session passes (validateSession → true)", () => {
     const failure = checkProtectedRequest(
       makeRequest("/state", {
-        headers: { Cookie: makeSessionCookie(sessionId) },
+        headers: { Cookie: `${SESSION_COOKIE_NAME}=some-session` },
       }),
       {},
       passwordConfig,
-      boundaryDeps,
+      sessionAccepted,
     );
 
     expect(failure).toBeUndefined();
   });
 
-  test("session cookie auth rejects an unknown session id", () => {
+  test("an unknown/expired session is rejected with 401 (validateSession → false)", () => {
     const failure = checkProtectedRequest(
       makeRequest("/state", {
-        headers: { Cookie: makeSessionCookie("not-a-real-session") },
+        headers: { Cookie: `${SESSION_COOKIE_NAME}=not-a-real-session` },
       }),
       {},
       passwordConfig,
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure?.status).toBe(401);
     expect(failure?.type).toBe("authentication-required");
   });
 
-  test("both credentials and token work independently when both are configured", () => {
-    const sessionId = sessions.create();
-
+  test("session and token are independent paths when both are configured", () => {
     const viaSession = checkProtectedRequest(
-      makeRequest("/state", {
-        headers: { Cookie: makeSessionCookie(sessionId) },
-      }),
+      makeRequest("/state"),
       {},
       bothConfig,
-      boundaryDeps,
+      sessionAccepted,
     );
     const viaToken = checkProtectedRequest(
       makeRequest("/state", { headers: { Authorization: "Bearer api-token" } }),
       {},
       bothConfig,
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(viaSession).toBeUndefined();
@@ -170,7 +138,7 @@ describe("protected HTTP boundary", () => {
           requireOrigin: true,
         },
         tokenConfig,
-        boundaryDeps,
+        sessionRejected,
       );
 
       expect(failure?.status).toBe(401);
@@ -178,6 +146,64 @@ describe("protected HTTP boundary", () => {
     }
   });
 
+  test("requireAuth: false allows unauthenticated requests through (login scenario)", () => {
+    const failure = checkProtectedRequest(
+      makeRequest("/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "http://localhost",
+        },
+        body: "{}",
+      }),
+      { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
+      passwordConfig,
+      sessionRejected,
+    );
+
+    expect(failure).toBeUndefined();
+  });
+});
+
+describe("host allowlist", () => {
+  test("allowedHosts: all accepts requests with any Host header", () => {
+    const failure = checkProtectedRequest(
+      makeRequest("/state", {
+        headers: {
+          Authorization: "Bearer api-token",
+          Host: "arbitrary.example.com",
+        },
+      }),
+      {},
+      {
+        ...tokenConfig,
+        allowedHosts: { type: "all" },
+      },
+      sessionRejected,
+    );
+
+    expect(failure).toBeUndefined();
+  });
+
+  test("allowedHosts: allowlist rejects a disallowed Host header", () => {
+    const failure = checkProtectedRequest(
+      makeRequest("/state", {
+        headers: {
+          Authorization: "Bearer api-token",
+          Host: "evil.example.com",
+        },
+      }),
+      {},
+      tokenConfig,
+      sessionRejected,
+    );
+
+    expect(failure?.status).toBe(403);
+    expect(failure?.type).toBe("host-not-allowed");
+  });
+});
+
+describe("origin checks", () => {
   test("mutating routes reject a disallowed Origin", () => {
     const failure = checkProtectedRequest(
       makeRequest("/state", {
@@ -194,47 +220,11 @@ describe("protected HTTP boundary", () => {
         requireOrigin: true,
       },
       tokenConfig,
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure?.status).toBe(403);
     expect(failure?.type).toBe("origin-not-allowed");
-  });
-
-  test("allowedHosts: all accepts requests with any Host header", () => {
-    const failure = checkProtectedRequest(
-      makeRequest("/state", {
-        headers: {
-          Authorization: "Bearer api-token",
-          Host: "arbitrary.example.com",
-        },
-      }),
-      {},
-      {
-        ...tokenConfig,
-        allowedHosts: { type: "all" },
-      },
-      boundaryDeps,
-    );
-
-    expect(failure).toBeUndefined();
-  });
-
-  test("allowedHosts: allowlist rejects a disallowed Host header", () => {
-    const failure = checkProtectedRequest(
-      makeRequest("/state", {
-        headers: {
-          Authorization: "Bearer api-token",
-          Host: "evil.example.com",
-        },
-      }),
-      {},
-      tokenConfig,
-      boundaryDeps,
-    );
-
-    expect(failure?.status).toBe(403);
-    expect(failure?.type).toBe("host-not-allowed");
   });
 
   test("allowedOrigins: all accepts requests from any cross-origin", () => {
@@ -256,7 +246,7 @@ describe("protected HTTP boundary", () => {
         ...tokenConfig,
         allowedOrigins: { type: "all" },
       },
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure).toBeUndefined();
@@ -284,7 +274,7 @@ describe("protected HTTP boundary", () => {
           origins: ["http://trusted.example.com"],
         },
       },
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure).toBeUndefined();
@@ -312,13 +302,34 @@ describe("protected HTTP boundary", () => {
           origins: ["http://trusted.example.com"],
         },
       },
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure?.status).toBe(403);
     expect(failure?.type).toBe("origin-not-allowed");
   });
 
+  test("requireAuth: false still enforces origin check — disallowed origin gets 403", () => {
+    const failure = checkProtectedRequest(
+      makeRequest("/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "http://evil.example",
+        },
+        body: "{}",
+      }),
+      { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
+      passwordConfig,
+      sessionRejected,
+    );
+
+    expect(failure?.status).toBe(403);
+    expect(failure?.type).toBe("origin-not-allowed");
+  });
+});
+
+describe("content type", () => {
   test("mutating routes reject text/plain content type", () => {
     const failure = checkProtectedRequest(
       makeRequest("/checks", {
@@ -335,168 +346,10 @@ describe("protected HTTP boundary", () => {
         requireOrigin: true,
       },
       tokenConfig,
-      boundaryDeps,
+      sessionRejected,
     );
 
     expect(failure?.status).toBe(415);
     expect(failure?.type).toBe("unsupported-media-type");
-  });
-
-  test("requireAuth: false allows unauthenticated requests through (login scenario)", () => {
-    const failure = checkProtectedRequest(
-      makeRequest("/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Origin: "http://localhost",
-        },
-        body: "{}",
-      }),
-      { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
-      passwordConfig,
-      boundaryDeps,
-    );
-
-    expect(failure).toBeUndefined();
-  });
-
-  test("requireAuth: false still enforces origin check — disallowed origin gets 403", () => {
-    const failure = checkProtectedRequest(
-      makeRequest("/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Origin: "http://evil.example",
-        },
-        body: "{}",
-      }),
-      { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
-      passwordConfig,
-      boundaryDeps,
-    );
-
-    expect(failure?.status).toBe(403);
-    expect(failure?.type).toBe("origin-not-allowed");
-  });
-});
-
-const passwordAuthConfig = {
-  type: "configured",
-  password: "s3cr3t",
-} as const;
-
-function loginRequest(password: string): Request {
-  return makeRequest("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
-  });
-}
-
-describe("login handler", () => {
-  test("correct password returns ok with a sessionId", async () => {
-    const result = await handlePostLogin(
-      loginRequest("s3cr3t"),
-      passwordAuthConfig,
-      sessions,
-    );
-
-    expect(result.ok).toBe(true);
-    expect(result.ok && result.sessionId).toBeTruthy();
-  });
-
-  test("wrong password returns not-ok with 401 status", async () => {
-    const result = await handlePostLogin(
-      loginRequest("wrong"),
-      passwordAuthConfig,
-      sessions,
-    );
-
-    expect(result.ok).toBe(false);
-    expect(!result.ok && result.status).toBe(401);
-  });
-
-  test("session created by login is accepted by checkProtectedRequest", async () => {
-    const result = await handlePostLogin(
-      loginRequest("s3cr3t"),
-      passwordAuthConfig,
-      sessions,
-    );
-    if (!result.ok) throw new Error("Login should have succeeded");
-
-    const failure = checkProtectedRequest(
-      makeRequest("/state", {
-        headers: { Cookie: makeSessionCookie(result.sessionId) },
-      }),
-      {},
-      passwordConfig,
-      boundaryDeps,
-    );
-
-    expect(failure).toBeUndefined();
-  });
-});
-
-describe("session deletion", () => {
-  test("deleting a session invalidates it", async () => {
-    const loginResult = await handlePostLogin(
-      loginRequest("s3cr3t"),
-      passwordAuthConfig,
-      sessions,
-    );
-    if (!loginResult.ok) throw new Error("Login should have succeeded");
-
-    sessions.deleteSession(loginResult.sessionId);
-
-    const failure = checkProtectedRequest(
-      makeRequest("/state", {
-        headers: { Cookie: makeSessionCookie(loginResult.sessionId) },
-      }),
-      {},
-      passwordConfig,
-      boundaryDeps,
-    );
-    expect(failure?.status).toBe(401);
-  });
-
-  test("deleting an unknown session is a no-op", () => {
-    expect(() => sessions.deleteSession("not-a-real-session")).not.toThrow();
-  });
-
-  test("session expires without another protected request", async () => {
-    const sessionId = sessions.create(5);
-
-    await sleep(30);
-
-    const failure = checkProtectedRequest(
-      makeRequest("/state", {
-        headers: { Cookie: makeSessionCookie(sessionId) },
-      }),
-      {},
-      passwordConfig,
-      boundaryDeps,
-    );
-    expect(failure?.status).toBe(401);
-  });
-
-  test("session expiry closes registered SSE streams", async () => {
-    const sessionId = sessions.create(5);
-    const fake = makeFakeController();
-
-    sse.register({ sessionId, controller: fake.controller });
-
-    await sleep(30);
-
-    expect(fake.isClosed()).toBe(true);
-  });
-
-  test("manual deletion closes registered SSE streams", () => {
-    const sessionId = sessions.create(50);
-    const fake = makeFakeController();
-
-    sse.register({ sessionId, controller: fake.controller });
-    sessions.deleteSession(sessionId);
-
-    expect(fake.isClosed()).toBe(true);
   });
 });

@@ -1,4 +1,5 @@
 import type { Config } from "./config.ts";
+import type { FetchLike } from "./external-api/fetch.ts";
 
 import { createContactScheduler, type ContactScheduler } from "./contact.ts";
 import { createSessionStore, type SessionStore } from "./session.ts";
@@ -18,7 +19,16 @@ export type AppContext = {
   contacts: ContactScheduler;
 };
 
-export function createAppContext(config: Config): AppContext {
+/** Test seams that aren't part of `Config`. */
+export type AppContextOverrides = {
+  /** The fetch used for MAM calls; tests inject the fake MAM app's fetch. */
+  fetchImpl?: FetchLike;
+};
+
+export function createAppContext(
+  config: Config,
+  overrides: AppContextOverrides = {},
+): AppContext {
   const stateFile = new StateFileStore(config.stateDirPath);
   const sse = createSseRegistry();
   const sessions = createSessionStore({
@@ -34,6 +44,7 @@ export function createAppContext(config: Config): AppContext {
     mamRequestTimeoutSeconds: config.mamRequestTimeoutSeconds,
     stateFile,
     notifyClients: () => sse.notify(),
+    fetchImpl: overrides.fetchImpl,
   });
 
   return { config, stateFile, sessions, sse, contacts };

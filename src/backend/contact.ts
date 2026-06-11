@@ -2,6 +2,7 @@ import type { Temporal } from "temporal-polyfill";
 
 import { getNowZdt } from "#shared/time.ts";
 
+import type { FetchLike } from "./external-api/fetch.ts";
 import type { StateFileStore } from "./store.ts";
 
 import { toErrorResponseArgs } from "./error.ts";
@@ -26,6 +27,8 @@ export type ContactSchedulerOptions = {
   stateFile: StateFileStore;
   /** Called after every persisted contact so dashboards re-pull GET /state. */
   notifyClients: () => void;
+  /** The fetch used for MAM calls; tests inject a fake (see tests/fake-mam.ts). */
+  fetchImpl?: FetchLike;
 };
 
 export type ContactScheduler = ReturnType<typeof createContactScheduler>;
@@ -45,6 +48,7 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
   const fetchOptions = {
     userAgent: options.userAgent,
     timeoutSeconds: options.mamRequestTimeoutSeconds,
+    fetchImpl: options.fetchImpl,
   };
 
   let currentBackgroundTask: BackgroundTask | undefined;
