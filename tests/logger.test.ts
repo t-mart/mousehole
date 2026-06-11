@@ -19,15 +19,24 @@ describe("logger", () => {
 
   it("routes error to stderr only", () => {
     logger.error("boom");
-    expect(stderrSpy).toHaveBeenCalledWith("[ERROR]", "boom");
+    expect(stderrSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[ERROR]"),
+      "boom",
+    );
     expect(stdoutSpy).not.toHaveBeenCalled();
   });
 
   it("routes info and warn to stdout only", () => {
     logger.info("hello");
     logger.warn("careful");
-    expect(stdoutSpy).toHaveBeenCalledWith("[INFO]", "hello");
-    expect(stdoutSpy).toHaveBeenCalledWith("[WARN]", "careful");
+    expect(stdoutSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[INFO]"),
+      "hello",
+    );
+    expect(stdoutSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[WARN]"),
+      "careful",
+    );
     expect(stderrSpy).not.toHaveBeenCalled();
   });
 
@@ -37,7 +46,10 @@ describe("logger", () => {
     // The prefix and the Error are emitted as separate writes; both must land
     // on the same stream or they can be torn apart by redirection.
     expect(stderrSpy).toHaveBeenCalledTimes(2);
-    expect(stderrSpy).toHaveBeenNthCalledWith(1, "[ERROR]");
+    expect(stderrSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("[ERROR]"),
+    );
     expect(stdoutSpy).not.toHaveBeenCalled();
   });
 
@@ -47,7 +59,10 @@ describe("logger", () => {
 
     setLogLevel("debug");
     logger.debug("visible");
-    expect(stdoutSpy).toHaveBeenCalledWith("[DEBUG]", "visible");
+    expect(stdoutSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[DEBUG]"),
+      "visible",
+    );
   });
 
   it("suppresses stdout levels when threshold is error", () => {

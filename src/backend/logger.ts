@@ -31,6 +31,16 @@ const RESET = `\u001B[0m`;
 
 const isProduction = process.env.NODE_ENV === "production";
 
+// Color follows the destination stream's TTY-ness, but the NO_COLOR convention
+// (https://no-color.org) takes precedence: if the variable is present at all
+// (even empty), suppress ANSI regardless of TTY. Read from the environment here
+// rather than from Config — color is an environment property like `isTTY`, and
+// the logger must work before any config is built (startup itself logs).
+function colorEnabled(stream: { isTTY?: boolean }): boolean {
+  if (process.env.NO_COLOR !== undefined) return false;
+  return stream.isTTY ?? false;
+}
+
 function emit(level: LogLevelName, args: unknown[]): void {
   if (LEVELS[level] < LEVELS[threshold]) return;
   // Only `error` goes to stderr, so failures can be split off at the stream
@@ -38,8 +48,9 @@ function emit(level: LogLevelName, args: unknown[]): void {
   // Color follows the destination stream so redirecting one stream to a file
   // doesn't capture ANSI codes meant for the other.
   const write = level === "error" ? console.error : console.log;
-  const useColor =
-    (level === "error" ? process.stderr.isTTY : process.stdout.isTTY) ?? false;
+  const useColor = colorEnabled(
+    level === "error" ? process.stderr : process.stdout,
+  );
   const label = level.toUpperCase();
   const prefix = useColor ? `${COLORS[level]}[${label}]${RESET}` : `[${label}]`;
   
