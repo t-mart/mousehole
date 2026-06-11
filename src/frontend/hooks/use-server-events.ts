@@ -15,7 +15,7 @@ export function useServerEvents() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const eventSource = new EventSource("/web/events");
+    const eventSource = new EventSource("/events");
     const invalidate = () => {
       void queryClient.invalidateQueries({ queryKey: stateQueryKey });
     };

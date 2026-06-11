@@ -7,7 +7,7 @@ and flattens the state model. Existing `state.json` files are migrated
 automatically (your cookie is preserved).
 
 - **Breaking**: Live updates now use Server-Sent Events instead of WebSockets.
-  The `GET /web/ws` endpoint is replaced by `GET /web/events`, which carries
+  The `GET /web/ws` endpoint is replaced by `GET /events`, which carries
   contentless "re-pull `GET /state`" signals (no state in the payload).
 - **Breaking**: Setting the cookie moved from `PUT /state` (`{ "currentCookie":
   … }`) to `PUT /cookie` (`{ "value": … }`). It now also contacts MAM
@@ -28,6 +28,8 @@ automatically (your cookie is preserved).
 - **Changed**: `GET /state`, `/ok`, and `/health` are now pure reads — they never
   call MAM, so a network blip can't make them fail or hang. The background check
   is the only thing that contacts MAM.
+- **Changed**: Requests with bodies over 8 KB now get a JSON
+  `{ "type": "payload-too-large", … }` error body with the `413` status.
 
 ## [v0.4.0](https://github.com/t-mart/mousehole/releases/tag/v0.4.0) - 2026-06-04
 

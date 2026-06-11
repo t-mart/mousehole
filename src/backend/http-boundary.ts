@@ -1,3 +1,5 @@
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+
 import type {
   AllowedOriginsConfig,
   AuthConfig,
@@ -5,8 +7,8 @@ import type {
 } from "./config.ts";
 
 import { config } from "./config.ts";
-import { logger } from "./logger.ts";
-import { validateRequestSession } from "./session.ts";
+import { logger, LOG_LEVEL_NAMES } from "./logger.ts";
+import { extractSessionId, validateRequestSession } from "./session.ts";
 
 export type SecurityConfig = {
   allowedHosts: AllowedHostsConfig;
@@ -19,11 +21,23 @@ type HostAndPort = {
   port?: string;
 };
 
-type BoundaryFailure = {
-  headers?: HeadersInit;
+export type BoundaryFailure = {
+  headers?: Record<string, string>;
   message: string;
-  status: number;
+  status: ContentfulStatusCode;
   type: string;
+  /**
+   * Log severity for the boundary middleware. Defaults to "warn" — most
+   * failures are actionable misconfiguration the operator should see at the
+   * default info level. "debug" marks routine traffic (e.g. a dashboard
+   * loading before login, or an expired session cookie).
+   */
+  logLevel?: (typeof LOG_LEVEL_NAMES)[number];
+  /**
+   * A more specific log line than `message` (e.g. including the offending
+   * header value). Logged by the middleware, never sent to the client.
+   */
+  logDetail?: string;
 };
 
 export type ProtectedRequestOptions = {
@@ -58,62 +72,31 @@ export function validateRuntimeSecurityConfig(
   );
 }
 
-export function guardProtectedRequest(
-  request: Request,
-  options: ProtectedRequestOptions = {},
-  securityConfig: SecurityConfig = config,
-): Response | undefined {
-  const failure = checkProtectedRequest(request, options, securityConfig);
-
-  if (!failure) {
-    return undefined;
-  }
-
-  return makeFailureResponse(failure);
-}
-
+/**
+ * Run every applicable boundary check against the request. Pure: returns the
+ * first failure (carrying its own log hints) or undefined; emitting the log is
+ * the caller's job (the `protect` middleware in app.ts).
+ */
 export function checkProtectedRequest(
   request: Request,
   options: ProtectedRequestOptions = {},
   securityConfig: SecurityConfig = config,
 ): BoundaryFailure | undefined {
-  // TODO: clean up the logging here later. logging is a middleware job. we also
-  // dirty test output putting it here.
-  const context = `${request.method} ${new URL(request.url).pathname}`;
-
   const hostFailure = checkHost(request, securityConfig.allowedHosts);
-  if (hostFailure) {
-    const host = getRequestHost(request);
-    logger.warn(
-      `[${context}] host not allowed: ${host ? `"${host}"` : "(missing)"}`,
-    );
-    return hostFailure;
-  }
+  if (hostFailure) return hostFailure;
 
   if (options.requireAuth !== false) {
     const authFailure = checkAuthentication(request, securityConfig.auth);
-    if (authFailure) {
-      logger.debug(`[${context}] authentication required`);
-      return authFailure;
-    }
+    if (authFailure) return authFailure;
   }
 
   if (options.requireOrigin) {
     const originFailure = checkOrigin(request, securityConfig.allowedOrigins);
-    if (originFailure) {
-      const origin = request.headers.get("origin");
-      logger.warn(`[${context}] origin not allowed: "${origin}"`);
-      return originFailure;
-    }
+    if (originFailure) return originFailure;
   }
 
   if (options.requireJsonContentType) {
-    const contentTypeFailure = checkJsonContentType(request);
-    if (contentTypeFailure) {
-      const contentType = request.headers.get("content-type") ?? "(missing)";
-      logger.warn(`[${context}] unsupported content type: "${contentType}"`);
-      return contentTypeFailure;
-    }
+    return checkJsonContentType(request);
   }
 }
 
@@ -132,6 +115,7 @@ function checkHost(
       status: 403,
       type: "host-not-allowed",
       message: "Request Host header is required.",
+      logDetail: "host not allowed: (missing)",
     };
   }
 
@@ -142,6 +126,7 @@ function checkHost(
       status: 403,
       type: "host-not-allowed",
       message: "Request Host header is invalid.",
+      logDetail: `host not allowed: invalid "${host}"`,
     };
   }
 
@@ -158,6 +143,7 @@ function checkHost(
     status: 403,
     type: "host-not-allowed",
     message: "Request Host header is not allowed.",
+    logDetail: `host not allowed: "${host}" (set MOUSEHOLE_ALLOWED_HOSTS to permit it)`,
   };
 }
 
@@ -179,13 +165,19 @@ function checkAuthentication(
     return undefined;
   }
 
-  if (authConfig.token) {
-    const authorization = request.headers.get("authorization");
-    if (checkTokenAuthorization(authorization, authConfig.token)) {
-      return undefined;
-    }
+  const authorization = request.headers.get("authorization");
+  if (
+    authConfig.token &&
+    checkTokenAuthorization(authorization, authConfig.token)
+  ) {
+    return undefined;
   }
 
+  // A presented-but-rejected Bearer token is a misconfigured (or hostile) API
+  // client and worth surfacing at the default log level; everything else is
+  // routine browser traffic (no credentials yet, or an expired session).
+  const presentedBearer = authorization !== null;
+  const presentedSession = extractSessionId(request) !== undefined;
   return {
     status: 401,
     type: "authentication-required",
@@ -193,6 +185,12 @@ function checkAuthentication(
     headers: {
       "WWW-Authenticate": 'Bearer realm="Mousehole"',
     },
+    logLevel: presentedBearer ? "warn" : "debug",
+    logDetail: presentedBearer
+      ? "rejected Bearer token (wrong value, or MOUSEHOLE_AUTH_TOKEN not set)"
+      : presentedSession
+        ? "unknown or expired session cookie"
+        : "no credentials presented",
   };
 }
 
@@ -241,6 +239,7 @@ function checkJsonContentType(request: Request): BoundaryFailure | undefined {
     status: 415,
     type: "unsupported-media-type",
     message: "Content-Type must be application/json.",
+    logDetail: `unsupported content type: ${contentType ? `"${contentType}"` : "(missing)"}`,
   };
 }
 
@@ -295,11 +294,4 @@ function normalizeOrigin(origin: string): string {
   } catch {
     return origin;
   }
-}
-
-function makeFailureResponse(failure: BoundaryFailure): Response {
-  return Response.json(
-    { type: failure.type, message: failure.message },
-    { status: failure.status, headers: failure.headers },
-  );
 }

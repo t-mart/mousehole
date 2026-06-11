@@ -5,26 +5,13 @@ import { getNowZdt } from "#shared/time.ts";
 import type { MamContact, State } from "./serde.ts";
 
 import { config } from "./config.ts";
-import { toJSONResponseArgs } from "./error.ts";
+import { toErrorResponseArgs } from "./error.ts";
 import { getHostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { logger } from "./logger.ts";
 import { Mutex } from "./mutex.ts";
 import { notifyClients } from "./sse.ts";
 import { stateFile } from "./store.ts";
-
-// This prevents multiple contact timers from running during development hot
-// module reloading. globalThis persists across re-evaluations; module-scoped
-// `generation` does not. Old instances see a mismatch and stop scheduling
-// further work. This might be a Bun bug... normal solutions like
-// import.meta.hot.dispose() don't seem to work on backend modules.
-declare const globalThis: { __contactGeneration?: number };
-const generation = (globalThis.__contactGeneration =
-  (globalThis.__contactGeneration ?? 0) + 1);
-
-function __is_stale_contact_task_from_hmr_during_development() {
-  return globalThis.__contactGeneration !== generation;
-}
 
 type BackgroundTask = {
   nextContactTimeoutId: ReturnType<typeof setTimeout>;
@@ -80,7 +67,7 @@ async function contactMam(prior: State | undefined): Promise<State> {
     };
     return { cookie: result.rotatedCookie ?? cookie, lastMamContact: contact };
   } catch (error) {
-    const { type, message } = toJSONResponseArgs(error).body;
+    const { type, message } = toErrorResponseArgs(error).body;
     logger.error(`Could not reach MAM: ${message}`);
     return {
       cookie,
@@ -126,8 +113,6 @@ export async function commitContact(newCookie?: string): Promise<State> {
  * `config.checkIntervalSeconds` seconds from now.
  */
 function scheduleNext() {
-  if (__is_stale_contact_task_from_hmr_during_development()) return;
-
   if (currentBackgroundTask?.nextContactTimeoutId) {
     clearTimeout(currentBackgroundTask.nextContactTimeoutId);
   }
@@ -166,7 +151,7 @@ export function startBackgroundContactTask() {
   );
 }
 
-// Called on hot reload to cancel the pending timer before the module re-evaluates.
+// Called during shutdown to cancel the pending timer.
 export function stopBackgroundContactTask() {
   if (currentBackgroundTask?.nextContactTimeoutId) {
     clearTimeout(currentBackgroundTask.nextContactTimeoutId);

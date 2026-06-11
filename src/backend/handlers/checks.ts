@@ -1,4 +1,3 @@
-import type { JSONResponseArgs } from "#backend/http.ts";
 import type { PublicState } from "#backend/serde.ts";
 
 import { commitContact } from "#backend/contact.ts";
@@ -6,9 +5,7 @@ import { commitContact } from "#backend/contact.ts";
 import { makePublicState } from "./state.ts";
 
 // POST /checks — run a contact now and return the resulting state.
-export async function handlePostCheck(): Promise<
-  JSONResponseArgs<PublicState>
-> {
+export async function handlePostCheck(): Promise<PublicState> {
   const state = await commitContact();
-  return { body: makePublicState(state) };
+  return makePublicState(state);
 }

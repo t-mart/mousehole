@@ -3,16 +3,17 @@
   "version": "0.4.0",
   "type": "module",
   "private": true,
-  "main": "src/index.tsx",
-  "module": "src/index.tsx",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
   "scripts": {
-    "dev": "PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) bun run --hot --no-clear-screen src/index.tsx",
-    "start": "PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) NODE_ENV=production bun src/index.tsx",
-    "lint": "eslint src",
-    "check-types": "tsc --noEmit",
-    "dead-code": "bunx fallow dead-code",
-    "dupes": "bunx fallow dupes",
-    "health": "bunx fallow health"
+    "dev": "PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) bun run --watch --no-clear-screen src/index.ts",
+    "start": "PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) NODE_ENV=production bun src/index.ts",
+    "check:lint": "eslint src",
+    "check:types": "tsc --noEmit",
+    "check:test": "bun test",
+    "fallow:dead-code": "bunx fallow dead-code",
+    "fallow:dupes": "bunx fallow dupes",
+    "fallow:health": "bunx fallow health"
   },
   "imports": {
     "#*": "./src/*"
@@ -43,6 +44,7 @@
     "@tanstack/react-query": "^5.100.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "hono": "^4.12.25",
     "lucide-react": "^0.562.0",
     "motion": "^12.40.0",
     "negotiator": "^1.0.0",

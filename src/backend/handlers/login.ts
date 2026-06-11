@@ -1,3 +1,5 @@
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+
 import * as z from "zod";
 
 import type { AuthConfig } from "#backend/config.ts";
@@ -12,7 +14,7 @@ const loginBodySchema = z.object({
 
 export type LoginResult =
   | { ok: true; sessionId: string }
-  | { ok: false; status: number };
+  | { ok: false; status: ContentfulStatusCode };
 
 export async function handlePostLogin(
   request: Request,

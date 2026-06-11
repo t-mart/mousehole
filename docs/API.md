@@ -110,7 +110,7 @@ so a `curl`/Docker healthcheck never hits MAM.
 { "ok": false, "reason": "rejected" }
 ```
 
-## `GET /web/events`
+## `GET /events`
 
 Protected: Yes (origin-checked)
 

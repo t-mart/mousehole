@@ -1,14 +1,15 @@
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { ZodError } from "zod/v4";
 
-import type { ErrorResponseBody, JSONResponseArgs } from "./http";
+import type { ErrorResponseBody } from "./http";
 
 class MouseholeError extends Error {
-  public httpStatus: number;
+  public httpStatus: ContentfulStatusCode;
   public errorType: string;
 
   constructor(
     message: string,
-    { cause, httpStatus }: { cause?: Error; httpStatus: number }
+    { cause, httpStatus }: { cause?: Error; httpStatus: ContentfulStatusCode }
   ) {
     super(message, { cause });
     this.name = "MouseholeError";
@@ -56,7 +57,7 @@ export class DirectoryCreateError extends MouseholeError {
 export class JSONParseError extends MouseholeError {
   private constructor(
     message: string,
-    { cause, httpStatus }: { cause: Error; httpStatus: number }
+    { cause, httpStatus }: { cause: Error; httpStatus: ContentfulStatusCode }
   ) {
     super(message, { cause, httpStatus });
     this.name = "JSONParseError";
@@ -88,7 +89,7 @@ export class JSONParseError extends MouseholeError {
 export class SchemaError extends MouseholeError {
   private constructor(
     sourceName: string,
-    { cause, httpStatus }: { cause: ZodError; httpStatus: number }
+    { cause, httpStatus }: { cause: ZodError; httpStatus: ContentfulStatusCode }
   ) {
     super(
       `Schema validation failed for data from ${sourceName}: ${cause.message}`,
@@ -142,16 +143,20 @@ export class TimeoutError extends MouseholeError {
   }
 }
 
-export function toJSONResponseArgs(
-  error: unknown
-): JSONResponseArgs<ErrorResponseBody> {
+/** The pieces of an HTTP error response: a JSON body and the status to send it with. */
+export type ErrorResponseArgs = {
+  body: ErrorResponseBody;
+  status: ContentfulStatusCode;
+};
+
+export function toErrorResponseArgs(error: unknown): ErrorResponseArgs {
   const message =
     error instanceof Error ? error.message : `Unhandled error: ${String(error)}`;
   const errorType =
     error instanceof MouseholeError ? error.errorType : "unhandled-error";
   const cause =
     error instanceof Error && error.cause
-      ? toJSONResponseArgs(error.cause).body
+      ? toErrorResponseArgs(error.cause).body
       : undefined;
   const status = error instanceof MouseholeError ? error.httpStatus : 500;
 
@@ -161,6 +166,6 @@ export function toJSONResponseArgs(
       message,
       ...(cause ? { cause } : {}),
     },
-    init: { status },
+    status,
   };
 }

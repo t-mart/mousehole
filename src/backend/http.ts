@@ -1,11 +1,5 @@
-// Generic HTTP response shapes shared between the route handlers and the
-// response-building code in index.tsx / error.ts.
-
-export type JSONResponseArgs<T> = {
-  body: T;
-  init?: ResponseInit;
-};
-
+// The error body shape every non-2xx JSON response uses, shared between
+// error.ts / the HTTP boundary and the frontend.
 export type ErrorResponseBody = {
   type: string;
   message: string;

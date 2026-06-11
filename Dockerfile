@@ -31,4 +31,4 @@ COPY src ./src
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD bun -e "process.exit((await fetch('http://localhost:5010/health')).ok ? 0 : 1)"
 
-CMD ["bun", "run", "src/index.tsx"]
+CMD ["bun", "run", "src/index.ts"]

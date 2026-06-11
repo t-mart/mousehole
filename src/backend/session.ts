@@ -1,4 +1,7 @@
-import { CookieMap, type BunRequest } from "bun";
+import type { Context } from "hono";
+
+import { deleteCookie, setCookie } from "hono/cookie";
+import { parse as parseCookieHeader } from "hono/utils/cookie";
 
 import { config } from "./config";
 import { closeSessionStreams } from "./sse";
@@ -57,23 +60,23 @@ export function deleteRequestSession(request: Request): void {
 }
 
 export function extractSessionId(request: Request): string | undefined {
-  return new CookieMap(request.headers.get("cookie") ?? "").get(SESSION_COOKIE_NAME) ?? undefined;
+  const cookieHeader = request.headers.get("cookie");
+  if (!cookieHeader) return undefined;
+  return parseCookieHeader(cookieHeader, SESSION_COOKIE_NAME)[
+    SESSION_COOKIE_NAME
+  ];
 }
 
-function sessionCookieOptions() {
-  return {
+export function applySessionCookie(c: Context, sessionId: string): void {
+  setCookie(c, SESSION_COOKIE_NAME, sessionId, {
     maxAge: config.sessionDurationSeconds,
     httpOnly: true,
-    sameSite: "lax" as const,
+    sameSite: "lax",
     secure: config.httpsOnlyCookies,
     path: "/",
-  };
+  });
 }
 
-export function applySessionCookie(request: BunRequest, sessionId: string): void {
-  request.cookies.set(SESSION_COOKIE_NAME, sessionId, sessionCookieOptions());
-}
-
-export function clearSessionCookie(request: BunRequest): void {
-  request.cookies.delete(SESSION_COOKIE_NAME, { path: "/" });
+export function clearSessionCookie(c: Context): void {
+  deleteCookie(c, SESSION_COOKIE_NAME, { path: "/" });
 }

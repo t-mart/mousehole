@@ -1,5 +1,3 @@
-import type { JSONResponseArgs } from "#backend/http.ts";
-
 import { config } from "#backend/config.ts";
 import { getNextContactAt } from "#backend/contact.ts";
 import { toPublicState, type PublicState, type State } from "#backend/serde.ts";
@@ -14,7 +12,7 @@ export function makePublicState(state: State | undefined): PublicState {
   });
 }
 
-export async function handleGetState(): Promise<JSONResponseArgs<PublicState>> {
+export async function handleGetState(): Promise<PublicState> {
   const state = await stateFile.readIfExists();
-  return { body: makePublicState(state) };
+  return makePublicState(state);
 }
