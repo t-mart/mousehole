@@ -3,10 +3,9 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
 import * as z from "zod";
 
 import type { AuthConfig } from "#backend/config.ts";
+import type { SessionStore } from "#backend/session.ts";
 
-import { config } from "#backend/config.ts";
 import { safeEqual } from "#backend/http-boundary.ts";
-import { createSession } from "#backend/session.ts";
 
 const loginBodySchema = z.object({
   password: z.string(),
@@ -18,7 +17,8 @@ export type LoginResult =
 
 export async function handlePostLogin(
   request: Request,
-  authConfig: AuthConfig = config.auth,
+  authConfig: AuthConfig,
+  sessions: Pick<SessionStore, "create">,
 ): Promise<LoginResult> {
   if (authConfig.type !== "configured" || !authConfig.password) {
     return { ok: false, status: 500 };
@@ -40,5 +40,5 @@ export async function handlePostLogin(
     return { ok: false, status: 401 };
   }
 
-  return { ok: true, sessionId: createSession() };
+  return { ok: true, sessionId: sessions.create() };
 }

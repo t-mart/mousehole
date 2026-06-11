@@ -6,10 +6,9 @@ import { handlePostLogin } from "../src/backend/handlers/login.ts";
 import { checkProtectedRequest } from "../src/backend/http-boundary.ts";
 import {
   SESSION_COOKIE_NAME,
-  createSession,
-  deleteSession,
+  createSessionStore,
 } from "../src/backend/session.ts";
-import { registerSseClient } from "../src/backend/sse.ts";
+import { createSseRegistry } from "../src/backend/sse.ts";
 
 const passwordConfig: SecurityConfig = {
   allowedHosts: { type: "allowlist", hosts: ["localhost"] },
@@ -28,6 +27,16 @@ const bothConfig: SecurityConfig = {
   allowedOrigins: { type: "same-origin" },
   auth: { type: "configured", password: "s3cr3t", token: "api-token" },
 };
+
+// One store/registry pair for the whole file; sessions are keyed by random ids,
+// so tests don't collide.
+const sse = createSseRegistry();
+const sessions = createSessionStore({
+  durationSeconds: 60 * 60,
+  httpsOnlyCookies: false,
+  onSessionDeleted: (sessionId) => sse.closeSessionStreams(sessionId),
+});
+const boundaryDeps = { validateSession: sessions.validateRequest };
 
 function makeRequest(pathName: string, init?: RequestInit): Request {
   return new Request(new URL(pathName, "http://localhost"), init);
@@ -62,6 +71,7 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       tokenConfig,
+      boundaryDeps,
     );
 
     expect(failure).toBeUndefined();
@@ -74,6 +84,7 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       tokenConfig,
+      boundaryDeps,
     );
 
     expect(failure?.status).toBe(401);
@@ -87,19 +98,21 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       passwordConfig,
+      boundaryDeps,
     );
 
     expect(failure?.status).toBe(401);
   });
 
   test("session cookie auth accepts a valid session", () => {
-    const sessionId = createSession();
+    const sessionId = sessions.create();
     const failure = checkProtectedRequest(
       makeRequest("/state", {
         headers: { Cookie: makeSessionCookie(sessionId) },
       }),
       {},
       passwordConfig,
+      boundaryDeps,
     );
 
     expect(failure).toBeUndefined();
@@ -112,6 +125,7 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       passwordConfig,
+      boundaryDeps,
     );
 
     expect(failure?.status).toBe(401);
@@ -119,7 +133,7 @@ describe("protected HTTP boundary", () => {
   });
 
   test("both credentials and token work independently when both are configured", () => {
-    const sessionId = createSession();
+    const sessionId = sessions.create();
 
     const viaSession = checkProtectedRequest(
       makeRequest("/state", {
@@ -127,11 +141,13 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       bothConfig,
+      boundaryDeps,
     );
     const viaToken = checkProtectedRequest(
       makeRequest("/state", { headers: { Authorization: "Bearer api-token" } }),
       {},
       bothConfig,
+      boundaryDeps,
     );
 
     expect(viaSession).toBeUndefined();
@@ -154,6 +170,7 @@ describe("protected HTTP boundary", () => {
           requireOrigin: true,
         },
         tokenConfig,
+        boundaryDeps,
       );
 
       expect(failure?.status).toBe(401);
@@ -177,6 +194,7 @@ describe("protected HTTP boundary", () => {
         requireOrigin: true,
       },
       tokenConfig,
+      boundaryDeps,
     );
 
     expect(failure?.status).toBe(403);
@@ -196,6 +214,7 @@ describe("protected HTTP boundary", () => {
         ...tokenConfig,
         allowedHosts: { type: "all" },
       },
+      boundaryDeps,
     );
 
     expect(failure).toBeUndefined();
@@ -211,6 +230,7 @@ describe("protected HTTP boundary", () => {
       }),
       {},
       tokenConfig,
+      boundaryDeps,
     );
 
     expect(failure?.status).toBe(403);
@@ -236,6 +256,7 @@ describe("protected HTTP boundary", () => {
         ...tokenConfig,
         allowedOrigins: { type: "all" },
       },
+      boundaryDeps,
     );
 
     expect(failure).toBeUndefined();
@@ -263,6 +284,7 @@ describe("protected HTTP boundary", () => {
           origins: ["http://trusted.example.com"],
         },
       },
+      boundaryDeps,
     );
 
     expect(failure).toBeUndefined();
@@ -290,6 +312,7 @@ describe("protected HTTP boundary", () => {
           origins: ["http://trusted.example.com"],
         },
       },
+      boundaryDeps,
     );
 
     expect(failure?.status).toBe(403);
@@ -312,6 +335,7 @@ describe("protected HTTP boundary", () => {
         requireOrigin: true,
       },
       tokenConfig,
+      boundaryDeps,
     );
 
     expect(failure?.status).toBe(415);
@@ -330,6 +354,7 @@ describe("protected HTTP boundary", () => {
       }),
       { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
       passwordConfig,
+      boundaryDeps,
     );
 
     expect(failure).toBeUndefined();
@@ -347,6 +372,7 @@ describe("protected HTTP boundary", () => {
       }),
       { requireAuth: false, requireOrigin: true, requireJsonContentType: true },
       passwordConfig,
+      boundaryDeps,
     );
 
     expect(failure?.status).toBe(403);
@@ -372,6 +398,7 @@ describe("login handler", () => {
     const result = await handlePostLogin(
       loginRequest("s3cr3t"),
       passwordAuthConfig,
+      sessions,
     );
 
     expect(result.ok).toBe(true);
@@ -382,6 +409,7 @@ describe("login handler", () => {
     const result = await handlePostLogin(
       loginRequest("wrong"),
       passwordAuthConfig,
+      sessions,
     );
 
     expect(result.ok).toBe(false);
@@ -392,6 +420,7 @@ describe("login handler", () => {
     const result = await handlePostLogin(
       loginRequest("s3cr3t"),
       passwordAuthConfig,
+      sessions,
     );
     if (!result.ok) throw new Error("Login should have succeeded");
 
@@ -401,6 +430,7 @@ describe("login handler", () => {
       }),
       {},
       passwordConfig,
+      boundaryDeps,
     );
 
     expect(failure).toBeUndefined();
@@ -412,10 +442,11 @@ describe("session deletion", () => {
     const loginResult = await handlePostLogin(
       loginRequest("s3cr3t"),
       passwordAuthConfig,
+      sessions,
     );
     if (!loginResult.ok) throw new Error("Login should have succeeded");
 
-    deleteSession(loginResult.sessionId);
+    sessions.deleteSession(loginResult.sessionId);
 
     const failure = checkProtectedRequest(
       makeRequest("/state", {
@@ -423,16 +454,17 @@ describe("session deletion", () => {
       }),
       {},
       passwordConfig,
+      boundaryDeps,
     );
     expect(failure?.status).toBe(401);
   });
 
   test("deleting an unknown session is a no-op", () => {
-    expect(() => deleteSession("not-a-real-session")).not.toThrow();
+    expect(() => sessions.deleteSession("not-a-real-session")).not.toThrow();
   });
 
   test("session expires without another protected request", async () => {
-    const sessionId = createSession(5);
+    const sessionId = sessions.create(5);
 
     await sleep(30);
 
@@ -442,15 +474,16 @@ describe("session deletion", () => {
       }),
       {},
       passwordConfig,
+      boundaryDeps,
     );
     expect(failure?.status).toBe(401);
   });
 
   test("session expiry closes registered SSE streams", async () => {
-    const sessionId = createSession(5);
+    const sessionId = sessions.create(5);
     const fake = makeFakeController();
 
-    registerSseClient({ sessionId, controller: fake.controller });
+    sse.register({ sessionId, controller: fake.controller });
 
     await sleep(30);
 
@@ -458,11 +491,11 @@ describe("session deletion", () => {
   });
 
   test("manual deletion closes registered SSE streams", () => {
-    const sessionId = createSession(50);
+    const sessionId = sessions.create(50);
     const fake = makeFakeController();
 
-    registerSseClient({ sessionId, controller: fake.controller });
-    deleteSession(sessionId);
+    sse.register({ sessionId, controller: fake.controller });
+    sessions.deleteSession(sessionId);
 
     expect(fake.isClosed()).toBe(true);
   });

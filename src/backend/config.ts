@@ -6,7 +6,7 @@ import * as z from "zod";
 
 import type { LogLevelName } from "#backend/logger.ts";
 
-import { DEFAULT_LOG_LEVEL, LOG_LEVEL_NAMES, setLogLevel } from "#backend/logger.ts";
+import { DEFAULT_LOG_LEVEL, LOG_LEVEL_NAMES } from "#backend/logger.ts";
 
 import { version } from "../../package.json";
 
@@ -276,8 +276,9 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
   };
 }
 
-export const config = buildConfig(process.env);
-
-// Wire the resolved level into the logger once, at app config load. buildConfig
-// itself stays pure so it can be unit-tested without mutating logger state.
-setLogLevel(config.logLevel);
+/**
+ * The resolved application configuration. Built from the environment exactly
+ * once, by the composition root (`startServer`) — there is no module-global
+ * config; everything receives it explicitly.
+ */
+export type Config = ReturnType<typeof buildConfig>;

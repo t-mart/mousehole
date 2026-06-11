@@ -1,7 +1,10 @@
 import * as z from "zod";
 
 import { SchemaError } from "#backend/error.ts";
-import { fetchExternal } from "#backend/external-api/fetch.ts";
+import {
+  fetchExternal,
+  type ExternalFetchOptions,
+} from "#backend/external-api/fetch.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 
 const endpointUrl = new URL("https://t.myanonamouse.net/json/jsonIp.php");
@@ -15,8 +18,10 @@ const responseBodySchema = z.object({
 
 export type HostInfo = { ip: string; asn: number; as: string };
 
-export async function getHostInfo(): Promise<HostInfo> {
-  const response = await fetchExternal(endpointUrl);
+export async function getHostInfo(
+  fetchOptions: ExternalFetchOptions,
+): Promise<HostInfo> {
+  const response = await fetchExternal(endpointUrl, fetchOptions);
 
   if (!response.ok) {
     throw new Error(

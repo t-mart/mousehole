@@ -6,9 +6,8 @@ import type {
   AllowedHostsConfig,
 } from "./config.ts";
 
-import { config } from "./config.ts";
 import { logger, LOG_LEVEL_NAMES } from "./logger.ts";
-import { extractSessionId, validateRequestSession } from "./session.ts";
+import { extractSessionId } from "./session.ts";
 
 export type SecurityConfig = {
   allowedHosts: AllowedHostsConfig;
@@ -46,8 +45,17 @@ export type ProtectedRequestOptions = {
   requireOrigin?: boolean;
 };
 
+/**
+ * The stateful capabilities the boundary checks need. Kept as an explicit
+ * dependency so the checks themselves stay pure functions of their inputs.
+ */
+export type BoundaryDeps = {
+  /** Whether the request carries a currently-valid session cookie. */
+  validateSession: (request: Request) => boolean;
+};
+
 export function validateRuntimeSecurityConfig(
-  securityConfig: Pick<SecurityConfig, "auth"> = config,
+  securityConfig: Pick<SecurityConfig, "auth">,
 ): void {
   if (
     securityConfig.auth.type === "configured" &&
@@ -79,14 +87,19 @@ export function validateRuntimeSecurityConfig(
  */
 export function checkProtectedRequest(
   request: Request,
-  options: ProtectedRequestOptions = {},
-  securityConfig: SecurityConfig = config,
+  options: ProtectedRequestOptions,
+  securityConfig: SecurityConfig,
+  deps: BoundaryDeps,
 ): BoundaryFailure | undefined {
   const hostFailure = checkHost(request, securityConfig.allowedHosts);
   if (hostFailure) return hostFailure;
 
   if (options.requireAuth !== false) {
-    const authFailure = checkAuthentication(request, securityConfig.auth);
+    const authFailure = checkAuthentication(
+      request,
+      securityConfig.auth,
+      deps,
+    );
     if (authFailure) return authFailure;
   }
 
@@ -150,6 +163,7 @@ function checkHost(
 function checkAuthentication(
   request: Request,
   authConfig: AuthConfig,
+  deps: BoundaryDeps,
 ): BoundaryFailure | undefined {
   if (authConfig.type === "none") {
     return authConfig.insecureAllowNoAuth
@@ -161,7 +175,7 @@ function checkAuthentication(
         };
   }
 
-  if (validateRequestSession(request)) {
+  if (deps.validateSession(request)) {
     return undefined;
   }
 

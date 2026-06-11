@@ -1,31 +1,33 @@
-import { config } from "#backend/config.ts";
-import {
-  contactMutex,
-  startBackgroundContactTask,
-  stopBackgroundContactTask,
-} from "#backend/contact.ts";
+import { buildConfig } from "#backend/config.ts";
+import { createAppContext } from "#backend/context.ts";
 import { validateRuntimeSecurityConfig } from "#backend/http-boundary.ts";
-import { logger } from "#backend/logger.ts";
+import { logger, setLogLevel } from "#backend/logger.ts";
 import { gitHash } from "#shared/git-hash.ts";
 
 import { version } from "../../package.json";
 import { createApp, type WebMount } from "./app.ts";
 
 /**
- * Composition root: assemble the app, bind the listener, and start background
- * work. Everything Bun-server-specific lives in this one call.
+ * Composition root: resolve config from the environment, build the app
+ * context, bind the listener, and start background work. Everything
+ * Bun-server-specific lives in this one call.
  *
  * @returns the server URL and an async `stop` that unwinds it all.
  */
-export function startServer() {
+export function startServer(env: NodeJS.ProcessEnv = process.env) {
+  const config = buildConfig(env);
+  setLogLevel(config.logLevel);
+
+  const ctx = createAppContext(config);
+
   // Dev serves the web UI by reverse-proxying to the Vite dev server (run both
   // with `bun dev`); prod serves the `vite build` output from dist/.
   const webMount: WebMount =
-    process.env.NODE_ENV === "production"
+    env.NODE_ENV === "production"
       ? { mode: "serve-static", root: "./dist" }
       : { mode: "vite-dev-server-proxy", target: "http://localhost:5173" };
 
-  const app = createApp(config, webMount);
+  const app = createApp(ctx, webMount);
 
   const server = Bun.serve({
     port: config.port,
@@ -38,20 +40,19 @@ export function startServer() {
   });
 
   logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
-  validateRuntimeSecurityConfig();
+  validateRuntimeSecurityConfig(config);
   if (config.stateDirPathDeprecationWarning) {
     logger.warn(config.stateDirPathDeprecationWarning);
   }
 
-  startBackgroundContactTask();
+  ctx.contacts.start();
 
   return {
     url: server.url,
     stop: async () => {
       logger.info("Shutting down...");
-      await contactMutex.acquire();
+      await ctx.contacts.stop();
       await server.stop(true);
-      stopBackgroundContactTask();
     },
   };
 }

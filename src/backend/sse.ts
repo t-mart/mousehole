@@ -7,40 +7,47 @@ type SseClient = {
   controller: ReadableStreamDefaultController<string>;
 };
 
-const clients = new Set<SseClient>();
+export type SseRegistry = ReturnType<typeof createSseRegistry>;
 
-function send(client: SseClient, frame: string): void {
-  try {
-    client.controller.enqueue(frame);
-  } catch {
-    // controller already closed (client gone) — drop it
-    clients.delete(client);
-  }
-}
+/** The set of connected SSE clients; one per app instance (see context.ts). */
+export function createSseRegistry() {
+  const clients = new Set<SseClient>();
 
-/**
- * Register a connected SSE client. Call the returned function from the stream's
- * `cancel()` to unregister when the client disconnects.
- */
-export function registerSseClient(client: SseClient): () => void {
-  clients.add(client);
-  return () => clients.delete(client);
-}
-
-/** Tell every connected client to re-pull GET /state. */
-export function notifyClients(): void {
-  for (const client of clients) send(client, "data: changed\n\n");
-}
-
-/** Close the SSE streams belonging to a session (used on logout / session expiry). */
-export function closeSessionStreams(sessionId: string): void {
-  for (const client of clients) {
-    if (client.sessionId !== sessionId) continue;
+  function send(client: SseClient, frame: string): void {
     try {
-      client.controller.close();
+      client.controller.enqueue(frame);
     } catch {
-      // already closed
+      // controller already closed (client gone) — drop it
+      clients.delete(client);
     }
-    clients.delete(client);
   }
+
+  return {
+    /**
+     * Register a connected SSE client. Call the returned function from the
+     * stream's `cancel()` to unregister when the client disconnects.
+     */
+    register(client: SseClient): () => void {
+      clients.add(client);
+      return () => clients.delete(client);
+    },
+
+    /** Tell every connected client to re-pull GET /state. */
+    notify(): void {
+      for (const client of clients) send(client, "data: changed\n\n");
+    },
+
+    /** Close the SSE streams belonging to a session (logout / session expiry). */
+    closeSessionStreams(sessionId: string): void {
+      for (const client of clients) {
+        if (client.sessionId !== sessionId) continue;
+        try {
+          client.controller.close();
+        } catch {
+          // already closed
+        }
+        clients.delete(client);
+      }
+    },
+  };
 }

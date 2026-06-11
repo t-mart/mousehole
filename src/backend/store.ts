@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-import { config } from "./config";
 import {
   FileReadError,
   FileWriteError,
@@ -11,10 +10,17 @@ import {
 import { migrateToCurrent } from "./migrate";
 import { deserializeState, serializeState, type State } from "./serde";
 
-const statePath = path.join(config.stateDirPath, "state.json");
+export class StateFileStore {
+  private readonly stateDirectoryPath: string;
+  private readonly statePath: string;
 
-class StateFileStore {
+  constructor(stateDirectoryPath: string) {
+    this.stateDirectoryPath = stateDirectoryPath;
+    this.statePath = path.join(stateDirectoryPath, "state.json");
+  }
+
   async read(): Promise<State> {
+    const { statePath } = this;
     const file = Bun.file(statePath);
     let contents;
     try {
@@ -45,6 +51,7 @@ class StateFileStore {
   }
 
   async write(state: State) {
+    const { stateDirectoryPath, statePath } = this;
     const serializedState = serializeState(state);
     let contents;
     try {
@@ -55,10 +62,10 @@ class StateFileStore {
     }
 
     try {
-      await fs.mkdir(config.stateDirPath, { recursive: true });
+      await fs.mkdir(stateDirectoryPath, { recursive: true });
     } catch (error) {
       const cause = error instanceof Error ? error : new Error(String(error));
-      throw new DirectoryCreateError(config.stateDirPath, { cause });
+      throw new DirectoryCreateError(stateDirectoryPath, { cause });
     }
 
     // Write to a temporary file first and then rename it to ensure atomic
@@ -74,5 +81,3 @@ class StateFileStore {
     }
   }
 }
-
-export const stateFile = new StateFileStore();

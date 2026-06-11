@@ -5,9 +5,8 @@ import { serveStatic } from "hono/bun";
 import { createMiddleware } from "hono/factory";
 import { proxy } from "hono/proxy";
 
-import type { SecurityConfig } from "#backend/http-boundary.ts";
+import type { AppContext } from "#backend/context.ts";
 
-import { config } from "#backend/config.ts";
 import { toErrorResponseArgs } from "#backend/error.ts";
 import { handlePostCheck } from "#backend/handlers/checks.ts";
 import { handlePutCookie } from "#backend/handlers/cookie.ts";
@@ -20,13 +19,7 @@ import {
   type ProtectedRequestOptions,
 } from "#backend/http-boundary.ts";
 import { logger } from "#backend/logger.ts";
-import {
-  applySessionCookie,
-  clearSessionCookie,
-  deleteRequestSession,
-  extractSessionId,
-} from "#backend/session.ts";
-import { registerSseClient } from "#backend/sse.ts";
+import { extractSessionId } from "#backend/session.ts";
 
 export const checksEndpointPath = "/checks";
 export const stateEndpointPath = "/state";
@@ -50,18 +43,17 @@ export type WebMount =
  * Pure assembly of the HTTP app: routes + middleware over a Hono instance.
  * Binding a listener, background tasks, and signal handling live in server.ts.
  *
- * @param securityConfig - host/origin/auth rules, injectable for tests.
+ * @param ctx - the app's config and stateful services (see context.ts).
  * @param webMount - how to serve the frontend under /web, if at all.
  */
-export function createApp(
-  securityConfig: SecurityConfig = config,
-  webMount?: WebMount,
-): Hono {
+export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
   // The boundary checks as route middleware. The checks are pure and return
   // log hints with each failure; emitting them through our logger happens here.
   const protect = (options: ProtectedRequestOptions = {}) =>
     createMiddleware(async (c, next) => {
-      const failure = checkProtectedRequest(c.req.raw, options, securityConfig);
+      const failure = checkProtectedRequest(c.req.raw, options, ctx.config, {
+        validateSession: ctx.sessions.validateRequest,
+      });
       if (failure) {
         logger[failure.logLevel ?? "warn"](
           `[${c.req.method} ${c.req.path}] ${failure.logDetail ?? failure.message}`,
@@ -121,40 +113,44 @@ export function createApp(
       requireJsonContentType: true,
     }),
     async (c) => {
-      const result = await handlePostLogin(c.req.raw, securityConfig.auth);
+      const result = await handlePostLogin(
+        c.req.raw,
+        ctx.config.auth,
+        ctx.sessions,
+      );
       if (!result.ok) return c.json({ ok: false }, result.status);
-      applySessionCookie(c, result.sessionId);
+      ctx.sessions.applyCookie(c, result.sessionId);
       return c.json({ ok: true });
     },
   );
 
   app.post("/logout", protect({ requireAuth: false }), (c) => {
-    deleteRequestSession(c.req.raw);
-    clearSessionCookie(c);
+    ctx.sessions.deleteRequestSession(c.req.raw);
+    ctx.sessions.clearCookie(c);
     return c.json({ ok: true });
   });
 
   app.post(checksEndpointPath, protect({ requireOrigin: true }), async (c) =>
-    c.json(await handlePostCheck()),
+    c.json(await handlePostCheck(ctx)),
   );
 
   app.get(stateEndpointPath, protect(), async (c) =>
-    c.json(await handleGetState()),
+    c.json(await handleGetState(ctx)),
   );
 
   app.put(
     cookieEndpointPath,
     protect({ requireOrigin: true, requireJsonContentType: true }),
-    async (c) => c.json(await handlePutCookie(c.req.raw)),
+    async (c) => c.json(await handlePutCookie(ctx, c.req.raw)),
   );
 
   app.get(okEndpointPath, async (c) => {
-    const body = await handleGetOk();
+    const body = await handleGetOk(ctx);
     return c.json(body, body.ok ? 200 : 503);
   });
 
   app.get(healthEndpointPath, async (c) => {
-    const body = await handleGetHealth();
+    const body = await handleGetHealth(ctx);
     return c.json(body, body.ok ? 200 : 503);
   });
 
@@ -163,7 +159,7 @@ export function createApp(
     let unregister: (() => void) | undefined;
     const stream = new ReadableStream<string>({
       start(controller) {
-        unregister = registerSseClient({ sessionId, controller });
+        unregister = ctx.sse.register({ sessionId, controller });
       },
       cancel() {
         unregister?.();

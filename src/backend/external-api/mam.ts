@@ -1,7 +1,10 @@
 import * as z from "zod";
 
 import { SchemaError } from "#backend/error.ts";
-import { fetchExternal } from "#backend/external-api/fetch.ts";
+import {
+  fetchExternal,
+  type ExternalFetchOptions,
+} from "#backend/external-api/fetch.ts";
 import { parseJsonResponse } from "#backend/json.ts";
 
 const endpointUrl = new URL(
@@ -34,9 +37,10 @@ export type MamUpdateResult = {
 
 export async function updateMamIp(
   currentCookieValue: string,
+  fetchOptions: ExternalFetchOptions,
 ): Promise<MamUpdateResult> {
   // Note: the IP address is determined by the server from the request.
-  const response = await fetchExternal(endpointUrl, {
+  const response = await fetchExternal(endpointUrl, fetchOptions, {
     // must supply cookie
     Cookie: `${cookieKey}=${currentCookieValue}`,
   });
