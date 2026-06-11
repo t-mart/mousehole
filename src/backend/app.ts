@@ -1,7 +1,9 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { accepts } from "hono/accepts";
 import { bodyLimit } from "hono/body-limit";
+import { serveStatic } from "hono/bun";
 import { createMiddleware } from "hono/factory";
+import { proxy } from "hono/proxy";
 
 import type { SecurityConfig } from "#backend/http-boundary.ts";
 
@@ -36,12 +38,25 @@ export const eventsEndpointPath = "/events";
 const maxJsonRequestBodyBytes = 8 * 1024;
 
 /**
+ * How the web UI is served under /web. Dev reverse-proxies to the Vite dev
+ * server (single origin: no CORS, no cookie config, dev URL == prod URL);
+ * prod serves the `vite build` output. Tests omit it to mount nothing.
+ */
+export type WebMount =
+  | { mode: "vite-dev-server-proxy"; target: string }
+  | { mode: "serve-static"; root: string };
+
+/**
  * Pure assembly of the HTTP app: routes + middleware over a Hono instance.
  * Binding a listener, background tasks, and signal handling live in server.ts.
  *
  * @param securityConfig - host/origin/auth rules, injectable for tests.
+ * @param webMount - how to serve the frontend under /web, if at all.
  */
-export function createApp(securityConfig: SecurityConfig = config): Hono {
+export function createApp(
+  securityConfig: SecurityConfig = config,
+  webMount?: WebMount,
+): Hono {
   // The boundary checks as route middleware. The checks are pure and return
   // log hints with each failure; emitting them through our logger happens here.
   const protect = (options: ProtectedRequestOptions = {}) =>
@@ -163,6 +178,37 @@ export function createApp(securityConfig: SecurityConfig = config): Hono {
       },
     });
   });
+
+  // The web UI. Not protected: the login page itself needs these assets.
+  if (webMount?.mode === "vite-dev-server-proxy") {
+    const proxyToVite = async (c: Context) => {
+      const { pathname, search } = new URL(c.req.url);
+      // Vite serves the page at the trailing-slash base (/web/).
+      const path = pathname === "/web" ? "/web/" : pathname;
+      try {
+        return await proxy(`${webMount.target}${path}${search}`, {
+          headers: c.req.header(),
+        });
+      } catch {
+        return c.text(
+          `The Vite dev server isn't reachable at ${webMount.target}.\n` +
+            "Start it with `bun dev:web`, or run both processes with `bun dev`.",
+          502,
+        );
+      }
+    };
+    app.get("/web", proxyToVite);
+    app.get("/web/*", proxyToVite);
+  } else if (webMount?.mode === "serve-static") {
+    app.use(
+      "/web/*",
+      serveStatic({
+        root: webMount.root,
+        rewriteRequestPath: (requestPath) => requestPath.replace(/^\/web/, ""),
+      }),
+    );
+    app.get("/web", serveStatic({ path: `${webMount.root}/index.html` }));
+  }
 
   return app;
 }

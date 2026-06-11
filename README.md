@@ -43,10 +43,12 @@ See the [Unraid Installation Guide](contrib/unraid/README.md) for instructions.
 
 #### From Source
 
-Run the server with:
+Build the web UI, then run the server:
 
 ```bash
 cd /path/to/mousehole
+bun install
+bun run build
 bun run start
 ```
 
@@ -178,14 +180,20 @@ functionality.
 
 ## Development
 
-- Start the dev server with:
+- Start development with:
 
   ```bash
   bun dev
   ```
 
-- Run tests with `bun test`, check types with `bun check-types`, and lint with
-  `bun lint`.
+  This runs two processes via `concurrently`: the backend (`bun dev:server`,
+  restarts on change) and the Vite dev server (`bun dev:web`, hot module
+  reloading). Browse the app at <http://localhost:5010/web> — the backend
+  reverse-proxies `/web/*` to Vite in development, so the dev URL matches
+  production.
+
+- Run tests with `bun check:test`, check types with `bun check:types`, and
+  lint with `bun check:lint`.
 
 - New versions can be tagged, released and pushed to Docker Hub by simply
   changing the version in `package.json` and pushing to GitHub. The CI workflows

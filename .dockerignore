@@ -16,3 +16,5 @@ Makefile
 .state
 .env
 .env.local
+dist
+.fallow

@@ -35,12 +35,4 @@ const app = (
   </StrictMode>
 );
 
-if (import.meta.hot) {
-  // With hot module reloading, `import.meta.hot.data` is persisted.
-  const hotData = import.meta.hot.data as { root?: ReturnType<typeof createRoot> };
-  const root = (hotData.root ??= createRoot(element));
-  root.render(app);
-} else {
-  // The hot module reloading API is not available in production.
-  createRoot(element).render(app);
-}
+createRoot(element).render(app);
