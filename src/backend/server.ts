@@ -50,11 +50,7 @@ export function startServer() {
     stop: async () => {
       logger.info("Shutting down...");
       await contactMutex.acquire();
-
-      // despite passing true to immediately stop, bun sometimes still lags, so
-      // just don't await it
-      void server.stop(true);
-
+      await server.stop(true);
       stopBackgroundContactTask();
     },
   };
