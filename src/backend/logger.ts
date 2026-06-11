@@ -29,26 +29,29 @@ const COLORS: Record<LogLevelName, string> = {
 };
 const RESET = `\u001B[0m`;
 
-const useColor = process.stderr.isTTY ?? false;
 const isProduction = process.env.NODE_ENV === "production";
 
 function emit(level: LogLevelName, args: unknown[]): void {
   if (LEVELS[level] < LEVELS[threshold]) return;
+  // Only `error` goes to stderr, so failures can be split off at the stream
+  // level; the other levels share stdout, preserving their relative ordering.
+  // Color follows the destination stream so redirecting one stream to a file
+  // doesn't capture ANSI codes meant for the other.
+  const write = level === "error" ? console.error : console.log;
+  const useColor =
+    (level === "error" ? process.stderr.isTTY : process.stdout.isTTY) ?? false;
   const label = level.toUpperCase();
   const prefix = useColor ? `${COLORS[level]}[${label}]${RESET}` : `[${label}]`;
-  // console.error writes to stderr and formats args via util.formatWithOptions,
-  // which renders Error stacks + cause chains and colorizes inspected objects
-  // when stderr is a TTY.
-  //
+  
   // When an Error is logged its multi-line rendering reads better on its own
   // line, so emit the prefix separately rather than prepending it.
   if (args.some((argument) => argument instanceof Error)) {
-    console.error(prefix);
+    write(prefix);
     // In production, render Errors via util.inspect (stack + cause chain, no
     // Bun source-code frame). In dev, pass the Error through so Bun prints its
     // rich code frame.
     if (isProduction) {
-      console.error(
+      write(
         ...args.map((argument) =>
           argument instanceof Error
             ? inspect(argument, { colors: useColor })
@@ -56,11 +59,11 @@ function emit(level: LogLevelName, args: unknown[]): void {
         ),
       );
     } else {
-      console.error(...args);
+      write(...args);
     }
     return;
   }
-  console.error(prefix, ...args);
+  write(prefix, ...args);
 }
 
 export const logger = {
