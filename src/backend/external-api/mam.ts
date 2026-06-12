@@ -3,9 +3,9 @@ import * as z from "zod";
 import { SchemaError } from "#backend/error.ts";
 import {
   fetchExternal,
+  parseJsonResponse,
   type ExternalFetchOptions,
 } from "#backend/external-api/fetch.ts";
-import { parseJsonResponse } from "#backend/json.ts";
 
 const endpointUrl = new URL(
   "https://t.myanonamouse.net/json/dynamicSeedbox.php",

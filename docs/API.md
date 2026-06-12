@@ -81,6 +81,8 @@ Example request body:
 { "value": "<your-mam_id-cookie-value>" }
 ```
 
+`value` must be a non-empty string; an empty value is rejected with a `400`.
+
 ## `POST /checks`
 
 Requires Auth?: Yes

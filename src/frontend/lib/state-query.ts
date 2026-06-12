@@ -1,5 +1,5 @@
-import type { ErrorResponseBody } from "#backend/http.ts";
-import type { PublicState } from "#backend/serde.ts";
+import type { ErrorResponseBody } from "#shared/error-response.ts";
+import type { PublicState } from "#shared/public-state.ts";
 
 export const stateQueryKey: readonly [string] = ["state"];
 

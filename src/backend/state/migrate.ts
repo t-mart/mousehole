@@ -1,4 +1,4 @@
-import { SchemaError } from "./error";
+import { SchemaError } from "../error";
 import {
   serializedStateSchema,
   STATE_VERSION,

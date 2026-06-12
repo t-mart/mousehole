@@ -1,5 +1,5 @@
-// The error body shape every non-2xx JSON response uses, shared between
-// error.ts / the HTTP boundary and the frontend.
+// The error body shape every non-2xx JSON response uses, shared between the
+// backend (error.ts, the HTTP boundary) and the frontend.
 export type ErrorResponseBody = {
   type: string;
   message: string;

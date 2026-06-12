@@ -1,6 +1,6 @@
 import type { AppContext } from "#backend/context.ts";
 
-import { classify, type ContactStatus } from "#backend/serde.ts";
+import { classify, type ContactStatus } from "#shared/public-state.ts";
 
 export type GetOkResponseBody = { ok: boolean; reason: ContactStatus };
 

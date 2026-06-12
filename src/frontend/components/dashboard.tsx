@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { classify, type PublicState } from "#backend/serde.ts";
+import { classify, type PublicState } from "#shared/public-state.ts";
 
 import { useDashboard } from "../hooks/use-dashboard";
 import { CookieForm } from "./cookie-form";

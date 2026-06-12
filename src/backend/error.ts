@@ -1,7 +1,7 @@
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import type { ZodError } from "zod/v4";
 
-import type { ErrorResponseBody } from "./http";
+import type { ErrorResponseBody } from "#shared/error-response.ts";
 
 class MouseholeError extends Error {
   public httpStatus: ContentfulStatusCode;
@@ -19,6 +19,11 @@ class MouseholeError extends Error {
     Object.defineProperty(this, "httpStatus", { enumerable: false });
     Object.defineProperty(this, "errorType", { enumerable: false });
   }
+}
+
+/** Coerce a caught unknown into an Error for use as a `cause`. */
+export function toError(value: unknown): Error {
+  return value instanceof Error ? value : new Error(String(value));
 }
 
 export class FileReadError extends MouseholeError {

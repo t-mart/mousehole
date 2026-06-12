@@ -1,8 +1,8 @@
 import { Check, Copy } from "lucide-react";
 import { type ComponentPropsWithRef, useState } from "react";
 
-import { classify, type PublicState } from "#backend/serde.ts";
 import { cn } from "#frontend/lib/cn.ts";
+import { classify, type PublicState } from "#shared/public-state.ts";
 
 import { Section } from "./lib/section";
 
@@ -91,7 +91,9 @@ function DD({ ...props }: Readonly<ComponentPropsWithRef<"dd">>) {
 }
 
 // MAM's `msg` when we reached it (display only, never branched on for logic).
-function mamMessage(contact: PublicState["lastMamContact"]): string | undefined {
+function mamMessage(
+  contact: PublicState["lastMamContact"],
+): string | undefined {
   return contact?.reached ? contact.ipUpdate?.msg : undefined;
 }
 
@@ -107,12 +109,18 @@ function StatusContent({ data }: Readonly<{ data: PublicState }>) {
     }
     case "throttled": {
       return (
-        <StatusLine state="warn" text={mamMessage(contact) ?? "Change pending"} />
+        <StatusLine
+          state="warn"
+          text={mamMessage(contact) ?? "Change pending"}
+        />
       );
     }
     case "rejected": {
       return (
-        <StatusLine state="error" text={mamMessage(contact) ?? "Session rejected"} />
+        <StatusLine
+          state="error"
+          text={mamMessage(contact) ?? "Session rejected"}
+        />
       );
     }
     case "unreachable": {

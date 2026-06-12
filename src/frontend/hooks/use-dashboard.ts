@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { PublicState } from "#backend/serde.ts";
+import type { PublicState } from "#shared/public-state.ts";
 
 import { useErrors } from "#frontend/lib/error-context.tsx";
 import {

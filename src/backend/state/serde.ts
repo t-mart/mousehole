@@ -1,9 +1,15 @@
 import { Temporal } from "temporal-polyfill";
 import * as z from "zod";
 
-// This module owns the shape of our state: the in-memory domain types, their
-// on-disk/wire serialized forms, and the conversions between them. Other modules
-// import these rather than re-deriving the shape.
+import type {
+  PublicState,
+  SerializedMamContact,
+} from "#shared/public-state.ts";
+
+// This module owns the persistence of our state: the in-memory domain types,
+// their on-disk serialized forms, and the conversions between them. The wire
+// contract those forms must match (PublicState, SerializedMamContact) lives in
+// #shared/public-state.ts, shared with the web UI.
 //
 // In memory we use `Temporal.ZonedDateTime`; on disk and over the wire we use RFC
 // 9557 strings (what `ZonedDateTime.toString()` emits and `from()` round-trips).
@@ -29,7 +35,7 @@ export type State = {
   lastMamContact?: MamContact;
 };
 
-// ── serialized form (disk + wire): `at` is an RFC 9557 string ───────────────
+// ── serialized form (disk): `at` is an RFC 9557 string ──────────────────────
 
 const ipUpdateSchema = z.object({
   success: z.boolean(),
@@ -38,22 +44,27 @@ const ipUpdateSchema = z.object({
   httpStatus: z.number(),
 });
 
-const serializedMamContactSchema = z.discriminatedUnion("reached", [
-  z.object({
-    at: z.string(),
-    reached: z.literal(false),
-    error: z.object({ type: z.string(), message: z.string() }),
-  }),
-  z.object({
-    at: z.string(),
-    reached: z.literal(true),
-    ip: z.ipv4(),
-    asn: z.number(),
-    as: z.string(),
-    ipUpdate: ipUpdateSchema.optional(),
-  }),
-]);
-export type SerializedMamContact = z.infer<typeof serializedMamContactSchema>;
+// Typed against the shared wire contract so schema/contract drift is a
+// compile error. The disk schema guards *structure* only; semantic validation
+// (e.g. the ip being IPv4) happens at ingestion (external-api schemas). Keep
+// it that way: a stricter read schema than the write path can make states we
+// already persisted unreadable.
+const serializedMamContactSchema: z.ZodType<SerializedMamContact> =
+  z.discriminatedUnion("reached", [
+    z.object({
+      at: z.string(),
+      reached: z.literal(false),
+      error: z.object({ type: z.string(), message: z.string() }),
+    }),
+    z.object({
+      at: z.string(),
+      reached: z.literal(true),
+      ip: z.string(),
+      asn: z.number(),
+      as: z.string(),
+      ipUpdate: ipUpdateSchema.optional(),
+    }),
+  ]);
 
 export const serializedStateSchema = z.object({
   version: z.literal(STATE_VERSION),
@@ -61,17 +72,6 @@ export const serializedStateSchema = z.object({
   lastMamContact: serializedMamContactSchema.optional(),
 });
 export type SerializedState = z.infer<typeof serializedStateSchema>;
-
-// ── public form (wire): the serialized state minus the credential ───────────
-
-export const publicStateSchema = z.object({
-  hasCookie: z.boolean(),
-  hasAuth: z.boolean(),
-  nextCheckAt: z.string().optional(),
-  // identical to the on-disk MamContact — it carries no secret to strip
-  lastMamContact: serializedMamContactSchema.optional(),
-});
-export type PublicState = z.infer<typeof publicStateSchema>;
 
 // ── conversions ─────────────────────────────────────────────────────────────
 
@@ -129,27 +129,4 @@ export function toPublicState(
     nextCheckAt: derived.nextCheckAt,
     lastMamContact: state?.lastMamContact && serializeMamContact(state.lastMamContact),
   };
-}
-
-// ── classification ──────────────────────────────────────────────────────────
-
-export type ContactStatus =
-  | "ok" // reached, update applied or already in sync (200)
-  | "throttled" // reached, update quashed as too-recent (429)
-  | "rejected" // reached, MAM refused the cookie (403)
-  | "unreachable" // never got a response
-  | "no-cookie" // reached, but only a lookup (no cookie to update with)
-  | "pending"; // no contact has happened yet
-
-// Interpret a contact from status code only (never `msg`).
-export function classify(
-  contact?: MamContact | SerializedMamContact,
-): ContactStatus {
-  if (!contact) return "pending";
-  if (!contact.reached) return "unreachable";
-  if (!contact.ipUpdate) return "no-cookie";
-  const { httpStatus } = contact.ipUpdate;
-  if (httpStatus === 200) return "ok";
-  if (httpStatus === 429) return "throttled";
-  return "rejected";
 }

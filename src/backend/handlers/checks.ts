@@ -1,5 +1,5 @@
 import type { AppContext } from "#backend/context.ts";
-import type { PublicState } from "#backend/serde.ts";
+import type { PublicState } from "#shared/public-state.ts";
 
 import { makePublicState } from "./state.ts";
 

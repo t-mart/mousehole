@@ -469,6 +469,20 @@ function hangingFetch(_input: URL | RequestInfo, init?: RequestInit) {
   });
 }
 
+describe("PUT /cookie validation", () => {
+  test("an empty cookie value is rejected with 400", async () => {
+    const { app } = makeTestContext();
+    const cookie = await login(app);
+
+    const response = await putMamCookie(app, cookie, "");
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ type: "schema-error" }),
+    );
+  });
+});
+
 describe("contact flows (simulated MAM)", () => {
   test("PUT /cookie runs an update, persists, and flips /ok to healthy", async () => {
     const fakeMam = createFakeMam();

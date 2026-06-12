@@ -1,4 +1,9 @@
-import { NetworkError, TimeoutError } from "#backend/error.ts";
+import {
+  JSONParseError,
+  NetworkError,
+  TimeoutError,
+  toError,
+} from "#backend/error.ts";
 
 /**
  * The shape of fetch we rely on. Tests inject a fake (the fake MAM app's
@@ -43,5 +48,15 @@ export async function fetchExternal(
       });
     }
     throw new NetworkError(url.toString(), { cause: error });
+  }
+}
+
+/** Parse an external response's body as JSON, mapping failure onto our error type. */
+export async function parseJsonResponse(response: Response): Promise<unknown> {
+  const content = await response.text();
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    throw JSONParseError.fromResponse(response, { cause: toError(error) });
   }
 }

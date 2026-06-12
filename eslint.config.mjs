@@ -92,4 +92,25 @@ export default defineConfig({
     ],
   },
   ignores: ["dist/**", "node_modules/**"],
+},
+{
+  // The frontend talks to the backend over HTTP only. Wire contracts it may
+  // share live in #shared/* (public-state.ts, error-response.ts).
+  files: ["src/frontend/**/*.{ts,tsx}"],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            // Not `group`: its gitignore-style matching reads a leading "#"
+            // as a comment and silently drops the pattern.
+            regex: "^#backend/",
+            message:
+              "The frontend must not import backend modules; shared wire contracts belong in #shared/*.",
+          },
+        ],
+      },
+    ],
+  },
 });

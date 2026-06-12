@@ -3,17 +3,14 @@ import type { Temporal } from "temporal-polyfill";
 import { getNowZdt } from "#shared/time.ts";
 
 import type { FetchLike } from "./external-api/fetch.ts";
-import type { StateFileStore } from "./store.ts";
+import type { StateFileStore } from "./state/store.ts";
 
 import { toErrorResponseArgs } from "./error.ts";
-import {
-  getHostInfo,
-  type HostInfo,
-} from "./external-api/host-info.ts";
+import { getHostInfo, type HostInfo } from "./external-api/host-info.ts";
 import { updateMamIp } from "./external-api/mam.ts";
 import { logger } from "./logger.ts";
 import { Mutex } from "./mutex.ts";
-import { type MamContact, type State } from "./serde.ts";
+import { type MamContact, type State } from "./state/serde.ts";
 
 type BackgroundTask = {
   nextContactTimeoutId: ReturnType<typeof setTimeout>;
@@ -99,7 +96,10 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
           httpStatus: result.httpStatus,
         },
       };
-      return { cookie: result.rotatedCookie ?? cookie, lastMamContact: contact };
+      return {
+        cookie: result.rotatedCookie ?? cookie,
+        lastMamContact: contact,
+      };
     } catch (error) {
       const { type, message } = toErrorResponseArgs(error).body;
       logger.error(`Could not reach MAM: ${message}`);

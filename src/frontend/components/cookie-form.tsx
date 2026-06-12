@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 
-import type { PublicState } from "#backend/serde.ts";
+import type { PublicState } from "#shared/public-state.ts";
 
 import { useErrors } from "#frontend/lib/error-context.tsx";
 import { stateQueryKey } from "#frontend/lib/state-query.ts";
