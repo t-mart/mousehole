@@ -17,7 +17,7 @@ import { useServerEvents } from "./use-server-events";
  * requests as errors. The component is left to render whatever this returns.
  */
 export function useDashboard(onLogout: () => void) {
-  const { addError } = useErrors();
+  const { addError, clearErrors } = useErrors();
   const queryClient = useQueryClient();
 
   const updateNowMutation = useMutation({
@@ -33,7 +33,10 @@ export function useDashboard(onLogout: () => void) {
       }
       return (await response.json()) as PublicState;
     },
-    onSuccess: (data) => queryClient.setQueryData(stateQueryKey, data),
+    onSuccess: (data) => {
+      clearErrors();
+      queryClient.setQueryData(stateQueryKey, data);
+    },
     onError: (error: Error) => addError(error.message),
   });
 
@@ -42,7 +45,10 @@ export function useDashboard(onLogout: () => void) {
       const response = await fetch("/logout", { method: "POST" });
       if (!response.ok) throw new Error("Logout failed.");
     },
-    onSuccess: onLogout,
+    onSuccess: () => {
+      clearErrors();
+      onLogout();
+    },
     onError: (error: Error) => addError(error.message),
   });
 

@@ -20,7 +20,7 @@ export function CookieForm({
 }: Readonly<{ onUpdate: () => void; onCancel: () => void; showCancel?: boolean }>) {
   const [formCookie, setFormCookie] = useState("");
   const cookieInputId = useId();
-  const { addError } = useErrors();
+  const { addError, clearErrors } = useErrors();
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
@@ -41,6 +41,7 @@ export function CookieForm({
       return (await response.json()) as PublicState;
     },
     onSuccess: (data) => {
+      clearErrors();
       queryClient.setQueryData(stateQueryKey, data);
       onUpdate();
     },

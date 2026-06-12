@@ -13,7 +13,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const passwordId = useId();
   const queryClient = useQueryClient();
-  const { addError } = useErrors();
+  const { addError, clearErrors } = useErrors();
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (value: string) => {
@@ -30,6 +30,7 @@ export function LoginForm() {
       }
     },
     onSuccess: async () => {
+      clearErrors();
       await queryClient.invalidateQueries({ queryKey: stateQueryKey });
     },
     onError: (error: Error) => addError(error.message),

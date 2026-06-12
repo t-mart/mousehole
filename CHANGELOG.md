@@ -38,13 +38,21 @@ automatically (your cookie is preserved).
   requests — most notably browsing from a host missing from
   `MOUSEHOLE_ALLOWED_HOSTS` — and instead shows the server's error with a
   Retry button. Boundary rejection messages are written to be actionable
-  (naming the offending value and the setting to change).
+  (naming the offending value and the setting to change). A failed
+  *background* refresh no longer replaces a working dashboard: the error
+  screen only appears when there's no loaded state at all.
 - **Changed**: `POST /login` now explains when browser login is unavailable
   (`MOUSEHOLE_AUTH_PASSWORD` not set) instead of presenting like a wrong
   password.
 - **Changed**: Invalid request bodies (`400` schema errors) carry a
   structured `issues` array (`[{ path, message }]`) and a one-line `message`
   instead of zod's raw multi-line text.
+- **Fixed**: Error banners in the web UI now actually appear on plain-HTTP
+  LAN deployments (they relied on `crypto.randomUUID`, which only exists in
+  secure contexts, so adding one threw and the banner was silently lost).
+  Banners also clear when a subsequent action succeeds, repeats of the same
+  error coalesce into one banner with a count, and new banners are announced
+  to screen readers.
 
 ## [v0.4.0](https://github.com/t-mart/mousehole/releases/tag/v0.4.0) - 2026-06-04
 
