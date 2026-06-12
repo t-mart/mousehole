@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { rmSync } from "node:fs";
 import path from "node:path";
 
@@ -100,45 +100,187 @@ describe("error shapes", () => {
   test("unknown path returns the not-found body", async () => {
     const response = await app.request("/definitely-not-a-route");
     expect(response.status).toBe(404);
-    expect(await response.json()).toEqual({
-      type: "not-found",
-      message: "Not Found",
-    });
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "not-found",
+      }),
+    );
   });
 
-  test("unauthenticated GET /state returns 401 with a WWW-Authenticate challenge", async () => {
-    const response = await app.request("/state");
-    expect(response.status).toBe(401);
-    expect(response.headers.get("www-authenticate")).toContain("Bearer");
-    const body = (await response.json()) as { type: string };
-    expect(body.type).toBe("authentication-required");
-  });
-
-  test("unauthenticated GET /events returns 401", async () => {
-    const response = await app.request("/events");
-    expect(response.status).toBe(401);
-  });
-
-  test("a disallowed Host is rejected through the full route chain", async () => {
-    const cookie = await login(app);
-    const response = await app.request("/state", {
-      headers: { Cookie: cookie, Host: "evil.example.com" },
-    });
-    expect(response.status).toBe(403);
-    const body = (await response.json()) as { type: string };
-    expect(body.type).toBe("host-not-allowed");
-  });
-
-  test("oversized request bodies are rejected with 413 before any other handling", async () => {
+  test("oversized request bodies are rejected with 413 before auth even runs", async () => {
+    // No credentials, yet the response is 413 (not 401): the global bodyLimit
+    // middleware sits in front of every route's boundary stack.
     const response = await app.request("/cookie", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value: "x".repeat(9 * 1024) }),
     });
     expect(response.status).toBe(413);
-    const body = (await response.json()) as { type: string };
-    expect(body.type).toBe("payload-too-large");
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "payload-too-large",
+      }),
+    );
   });
+});
+
+// What each boundary protection's rejection looks like on the wire.
+const rejections = {
+  host: { status: 403, type: "host-not-allowed" },
+  auth: { status: 401, type: "authentication-required" },
+  origin: { status: 403, type: "origin-not-allowed" },
+  json: { status: 415, type: "unsupported-media-type" },
+  bodyLimit: { status: 413, type: "payload-too-large" },
+} as const;
+
+type RouteProtection = keyof typeof rejections;
+
+type RouteSpec = {
+  method: "GET" | "POST" | "PUT";
+  path: string;
+  /** The protections this route must enforce, in stack order. */
+  enforces: readonly RouteProtection[];
+  /** Valid JSON body for successful request, for routes that take one. */
+  body?: Record<string, string>;
+  /** Whether successful request authenticates with the shared session. */
+  sendsSession: boolean;
+};
+
+// The expected protection profile of every backend endpoint. /ok, /health,
+// and / are deliberately public (probes and the web entry redirect); /web
+// serves the login page's own assets.
+const routeSpecs: readonly RouteSpec[] = [
+  {
+    method: "POST",
+    path: "/login",
+    enforces: ["host", "origin", "json", "bodyLimit"],
+    body: { password: "s3cr3t" },
+    sendsSession: false,
+  },
+  { method: "POST", path: "/logout", enforces: ["host", "origin"], sendsSession: false },
+  {
+    method: "POST",
+    path: "/checks",
+    enforces: ["host", "auth", "origin"],
+    sendsSession: true,
+  },
+  {
+    method: "GET",
+    path: "/state",
+    enforces: ["host", "auth"],
+    sendsSession: true,
+  },
+  {
+    method: "PUT",
+    path: "/cookie",
+    enforces: ["host", "auth", "origin", "json", "bodyLimit"],
+    body: { value: "mam-session-cookie" },
+    sendsSession: true,
+  },
+  {
+    method: "GET",
+    path: "/events",
+    enforces: ["host", "auth", "origin"],
+    sendsSession: true,
+  },
+];
+
+// A fully valid request for the route, with at most one protection violated.
+// `bearerToken` authenticates with a token instead of the session cookie.
+function buildMatrixRequest(
+  spec: RouteSpec,
+  sessionCookie: string,
+  options: { violate?: RouteProtection; bearerToken?: string } = {},
+): RequestInit {
+  const { violate, bearerToken } = options;
+  const headers: Record<string, string> = {};
+  if (bearerToken) {
+    headers.Authorization = `Bearer ${bearerToken}`;
+  } else if (spec.sendsSession && violate !== "auth") {
+    headers.Cookie = sessionCookie;
+  }
+  if (violate === "host") headers.Host = "evil.example.com";
+  if (violate === "origin") headers.Origin = "http://evil.example";
+
+  if (!spec.body) return { method: spec.method, headers };
+
+  headers["Content-Type"] =
+    violate === "json" ? "text/plain" : "application/json";
+  return {
+    method: spec.method,
+    headers,
+    body:
+      violate === "bodyLimit"
+        ? JSON.stringify({ padding: "x".repeat(9 * 1024) })
+        : JSON.stringify(spec.body),
+  };
+}
+
+describe("route protection matrix", () => {
+  // One shared app with both password and token auth configured: successful
+  // requests prove a fully valid request reaches each handler (MAM-contacting
+  // handlers hit the fake, never the network); each violation perturbs
+  // exactly one protection and expects its rejection.
+  const fakeMam = createFakeMam();
+  const { app } = makeTestContext({
+    env: { MOUSEHOLE_AUTH_TOKEN: "api-token" },
+    fetchImpl: fakeMam.fetchImpl,
+  });
+  let sessionCookie = "";
+
+  beforeAll(async () => {
+    sessionCookie = await login(app);
+  });
+
+  for (const spec of routeSpecs) {
+    describe(`${spec.method} ${spec.path}`, () => {
+      test("a fully valid request reaches the handler", async () => {
+        const response = await app.request(
+          spec.path,
+          buildMatrixRequest(spec, sessionCookie),
+        );
+        expect(response.status).toBe(200);
+        // /events answers with an open SSE stream; release it.
+        await response.body?.cancel();
+      });
+
+      for (const protection of spec.enforces) {
+        const rejection = rejections[protection];
+        test(`enforces ${protection}: ${rejection.status} ${rejection.type}`, async () => {
+          const response = await app.request(
+            spec.path,
+            buildMatrixRequest(spec, sessionCookie, { violate: protection }),
+          );
+          expect(response.status).toBe(rejection.status);
+          const body = (await response.json()) as { type: string };
+          expect(body.type).toBe(rejection.type);
+          if (protection === "auth") {
+            expect(response.headers.get("www-authenticate")).toContain(
+              "Bearer",
+            );
+          }
+        });
+      }
+
+      // The origin check is CSRF defense; a Bearer token can't be attached by
+      // a cross-site page, so token-authenticated requests are exempt. The
+      // origin violation above (session cookie + evil Origin → 403) pins that
+      // browser sessions stay enforced even with a token configured.
+      if (spec.sendsSession && spec.enforces.includes("origin")) {
+        test("a token-authenticated request bypasses the origin check", async () => {
+          const response = await app.request(
+            spec.path,
+            buildMatrixRequest(spec, sessionCookie, {
+              violate: "origin",
+              bearerToken: "api-token",
+            }),
+          );
+          expect(response.status).toBe(200);
+          await response.body?.cancel();
+        });
+      }
+    });
+  }
 });
 
 describe("login/logout flow", () => {
@@ -178,6 +320,35 @@ describe("login/logout flow", () => {
       headers: { Cookie: cookie },
     });
     expect(afterLogout.status).toBe(401);
+  });
+
+  test("the session cookie is HttpOnly, SameSite=Lax, and path-scoped", async () => {
+    const { app } = makeTestContext();
+    const response = await app.request("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "s3cr3t" }),
+    });
+
+    const setCookie = response.headers.get("set-cookie") ?? "";
+    expect(setCookie).toContain(`${SESSION_COOKIE_NAME}=`);
+    expect(setCookie).toContain("HttpOnly");
+    expect(setCookie).toContain("SameSite=Lax");
+    expect(setCookie).toContain("Path=/");
+    expect(setCookie).not.toContain("Secure");
+  });
+
+  test("MOUSEHOLE_HTTPS_ONLY_COOKIES marks the session cookie Secure", async () => {
+    const { app } = makeTestContext({
+      env: { MOUSEHOLE_HTTPS_ONLY_COOKIES: "true" },
+    });
+    const response = await app.request("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "s3cr3t" }),
+    });
+
+    expect(response.headers.get("set-cookie") ?? "").toContain("Secure");
   });
 
   test("contexts are hermetic: a session from one app is rejected by another", async () => {
@@ -237,7 +408,9 @@ describe("session lifecycle", () => {
 
   test("deleting an unknown session is a no-op", () => {
     const { ctx } = makeTestContext();
-    expect(() => ctx.sessions.deleteSession("not-a-real-session")).not.toThrow();
+    expect(() =>
+      ctx.sessions.deleteSession("not-a-real-session"),
+    ).not.toThrow();
   });
 });
 
@@ -250,9 +423,7 @@ describe("server-sent events", () => {
       headers: { Cookie: cookie },
     });
     expect(response.status).toBe(200);
-    expect(response.headers.get("content-type")).toContain(
-      "text/event-stream",
-    );
+    expect(response.headers.get("content-type")).toContain("text/event-stream");
 
     const reader = response.body!.getReader();
     ctx.sse.notify();
@@ -285,6 +456,16 @@ async function putMamCookie(
     method: "PUT",
     headers: { Cookie: sessionCookie, "Content-Type": "application/json" },
     body: JSON.stringify({ value }),
+  });
+}
+
+// Hangs until the request's AbortSignal (AbortSignal.timeout in
+// fetchExternal) fires, like a connection that never answers.
+function hangingFetch(_input: URL | RequestInfo, init?: RequestInit) {
+  return new Promise<Response>((_resolve, reject) => {
+    init?.signal?.addEventListener("abort", () => {
+      reject(init.signal?.reason as Error);
+    });
   });
 }
 
@@ -449,14 +630,6 @@ describe("contact flows (simulated MAM)", () => {
   });
 
   test("a stalled MAM connection times out and is recorded as unreachable", async () => {
-    // Hangs until the request's AbortSignal (AbortSignal.timeout in
-    // fetchExternal) fires, like a connection that never answers.
-    const hangingFetch: FetchLike = (_input, init) =>
-      new Promise((_resolve, reject) => {
-        init?.signal?.addEventListener("abort", () => {
-          reject(init.signal?.reason as Error);
-        });
-      });
     const { app } = makeTestContext({
       env: { MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "0.05" },
       fetchImpl: hangingFetch,

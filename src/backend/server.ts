@@ -1,6 +1,5 @@
-import { buildConfig } from "#backend/config.ts";
+import { buildConfig, type AuthConfig } from "#backend/config.ts";
 import { createAppContext } from "#backend/context.ts";
-import { validateRuntimeSecurityConfig } from "#backend/http-boundary.ts";
 import { logger, setLogLevel } from "#backend/logger.ts";
 import { gitHash } from "#shared/git-hash.ts";
 
@@ -40,7 +39,7 @@ export function startServer(env: NodeJS.ProcessEnv = process.env) {
   });
 
   logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
-  validateRuntimeSecurityConfig(config);
+  validateRuntimeSecurityConfig(config.auth);
   if (config.stateDirPathDeprecationWarning) {
     logger.warn(config.stateDirPathDeprecationWarning);
   }
@@ -55,4 +54,29 @@ export function startServer(env: NodeJS.ProcessEnv = process.env) {
       await server.stop(true);
     },
   };
+}
+
+// Startup-time validation of the resolved auth config: refuse to run without
+// credentials unless explicitly opted out, and warn about partial setups.
+// Lives here rather than in http-boundary.ts because it's a composition-root
+// concern (logs and throws at boot), not a per-request check.
+function validateRuntimeSecurityConfig(auth: AuthConfig): void {
+  if (auth.type === "configured" && !auth.password) {
+    logger.warn(
+      "MOUSEHOLE_AUTH_PASSWORD is not set. Browser login will be unavailable.",
+    );
+  }
+  if (auth.type !== "none") {
+    return;
+  }
+
+  if (!auth.insecureAllowNoAuth) {
+    throw new Error(
+      "Mousehole authentication is not configured. Set MOUSEHOLE_AUTH_PASSWORD and/or MOUSEHOLE_AUTH_TOKEN, or set MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true to opt out.",
+    );
+  }
+
+  logger.warn(
+    "Running without authentication (MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true). Do not expose Mousehole to mixed-trust LAN, VPN, or public interfaces.",
+  );
 }

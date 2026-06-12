@@ -24,19 +24,19 @@ object. It never contains your cookie — only whether one is set.
 
 ```jsonc
 {
-  "hasCookie": true,                 // is a MAM cookie configured?
-  "hasAuth": true,                   // is the web UI password-protected?
+  "hasCookie": true, // is a MAM cookie configured?
+  "hasAuth": true, // is the web UI password-protected?
   "nextCheckAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]", // RFC 9557
   // The most recent contact with MAM. Absent until the first check runs.
   "lastMamContact": {
     "at": "2025-06-21T14:22:28.111-05:00[America/Chicago]",
-    "reached": true,                 // we got an HTTP response from MAM
+    "reached": true, // we got an HTTP response from MAM
     "ip": "123.123.123.123",
     "asn": 12345,
     "as": "MegaCorp",
     // Present only when a cookie drove an update (the dynamicSeedbox call).
-    "ipUpdate": { "success": true, "msg": "No change", "httpStatus": 200 }
-  }
+    "ipUpdate": { "success": true, "msg": "No change", "httpStatus": 200 },
+  },
 }
 ```
 
@@ -45,24 +45,31 @@ object. It never contains your cookie — only whether one is set.
 - **Reached, with a cookie** — has `ip`/`asn`/`as` and an `ipUpdate`
   (`httpStatus` is `200` ok, `429` throttled, `403` rejected; `msg` is MAM's
   text, for display only).
-- **Reached, no cookie yet** (setup lookup) — has `ip`/`asn`/`as`, no `ipUpdate`.
+- **Reached, no cookie yet** (setup lookup) — has `ip`/`asn`/`as`, no
+  `ipUpdate`.
 - **Unreachable** (transport failure) — no host fields:
   ```json
-  { "at": "…", "reached": false,
-    "error": { "type": "timeout-error", "message": "Request to … timed out after 10s. Is the network up?" } }
+  {
+    "at": "…",
+    "reached": false,
+    "error": {
+      "type": "timeout-error",
+      "message": "Request to … timed out after 10s. Is the network up?"
+    }
+  }
   ```
 
 ## `GET /state`
 
-Protected: Yes
+Requires Auth?: Yes
 
 A pure read of the current state — it does **not** contact MAM, so it always
-responds quickly and can't fail on a network blip. Returns the [state
-shape](#state-shape).
+responds quickly and can't fail on a network blip. Returns the
+[state shape](#state-shape).
 
 ## `PUT /cookie`
 
-Protected: Yes
+Requires Auth?: Yes
 
 Set the MAM session cookie. This stores the credential **and** immediately
 contacts MAM with it, so the response reflects whether the cookie works (e.g. a
@@ -76,18 +83,18 @@ Example request body:
 
 ## `POST /checks`
 
-Protected: Yes
+Requires Auth?: Yes
 
 Run a check now: contact MAM and persist the result. Takes no body. Returns the
 [state shape](#state-shape).
 
 ## `GET /ok`
 
-Protected: No
+Requires Auth?: No
 
-**Deprecated in favor of `/health`.** A convenience endpoint summarizing the last
-check. Returns `200` when the last check reached MAM and the IP update applied,
-`503` otherwise.
+**Deprecated in favor of `/health`.** A convenience endpoint summarizing the
+last check. Returns `200` when the last check reached MAM and the IP update
+applied, `503` otherwise.
 
 ```jsonc
 { "ok": true,  "reason": "ok" }          // 200
@@ -99,7 +106,7 @@ check. Returns `200` when the last check reached MAM and the IP update applied,
 
 ## `GET /health`
 
-Protected: No
+Requires Auth?: No
 
 Health check endpoint, same body and status semantics as `/ok` (`200` healthy /
 `503` otherwise). It's a pure read of the last check — it makes no network call,
@@ -112,9 +119,10 @@ so a `curl`/Docker healthcheck never hits MAM.
 
 ## `GET /events`
 
-Protected: Yes (origin-checked)
+Requires Auth?: Yes
 
-A [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
-stream the web UI subscribes to. The events are **contentless** — each one just
-signals "something changed, re-pull `GET /state`". Used by the dashboard to update
-live without polling; not generally useful to API clients.
+A
+[Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+stream the web UI subscribes to. The events have no content; they just signal
+"something has changed, re-pull `GET /state`". Used by the dashboard to update
+live without polling. Not generally useful to API clients.

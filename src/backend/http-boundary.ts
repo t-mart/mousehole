@@ -1,4 +1,7 @@
+import type { Context } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
+
+import { createMiddleware } from "hono/factory";
 
 import type {
   AllowedOriginsConfig,
@@ -6,14 +9,10 @@ import type {
   AllowedHostsConfig,
 } from "./config.ts";
 
-import { logger, LOG_LEVEL_NAMES } from "./logger.ts";
+// import { logger,
+//   //  LOG_LEVEL_NAMES
+//   } from "./logger.ts";
 import { extractSessionId } from "./session.ts";
-
-export type SecurityConfig = {
-  allowedHosts: AllowedHostsConfig;
-  allowedOrigins: AllowedOriginsConfig;
-  auth: AuthConfig;
-};
 
 type HostAndPort = {
   hostname: string;
@@ -31,87 +30,95 @@ export type BoundaryFailure = {
    * default info level. "debug" marks routine traffic (e.g. a dashboard
    * loading before login, or an expired session cookie).
    */
-  logLevel?: (typeof LOG_LEVEL_NAMES)[number];
+  // logLevel?: (typeof LOG_LEVEL_NAMES)[number];
   /**
    * A more specific log line than `message` (e.g. including the offending
    * header value). Logged by the middleware, never sent to the client.
    */
-  logDetail?: string;
-};
-
-export type ProtectedRequestOptions = {
-  requireAuth?: boolean;
-  requireJsonContentType?: boolean;
-  requireOrigin?: boolean;
+  // logDetail?: string;
 };
 
 /**
  * The stateful capabilities the boundary checks need. Kept as an explicit
  * dependency so the checks themselves stay pure functions of their inputs.
  */
-export type BoundaryDeps = {
-  /** Whether the request carries a currently-valid session cookie. */
-  validateSession: (request: Request) => boolean;
-};
+export type SessionAuthValidator = (request: Request) => boolean;
 
-export function validateRuntimeSecurityConfig(
-  securityConfig: Pick<SecurityConfig, "auth">,
-): void {
-  if (
-    securityConfig.auth.type === "configured" &&
-    !securityConfig.auth.password
-  ) {
-    logger.warn(
-      "MOUSEHOLE_AUTH_PASSWORD is not set. Browser login will be unavailable.",
-    );
-  }
-  if (securityConfig.auth.type !== "none") {
-    return;
-  }
+/**
+ * How a request cleared `requireAuth`, published on the Hono context so
+ * downstream boundary checks can adapt (`originAllowed` skips for "token").
+ */
+export type AuthMethod = "none" | "session" | "token";
 
-  if (!securityConfig.auth.insecureAllowNoAuth) {
-    throw new Error(
-      "Mousehole authentication is not configured. Set MOUSEHOLE_AUTH_PASSWORD and/or MOUSEHOLE_AUTH_TOKEN, or set MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true to opt out.",
-    );
-  }
+type BoundaryEnv = { Variables: { authMethod?: AuthMethod } };
 
-  logger.warn(
-    "Running without authentication (MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true). Do not expose Mousehole to mixed-trust LAN, VPN, or public interfaces.",
+type BoundaryCheck = (request: Request) => BoundaryFailure | undefined;
+
+/** Log a failure's hint and turn it into the client-facing JSON response. */
+function respondWithFailure(c: Context, failure: BoundaryFailure): Response {
+  // logger[failure.logLevel ?? "warn"](
+  //   `[${c.req.method} ${c.req.path}] ${failure.logDetail ?? failure.message}`,
+  // );
+  return c.json(
+    { type: failure.type, message: failure.message },
+    failure.status,
+    failure.headers,
   );
 }
 
 /**
- * Run every applicable boundary check against the request. Pure: returns the
- * first failure (carrying its own log hints) or undefined; emitting the log is
- * the caller's job (the `protect` middleware in app.ts).
+ * Wrap a pure check into route middleware: a failure logs its hint and
+ * responds without reaching the handler. Routes list these middlewares
+ * varargs-style, so failure precedence is their textual order at the route.
  */
-export function checkProtectedRequest(
-  request: Request,
-  options: ProtectedRequestOptions,
-  securityConfig: SecurityConfig,
-  deps: BoundaryDeps,
-): BoundaryFailure | undefined {
-  const hostFailure = checkHost(request, securityConfig.allowedHosts);
-  if (hostFailure) return hostFailure;
-
-  if (options.requireAuth !== false) {
-    const authFailure = checkAuthentication(
-      request,
-      securityConfig.auth,
-      deps,
-    );
-    if (authFailure) return authFailure;
-  }
-
-  if (options.requireOrigin) {
-    const originFailure = checkOrigin(request, securityConfig.allowedOrigins);
-    if (originFailure) return originFailure;
-  }
-
-  if (options.requireJsonContentType) {
-    return checkJsonContentType(request);
-  }
+function createBoundaryMiddleware(check: BoundaryCheck) {
+  return createMiddleware(async (c, next) => {
+    const failure = check(c.req.raw);
+    if (failure) return respondWithFailure(c, failure);
+    await next();
+  });
 }
+
+/** Rejects requests whose Host header isn't allowlisted (DNS-rebinding defense). */
+export function hostAllowed(allowedHosts: AllowedHostsConfig) {
+  return createBoundaryMiddleware((request) =>
+    checkHost(request, allowedHosts),
+  );
+}
+
+/** Rejects requests carrying neither a valid session nor a valid Bearer token. */
+export function requireAuth(
+  authConfig: AuthConfig,
+  isSessionValid: SessionAuthValidator,
+) {
+  return createMiddleware<BoundaryEnv>(async (c, next) => {
+    const result = checkAuthentication(c.req.raw, authConfig, isSessionValid);
+    if ("failure" in result) return respondWithFailure(c, result.failure);
+    c.set("authMethod", result.method);
+    await next();
+  });
+}
+
+/** Rejects disallowed cross-origin requests (CSRF defense); origin-less requests pass. */
+export function originAllowed(allowedOrigins: AllowedOriginsConfig) {
+  return createMiddleware<BoundaryEnv>(async (c, next) => {
+    // The origin check is a CSRF defense, and CSRF needs an ambient credential
+    // (the browser auto-attaching the session cookie). A Bearer token is
+    // explicit — a cross-site page cannot attach it (forms can't set headers;
+    // fetch setting one triggers a CORS preflight we never approve) — so a
+    // token-authenticated request carries no CSRF risk to block. Sessions,
+    // the no-auth opt-out, and stacks without `requireAuth` (login) stay
+    // enforced. Requires `requireAuth` to run earlier in the route's stack.
+    if (c.get("authMethod") !== "token") {
+      const failure = checkOrigin(c.req.raw, allowedOrigins);
+      if (failure) return respondWithFailure(c, failure);
+    }
+    await next();
+  });
+}
+
+/** Rejects request bodies not declared as application/json. */
+export const requireJsonBody = createBoundaryMiddleware(checkJsonContentType);
 
 function checkHost(
   request: Request,
@@ -127,8 +134,7 @@ function checkHost(
     return {
       status: 403,
       type: "host-not-allowed",
-      message: "Request Host header is required.",
-      logDetail: "host not allowed: (missing)",
+      message: "Request Host header is required."
     };
   }
 
@@ -138,8 +144,7 @@ function checkHost(
     return {
       status: 403,
       type: "host-not-allowed",
-      message: "Request Host header is invalid.",
-      logDetail: `host not allowed: invalid "${host}"`,
+      message: `Request Host "${host}" is invalid.`
     };
   }
 
@@ -155,28 +160,35 @@ function checkHost(
   return {
     status: 403,
     type: "host-not-allowed",
-    message: "Request Host header is not allowed.",
-    logDetail: `host not allowed: "${host}" (set MOUSEHOLE_ALLOWED_HOSTS to permit it)`,
+    message: `Host "${host}" not allowed. (Set MOUSEHOLE_ALLOWED_HOSTS to permit it)`,
   };
 }
 
+type AuthCheckResult = { failure: BoundaryFailure } | { method: AuthMethod };
+
+// The ladder is ordered session → token → opt-out, so a reported "token"
+// means the ambient session cookie played no part in authorizing the request
+// (which is what lets originAllowed waive the CSRF check).
 function checkAuthentication(
   request: Request,
   authConfig: AuthConfig,
-  deps: BoundaryDeps,
-): BoundaryFailure | undefined {
+  isSessionValid: SessionAuthValidator,
+): AuthCheckResult {
   if (authConfig.type === "none") {
     return authConfig.insecureAllowNoAuth
-      ? undefined
+      ? { method: "none" }
       : {
-          status: 500,
-          type: "auth-not-configured",
-          message: "Mousehole authentication is not configured.",
+          failure: {
+            status: 500,
+            type: "auth-not-configured",
+            message:
+              "Mousehole authentication is not configured. Set MOUSEHOLE_AUTH_PASSWORD or MOUSEHOLE_AUTH_TOKEN to enable.",
+          },
         };
   }
 
-  if (deps.validateSession(request)) {
-    return undefined;
+  if (isSessionValid(request)) {
+    return { method: "session" };
   }
 
   const authorization = request.headers.get("authorization");
@@ -184,7 +196,7 @@ function checkAuthentication(
     authConfig.token &&
     checkTokenAuthorization(authorization, authConfig.token)
   ) {
-    return undefined;
+    return { method: "token" };
   }
 
   // A presented-but-rejected Bearer token is a misconfigured (or hostile) API
@@ -193,18 +205,18 @@ function checkAuthentication(
   const presentedBearer = authorization !== null;
   const presentedSession = extractSessionId(request) !== undefined;
   return {
-    status: 401,
-    type: "authentication-required",
-    message: "Authentication is required.",
-    headers: {
-      "WWW-Authenticate": 'Bearer realm="Mousehole"',
+    failure: {
+      status: 401,
+      type: "authentication-required",
+      message: presentedBearer
+        ? "Rejected Bearer token (wrong value, or MOUSEHOLE_AUTH_TOKEN not set)"
+        : presentedSession
+          ? "Unknown or expired session cookie"
+          : "No credentials presented",
+      headers: {
+        "WWW-Authenticate": 'Bearer realm="Mousehole"',
+      },
     },
-    logLevel: presentedBearer ? "warn" : "debug",
-    logDetail: presentedBearer
-      ? "rejected Bearer token (wrong value, or MOUSEHOLE_AUTH_TOKEN not set)"
-      : presentedSession
-        ? "unknown or expired session cookie"
-        : "no credentials presented",
   };
 }
 
@@ -237,7 +249,7 @@ function checkOrigin(
   return {
     status: 403,
     type: "origin-not-allowed",
-    message: `Origin '${origin}' is not allowed.`,
+    message: `Origin "${origin}" is not allowed.`,
   };
 }
 
@@ -252,8 +264,7 @@ function checkJsonContentType(request: Request): BoundaryFailure | undefined {
   return {
     status: 415,
     type: "unsupported-media-type",
-    message: "Content-Type must be application/json.",
-    logDetail: `unsupported content type: ${contentType ? `"${contentType}"` : "(missing)"}`,
+    message: `Unsupported content type "${contentType ?? ""}", must be "application/json"`,
   };
 }
 

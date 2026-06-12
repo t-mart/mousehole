@@ -2,7 +2,6 @@ import { Hono, type Context } from "hono";
 import { accepts } from "hono/accepts";
 import { bodyLimit } from "hono/body-limit";
 import { serveStatic } from "hono/bun";
-import { createMiddleware } from "hono/factory";
 import { proxy } from "hono/proxy";
 
 import type { AppContext } from "#backend/context.ts";
@@ -15,8 +14,10 @@ import { handlePostLogin } from "#backend/handlers/login.ts";
 import { handleGetOk } from "#backend/handlers/ok.ts";
 import { handleGetState } from "#backend/handlers/state.ts";
 import {
-  checkProtectedRequest,
-  type ProtectedRequestOptions,
+  hostAllowed,
+  originAllowed,
+  requireAuth,
+  requireJsonBody,
 } from "#backend/http-boundary.ts";
 import { logger } from "#backend/logger.ts";
 import { extractSessionId } from "#backend/session.ts";
@@ -47,25 +48,12 @@ export type WebMount =
  * @param webMount - how to serve the frontend under /web, if at all.
  */
 export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
-  // The boundary checks as route middleware. The checks are pure and return
-  // log hints with each failure; emitting them through our logger happens here.
-  const protect = (options: ProtectedRequestOptions = {}) =>
-    createMiddleware(async (c, next) => {
-      const failure = checkProtectedRequest(c.req.raw, options, ctx.config, {
-        validateSession: ctx.sessions.validateRequest,
-      });
-      if (failure) {
-        logger[failure.logLevel ?? "warn"](
-          `[${c.req.method} ${c.req.path}] ${failure.logDetail ?? failure.message}`,
-        );
-        return c.json(
-          { type: failure.type, message: failure.message },
-          failure.status,
-          failure.headers,
-        );
-      }
-      await next();
-    });
+  // The boundary middlewares, bound once to this context's config. Each route
+  // below lists its requirements varargs-style in host → auth → origin → json
+  // order; the first failing check logs and responds (see http-boundary.ts).
+  const host = hostAllowed(ctx.config.allowedHosts);
+  const auth = requireAuth(ctx.config.auth, ctx.sessions.isSessionValid);
+  const origin = originAllowed(ctx.config.allowedOrigins);
 
   const app = new Hono();
 
@@ -105,43 +93,33 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
     return c.redirect(mediaType === "text/html" ? "/web" : okEndpointPath);
   });
 
-  app.post(
-    "/login",
-    protect({
-      requireAuth: false,
-      requireOrigin: true,
-      requireJsonContentType: true,
-    }),
-    async (c) => {
-      const result = await handlePostLogin(
-        c.req.raw,
-        ctx.config.auth,
-        ctx.sessions,
-      );
-      if (!result.ok) return c.json({ ok: false }, result.status);
-      ctx.sessions.applyCookie(c, result.sessionId);
-      return c.json({ ok: true });
-    },
-  );
+  app.post("/login", host, origin, requireJsonBody, async (c) => {
+    const result = await handlePostLogin(
+      c.req.raw,
+      ctx.config.auth,
+      ctx.sessions,
+    );
+    if (!result.ok) return c.json({ ok: false }, result.status);
+    ctx.sessions.applyCookie(c, result.sessionId);
+    return c.json({ ok: true });
+  });
 
-  app.post("/logout", protect({ requireAuth: false }), (c) => {
+  app.post("/logout", host, origin, (c) => {
     ctx.sessions.deleteRequestSession(c.req.raw);
     ctx.sessions.clearCookie(c);
     return c.json({ ok: true });
   });
 
-  app.post(checksEndpointPath, protect({ requireOrigin: true }), async (c) =>
+  app.post(checksEndpointPath, host, auth, origin, async (c) =>
     c.json(await handlePostCheck(ctx)),
   );
 
-  app.get(stateEndpointPath, protect(), async (c) =>
+  app.get(stateEndpointPath, host, auth, async (c) =>
     c.json(await handleGetState(ctx)),
   );
 
-  app.put(
-    cookieEndpointPath,
-    protect({ requireOrigin: true, requireJsonContentType: true }),
-    async (c) => c.json(await handlePutCookie(ctx, c.req.raw)),
+  app.put(cookieEndpointPath, host, auth, origin, requireJsonBody, async (c) =>
+    c.json(await handlePutCookie(ctx, c.req.raw)),
   );
 
   app.get(okEndpointPath, async (c) => {
@@ -154,7 +132,7 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
     return c.json(body, body.ok ? 200 : 503);
   });
 
-  app.get(eventsEndpointPath, protect({ requireOrigin: true }), (c) => {
+  app.get(eventsEndpointPath, host, auth, origin, (c) => {
     const sessionId = extractSessionId(c.req.raw) ?? "";
     let unregister: (() => void) | undefined;
     const stream = new ReadableStream<string>({

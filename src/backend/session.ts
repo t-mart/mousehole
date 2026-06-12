@@ -58,7 +58,7 @@ export function createSessionStore(options: SessionStoreOptions) {
     return sessionId;
   }
 
-  function validateRequest(request: Request): boolean {
+  function isSessionValid(request: Request): boolean {
     pruneExpiredSessions();
     const sessionId = extractSessionId(request);
     return sessionId !== undefined && sessions.has(sessionId);
@@ -81,7 +81,7 @@ export function createSessionStore(options: SessionStoreOptions) {
 
   return {
     create,
-    validateRequest,
+    isSessionValid,
     deleteSession,
     deleteRequestSession,
     applyCookie,
