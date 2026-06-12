@@ -71,7 +71,14 @@ describe("login handler", () => {
         authConfig,
         sessions,
       );
-      expect(result).toEqual({ ok: false, status: 500 });
+      // The message keeps the login form from defaulting to "Incorrect
+      // password", which would lie to token-only/no-auth setups.
+      expect(result).toEqual({
+        ok: false,
+        status: 500,
+        message:
+          "Browser login is unavailable: MOUSEHOLE_AUTH_PASSWORD is not set.",
+      });
     }
   });
 });

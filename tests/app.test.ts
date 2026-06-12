@@ -107,6 +107,36 @@ describe("error shapes", () => {
     );
   });
 
+  test("a disallowed Host tells the user how to fix it", async () => {
+    // The forum-reported case: browsing via a host missing from
+    // MOUSEHOLE_ALLOWED_HOSTS. The client-facing message must be actionable.
+    const response = await app.request("/state", {
+      headers: { Host: "nas.local:5010" },
+    });
+
+    expect(response.status).toBe(403);
+    const body = (await response.json()) as { message: string };
+    expect(body.message).toContain("nas.local:5010");
+    expect(body.message).toContain("MOUSEHOLE_ALLOWED_HOSTS");
+  });
+
+  test("login explains itself when browser login is unavailable", async () => {
+    // Token-only auth: the form must not report "Incorrect password".
+    const { app: tokenOnlyApp } = makeTestContext({
+      env: { MOUSEHOLE_AUTH_PASSWORD: "", MOUSEHOLE_AUTH_TOKEN: "api-token" },
+    });
+
+    const response = await tokenOnlyApp.request("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "anything" }),
+    });
+
+    expect(response.status).toBe(500);
+    const body = (await response.json()) as { message?: string };
+    expect(body.message).toContain("MOUSEHOLE_AUTH_PASSWORD");
+  });
+
   test("oversized request bodies are rejected with 413 before auth even runs", async () => {
     // No credentials, yet the response is 413 (not 401): the global bodyLimit
     // middleware sits in front of every route's boundary stack.
@@ -478,7 +508,10 @@ describe("PUT /cookie validation", () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual(
-      expect.objectContaining({ type: "schema-error" }),
+      expect.objectContaining({
+        type: "schema-error",
+        issues: [expect.objectContaining({ path: "value" })],
+      }),
     );
   });
 });

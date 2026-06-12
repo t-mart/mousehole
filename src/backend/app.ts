@@ -99,7 +99,9 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
       ctx.config.auth,
       ctx.sessions,
     );
-    if (!result.ok) return c.json({ ok: false }, result.status);
+    if (!result.ok) {
+      return c.json({ ok: false, message: result.message }, result.status);
+    }
     ctx.sessions.applyCookie(c, result.sessionId);
     return c.json({ ok: true });
   });

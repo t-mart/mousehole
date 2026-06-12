@@ -91,20 +91,39 @@ export class JSONParseError extends MouseholeError {
   }
 }
 
+/** One field-level problem from schema validation, addressed by path. */
+export type SchemaIssue = { path: string; message: string };
+
+function toSchemaIssues(error: ZodError): SchemaIssue[] {
+  return error.issues.map((issue) => ({
+    path: issue.path.map(String).join("."),
+    message: issue.message,
+  }));
+}
+
 export class SchemaError extends MouseholeError {
+  /** Field-level issues, attached to the error response body. */
+  public readonly issues: SchemaIssue[];
+
   private constructor(
     sourceName: string,
     { cause, httpStatus }: { cause: ZodError; httpStatus: ContentfulStatusCode }
   ) {
-    super(
-      `Schema validation failed for data from ${sourceName}: ${cause.message}`,
-      {
-        cause,
-        httpStatus,
-      }
-    );
+    // The message carries only the first issue as a human-sized summary; the
+    // full set rides as structured `issues` (ZodError.message is a wall of
+    // pretty-printed JSON that overwhelms UI surfaces and logs).
+    const issues = toSchemaIssues(cause);
+    const first = issues[0];
+    const summary = first
+      ? `${first.path ? `${first.path}: ` : ""}${first.message}`
+      : "invalid data";
+    super(`Schema validation failed for data from ${sourceName}: ${summary}`, {
+      cause,
+      httpStatus,
+    });
     this.name = "SchemaError";
     this.errorType = "schema-error";
+    this.issues = issues;
   }
 
   static fromUserSource(sourceName: string, { cause }: { cause: ZodError }) {
@@ -155,12 +174,17 @@ export type ErrorResponseArgs = {
 };
 
 export function toErrorResponseArgs(error: unknown): ErrorResponseArgs {
+  // If HTTPException-throwing Hono middleware is ever adopted, unwrap it here
+  // (error.getResponse() / error.status) instead of letting it fall through
+  // to a 500 unhandled-error. Nothing in the app throws it today.
   const message =
     error instanceof Error ? error.message : `Unhandled error: ${String(error)}`;
   const errorType =
     error instanceof MouseholeError ? error.errorType : "unhandled-error";
+  // A SchemaError's ZodError cause is already represented by `issues`;
+  // recursing into it would just re-serialize the wall of zod text.
   const cause =
-    error instanceof Error && error.cause
+    error instanceof Error && error.cause && !(error instanceof SchemaError)
       ? toErrorResponseArgs(error.cause).body
       : undefined;
   const status = error instanceof MouseholeError ? error.httpStatus : 500;
@@ -169,6 +193,7 @@ export function toErrorResponseArgs(error: unknown): ErrorResponseArgs {
     body: {
       type: errorType,
       message,
+      ...(error instanceof SchemaError ? { issues: error.issues } : {}),
       ...(cause ? { cause } : {}),
     },
     status,

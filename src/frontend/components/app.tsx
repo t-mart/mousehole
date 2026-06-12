@@ -7,6 +7,7 @@ import { useErrors } from "#frontend/lib/error-context.tsx";
 import {
   stateQueryFunction,
   stateQueryKey,
+  stateQueryRetry,
   UnauthenticatedError,
 } from "../lib/state-query";
 import { Dashboard } from "./dashboard";
@@ -37,7 +38,7 @@ export function App() {
   const stateQuery = useQuery({
     queryKey: stateQueryKey,
     queryFn: stateQueryFunction,
-    retry: (_, error) => !(error instanceof UnauthenticatedError),
+    retry: stateQueryRetry,
   });
 
   function handleLogout() {

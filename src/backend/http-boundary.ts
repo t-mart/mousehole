@@ -9,9 +9,6 @@ import type {
   AllowedHostsConfig,
 } from "./config.ts";
 
-// import { logger,
-//   //  LOG_LEVEL_NAMES
-//   } from "./logger.ts";
 import { extractSessionId } from "./session.ts";
 
 type HostAndPort = {
@@ -19,23 +16,15 @@ type HostAndPort = {
   port?: string;
 };
 
+// A failure's `message` is client-facing and deliberately actionable (it
+// names offending values and the env var to set). The boundary does not log
+// rejections — the client surfaces them, and duplicating them into the
+// server log was decided to be noise.
 export type BoundaryFailure = {
   headers?: Record<string, string>;
   message: string;
   status: ContentfulStatusCode;
   type: string;
-  /**
-   * Log severity for the boundary middleware. Defaults to "warn" — most
-   * failures are actionable misconfiguration the operator should see at the
-   * default info level. "debug" marks routine traffic (e.g. a dashboard
-   * loading before login, or an expired session cookie).
-   */
-  // logLevel?: (typeof LOG_LEVEL_NAMES)[number];
-  /**
-   * A more specific log line than `message` (e.g. including the offending
-   * header value). Logged by the middleware, never sent to the client.
-   */
-  // logDetail?: string;
 };
 
 /**
@@ -54,11 +43,8 @@ type BoundaryEnv = { Variables: { authMethod?: AuthMethod } };
 
 type BoundaryCheck = (request: Request) => BoundaryFailure | undefined;
 
-/** Log a failure's hint and turn it into the client-facing JSON response. */
+/** Turn a failure into the client-facing JSON response. */
 function respondWithFailure(c: Context, failure: BoundaryFailure): Response {
-  // logger[failure.logLevel ?? "warn"](
-  //   `[${c.req.method} ${c.req.path}] ${failure.logDetail ?? failure.message}`,
-  // );
   return c.json(
     { type: failure.type, message: failure.message },
     failure.status,
@@ -67,9 +53,9 @@ function respondWithFailure(c: Context, failure: BoundaryFailure): Response {
 }
 
 /**
- * Wrap a pure check into route middleware: a failure logs its hint and
- * responds without reaching the handler. Routes list these middlewares
- * varargs-style, so failure precedence is their textual order at the route.
+ * Wrap a pure check into route middleware: a failure responds without
+ * reaching the handler. Routes list these middlewares varargs-style, so
+ * failure precedence is their textual order at the route.
  */
 function createBoundaryMiddleware(check: BoundaryCheck) {
   return createMiddleware(async (c, next) => {

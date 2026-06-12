@@ -34,6 +34,17 @@ automatically (your cookie is preserved).
   task is the only thing that contacts MAM.
 - **Changed**: Requests with bodies over 8 KB now get a JSON
   `{ "type": "payload-too-large", … }` error body with the `413` status.
+- **Fixed**: The web UI no longer spins forever when the server rejects its
+  requests — most notably browsing from a host missing from
+  `MOUSEHOLE_ALLOWED_HOSTS` — and instead shows the server's error with a
+  Retry button. Boundary rejection messages are written to be actionable
+  (naming the offending value and the setting to change).
+- **Changed**: `POST /login` now explains when browser login is unavailable
+  (`MOUSEHOLE_AUTH_PASSWORD` not set) instead of presenting like a wrong
+  password.
+- **Changed**: Invalid request bodies (`400` schema errors) carry a
+  structured `issues` array (`[{ path, message }]`) and a one-line `message`
+  instead of zod's raw multi-line text.
 
 ## [v0.4.0](https://github.com/t-mart/mousehole/releases/tag/v0.4.0) - 2026-06-04
 

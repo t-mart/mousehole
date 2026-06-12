@@ -13,15 +13,22 @@ const loginBodySchema = z.object({
 
 export type LoginResult =
   | { ok: true; sessionId: string }
-  | { ok: false; status: ContentfulStatusCode };
+  | { ok: false; status: ContentfulStatusCode; message?: string };
 
 export async function handlePostLogin(
   request: Request,
   authConfig: AuthConfig,
   sessions: Pick<SessionStore, "create">,
 ): Promise<LoginResult> {
+  // Without a message, the login form's fallback wording ("Incorrect
+  // password") would lie to users of token-only or no-auth setups.
   if (authConfig.type !== "configured" || !authConfig.password) {
-    return { ok: false, status: 500 };
+    return {
+      ok: false,
+      status: 500,
+      message:
+        "Browser login is unavailable: MOUSEHOLE_AUTH_PASSWORD is not set.",
+    };
   }
 
   let raw: unknown;

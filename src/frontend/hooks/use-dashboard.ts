@@ -6,7 +6,7 @@ import { useErrors } from "#frontend/lib/error-context.tsx";
 import {
   stateQueryFunction,
   stateQueryKey,
-  UnauthenticatedError,
+  stateQueryRetry,
 } from "#frontend/lib/state-query.ts";
 
 import { useServerEvents } from "./use-server-events";
@@ -49,7 +49,7 @@ export function useDashboard(onLogout: () => void) {
   const stateQuery = useQuery({
     queryKey: stateQueryKey,
     queryFn: stateQueryFunction,
-    retry: (_, error) => !(error instanceof UnauthenticatedError),
+    retry: stateQueryRetry,
   });
   useServerEvents();
 
