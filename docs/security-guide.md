@@ -102,7 +102,7 @@ UI. Sessions persist for one week by default (see
 
 **API token** (`MOUSEHOLE_AUTH_TOKEN`): Enables Bearer token authentication for
 API clients. Clients send `Authorization: Bearer <token>` with each request.
-Useful for scripts or tools that access the [API](./API.md) without a browser
+Useful for scripts or tools that access the [API](/docs/API.md) without a browser
 session.
 
 To disable all authentication (not recommended outside of a trusted localhost

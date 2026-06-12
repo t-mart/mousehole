@@ -51,4 +51,4 @@ to create a session for it. Each session is tied to a cookie value.
    anything else! You can close the page.
 
    If you do not see an OK status, check out the
-   [error documentation](./errors.md) for help with troubleshooting.
+   [error documentation](/docs/errors.md) for help with troubleshooting.

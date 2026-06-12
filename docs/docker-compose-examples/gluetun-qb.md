@@ -7,7 +7,7 @@ support for many providers. This example also uses
 > [!IMPORTANT]
 >
 > This is just a starting point! You will need to
-> [customize](../compose-setups.md) it to your needs.
+> [customize](/docs/compose-setups.md) it to your needs.
 
 ```yaml
 services:

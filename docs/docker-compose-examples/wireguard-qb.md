@@ -8,12 +8,12 @@ also use
 in this example.
 
 (Gluetun may be easier to set up for beginners. See the
-[Gluetun example](gluetun-qb.md).)
+[Gluetun example](/docs/docker-compose-examples/gluetun-qb.md).)
 
 > [!IMPORTANT]
 >
 > This is just a starting point! You will need to
-> [customize](../compose-setups.md) it to your needs.
+> [customize](/docs/compose-setups.md) it to your needs.
 
 ```yaml
 services:

@@ -31,7 +31,7 @@ or to restart Mousehole.
 error, usually returned when a more specific error could not be identified.
 
 **🔧 How to fix**: Get a new cookie value following the steps in
-[Getting Your Cookie Value](getting-your-cookie.md).
+[Getting Your Cookie Value](/docs/getting-your-cookie.md).
 
 ## 403 Invalid Session - IP Mismatch
 
@@ -39,7 +39,7 @@ error, usually returned when a more specific error could not be identified.
 Mousehole is not running from that IP. This happens when the session was created
 with "IP locked".
 
-**🔧 How to fix**: [Create a new session](getting-your-cookie.md) with **ASN**
+**🔧 How to fix**: [Create a new session](/docs/getting-your-cookie.md) with **ASN**
 selected for "IP vs ASN locked session".
 
 ## 403 Invalid Session - ASN Mismatch
@@ -52,7 +52,7 @@ Mousehole's IP is not in the list of allowed ASNs for the session.
 
 1. Copy the IP address shown on Mousehole's main page.
 
-   ![Mousehole ASN Mismatch Error](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/asn-mismatch-ip.png)
+   ![Mousehole ASN Mismatch Error](/docs/images/asn-mismatch-ip.png)
 
 2. Go to the
    [MAM Security Settings page](https://www.myanonamouse.net/preferences/index.php?view=security).
@@ -60,12 +60,12 @@ Mousehole's IP is not in the list of allowed ASNs for the session.
 3. Find your existing Mousehole session in the table and click the "Manage
    Session" button.
 
-   ![MAM Session Table](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/manage-session.png)
+   ![MAM Session Table](/docs/images/manage-session.png)
 
 4. In the popup, add the **Mousehole IP address** to the "Add additional ASN via
    IP address" text box.
 
-   ![MAM Add ASN via IP](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/manage-session-modal.png)
+   ![MAM Add ASN via IP](/docs/images/manage-session-modal.png)
 
    (Ensure "Yes" is selected for "Allow Session to set Dynamic Seedbox".)
 
@@ -73,7 +73,7 @@ Mousehole's IP is not in the list of allowed ASNs for the session.
 
 5. Back in Mousehole, press the "Update Now" button.
 
-   ![Mousehole Update Now Button](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/check-now-button.png)
+   ![Mousehole Update Now Button](/docs/images/update-now-button.png)
 
 6. You should now see an OK status.
 
@@ -83,7 +83,7 @@ Mousehole's IP is not in the list of allowed ASNs for the session.
 possibly a typo or a copy of the wrong value.
 
 **🔧 How to fix**: Get a new cookie value following the steps in
-[Getting Your Cookie Value](getting-your-cookie.md). When pasting the cookie
+[Getting Your Cookie Value](/docs/getting-your-cookie.md). When pasting the cookie
 value into Mousehole, ensure there are no extra spaces at the beginning or end
 of the value.
 
@@ -94,7 +94,7 @@ created with permission to set the Dynamic Seedbox IP. This means "Allow Session
 to set Dynamic Seedbox" was set to "No" when the session was created.
 
 **🔧 How to fix**: Get a new cookie value following the steps in
-[Getting Your Cookie Value](getting-your-cookie.md), ensuring to select "Yes"
+[Getting Your Cookie Value](/docs/getting-your-cookie.md), ensuring to select "Yes"
 for "Allow Session to set Dynamic Seedbox" when creating the session.
 
 ## 403 Incorrect Session Type - Non-API Session
@@ -104,4 +104,4 @@ not an API session. (Did you copy the cookie from your browser's developer
 tools? 🤨)
 
 **🔧 How to fix**: Create a new session the right way by following the steps in
-[Getting Your Cookie Value](getting-your-cookie.md).
+[Getting Your Cookie Value](/docs/getting-your-cookie.md).

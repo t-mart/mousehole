@@ -3,7 +3,7 @@
 A background service to update a seedbox IP for MAM and an HTTP server to manage
 it.
 
-![Mousehole Demo](docs/images/demo.webp)
+![Mousehole Demo](/docs/images/demo.webp)
 
 This can be helpful if you are using a host/VPN/seedbox to seed and its IP
 address is not stable.
@@ -13,7 +13,7 @@ Features:
 - Background service that automatically keeps MAM up to date with your host's
   IP
 - Frontend website to manage the service
-- [API](docs/API.md) for programmatic access
+- [API](/docs/API.md) for programmatic access
 
 ## Getting Started
 
@@ -29,17 +29,17 @@ To use Mousehole, you need to:
 Starter Docker Compose examples:
 
 - ⭐
-  [Gluetun + qBittorrent + Mousehole](docs/docker-compose-examples/gluetun-qb.md)
-- [Wireguard + qBittorrent + Mousehole](docs/docker-compose-examples/wireguard-qb.md)
-- [hotio/qBittorrent + Mousehole](docs/docker-compose-examples/hotio-qb.md)
-- [binhex/arch-qbittorrentvpn + Mousehole](docs/docker-compose-examples/binhex-qb.md)
-- [Non-VPN Example](docs/docker-compose-examples/non-vpn.md)
+  [Gluetun + qBittorrent + Mousehole](/docs/docker-compose-examples/gluetun-qb.md)
+- [Wireguard + qBittorrent + Mousehole](/docs/docker-compose-examples/wireguard-qb.md)
+- [hotio/qBittorrent + Mousehole](/docs/docker-compose-examples/hotio-qb.md)
+- [binhex/arch-qbittorrentvpn + Mousehole](/docs/docker-compose-examples/binhex-qb.md)
+- [Non-VPN Example](/docs/docker-compose-examples/non-vpn.md)
 
-Any Docker Compose setup can be adapted to include [Mousehole as a sidecar](docs/compose-setups.md).
+Any Docker Compose setup can be adapted to include [Mousehole as a sidecar](/docs/compose-setups.md).
 
 #### Unraid
 
-See the [Unraid Installation Guide](contrib/unraid/README.md) for instructions.
+See the [Unraid Installation Guide](/contrib/unraid/README.md) for instructions.
 
 #### From Source
 
@@ -55,18 +55,18 @@ bun run start
 ### Step 2: Set Your MAM Cookie
 
 Navigate to the Mousehole web UI at <http://localhost:5010> and paste in your
-MAM cookie. See [Getting Your Cookie Value](docs/getting-your-cookie.md) for a
+MAM cookie. See [Getting Your Cookie Value](/docs/getting-your-cookie.md) for a
 full walkthrough of how to obtain the cookie from MAM.
 
 ## Handling Errors
 
 Even with Mousehole up and running, things can still go wrong that Mousehole
-cannot fix automatically. Check out the [error documentation](docs/errors.md)
+cannot fix automatically. Check out the [error documentation](/docs/errors.md)
 for help with troubleshooting.
 
 ## Security
 
-See the [security guide](docs/security-guide.md) for detailed information.
+See the [security guide](/docs/security-guide.md) for detailed information.
 
 ## Docker Images
 
@@ -86,7 +86,7 @@ Several tags are published throughout the lifecycle of the project:
 
 The Dockerfile includes a default healthcheck that hits the
 `http://localhost:5010/health` endpoint (see
-[API Documentation](docs/API.md#get-health)). If you change the port on which
+[API Documentation](/docs/API.md#get-health)). If you change the port on which
 Mousehole listens with the `MOUSEHOLE_PORT` environment variable, make sure to
 override the healthcheck command accordingly.
 
@@ -121,23 +121,23 @@ dashboard reflects each one live (in this and any other open tab).
   this list does not have a port, then any port is allowed for that host. But,
   if a port is specified (`localhost:5010`), only that port is allowed. As an
   opt-out, set to `*` to allow any host. See
-  [Host Allowlist](docs/security-guide.md#host-allowlist) for more details.
+  [Host Allowlist](/docs/security-guide.md#host-allowlist) for more details.
 - `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of origins permitted to
   make cross-origin requests to mutating routes and the live-update stream. Defaults
   to same-origin only, which only allows the origin that matches the host of the
   request. Values must be exact origins with no path, such as
   `https://mousehole.example.com` or `http://nas.local:5010`. As an opt-out, set
   to `*` to allow any origin. See
-  [Origin Allowlist](docs/security-guide.md#origin-allowlist) for more details.
+  [Origin Allowlist](/docs/security-guide.md#origin-allowlist) for more details.
 - `MOUSEHOLE_HTTPS_ONLY_COOKIES`: _(Default `false`)_ Set to `true` to add the
   `Secure` flag to session cookies, preventing browsers from sending them over
   plain HTTP. Enable this when Mousehole is accessed exclusively via HTTPS (e.g.
   behind a reverse proxy). HTTP sessions will not work. See
-  [HTTPS-Only Cookies](docs/security-guide.md#https-only-cookies) for more
+  [HTTPS-Only Cookies](/docs/security-guide.md#https-only-cookies) for more
   details.
 - `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
   Clients can send HTTP headers in the format `Authorization: Bearer <token>`
-  when accessing [API endpoints](docs/API.md).
+  when accessing [API endpoints](/docs/API.md).
 
 ### Occasional tuning
 
@@ -152,7 +152,7 @@ dashboard reflects each one live (in this and any other open tab).
   hanging when the connection silently stalls (e.g. before the VPN is up).
 - `MOUSEHOLE_SESSION_DURATION_SECONDS`: _(Default `604800` (1 week))_ How long a
   browser login session remains valid before expiring. See
-  [Session Duration](docs/security-guide.md#session-duration) for more details.
+  [Session Duration](/docs/security-guide.md#session-duration) for more details.
 - `MOUSEHOLE_LOG_LEVEL`: _(Default `info`)_ Log verbosity. Valid values:
   `error`, `warn`, `info`, `debug`.
 - `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory
@@ -167,9 +167,9 @@ dashboard reflects each one live (in this and any other open tab).
 
 ## Contributing
 
-Want to contribute? Check out the [contribution guidelines](./CONTRIBUTING.md).
+Want to contribute? Check out the [contribution guidelines](/CONTRIBUTING.md).
 
-There is also a [`contrib`](./contrib/) directory with useful, supplementary
+There is also a [`contrib`](/contrib/) directory with useful, supplementary
 functionality.
 
 ## Links
