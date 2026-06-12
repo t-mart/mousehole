@@ -2,57 +2,78 @@
 
 ## Unreleased
 
-This release reworks how Mousehole talks to MAM and how the web UI stays in sync,
-and flattens the state model. Existing `state.json` files are migrated
+This release reworks how Mousehole talks to MAM and how the web UI stays in
+sync, and flattens the state model. Existing `state.json` files are migrated
 automatically (your cookie is preserved).
 
-- **Breaking**: Live updates now use Server-Sent Events instead of WebSockets.
-  The `GET /web/ws` endpoint is replaced by `GET /events`, which carries
-  contentless "re-pull `GET /state`" signals (no state in the payload).
-- **Breaking**: Setting the cookie moved from `PUT /state` (`{ "currentCookie":
-  … }`) to `PUT /cookie` (`{ "value": … }`). It now also contacts MAM
-  immediately, so the response reflects whether the cookie works.
-- **Breaking**: Triggering an update moved from `POST /update` (with an
-  optional `force` body) to `POST /updates` (no body).
+- **Breaking**: Live updates use Server-Sent Events instead of WebSockets:
+  `GET /web/ws` is replaced by `GET /events`, a contentless "re-pull
+  `GET /state`" signal, in
+  [57c71fc](https://github.com/t-mart/mousehole/commit/57c71fc) and
+  [7677644](https://github.com/t-mart/mousehole/commit/7677644).
+- **Breaking**: Setting the cookie moved from `PUT /state`
+  (`{ "currentCookie": … }`) to `PUT /cookie` (`{ "value": … }`, non-empty),
+  which contacts MAM immediately so the response shows whether the cookie works,
+  in [b244901](https://github.com/t-mart/mousehole/commit/b244901).
+- **Breaking**: Triggering an update moved from `POST /update` (optional `force`
+  body) to `POST /updates` (no body) in
+  [b244901](https://github.com/t-mart/mousehole/commit/b244901) and
+  [51b228c](https://github.com/t-mart/mousehole/commit/51b228c).
 - **Breaking**: `MOUSEHOLE_CHECK_INTERVAL_SECONDS` is renamed to
-  `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`. The old name is ignored (the default of
-  300 seconds applies until you rename it).
-- **Breaking**: The `GET /state` response is reshaped. `host`, `lastMam`,
+  `MOUSEHOLE_UPDATE_INTERVAL_SECONDS` in
+  [51b228c](https://github.com/t-mart/mousehole/commit/51b228c). The old name is
+  ignored (the 300-second default applies until you rename it).
+- **Breaking**: The `GET /state` response is reshaped: `host`, `lastMam`,
   `lastUpdate`, `hasCurrentCookie`, and `isOnline` are gone, and `nextCheckAt`
-  is renamed to `nextContactAt`; it now returns `hasCookie`, `hasAuth`,
-  `nextContactAt`, and a `lastMamContact` tagged union. See
-  [the API docs](/docs/API.md).
-- **Breaking**: `GET /ok` and `GET /health` now return `{ ok, reason }`, where
-  `reason` is a contact status (`ok`, `throttled`, `rejected`, `unreachable`,
-  `no-cookie`, `pending`). The old `isOnline` / `neededUpdateReason` fields are
-  removed.
-- **Breaking**: Removed `MOUSEHOLE_STALE_RESPONSE_SECONDS`. Every update now
-  contacts MAM (which replies "No change" when nothing changed), so the
-  stale-forcing mechanism is no longer needed.
-- **Changed**: `GET /state`, `/ok`, and `/health` are now pure reads — they never
-  call MAM, so a network blip can't make them fail or hang. The background update
-  task is the only thing that contacts MAM.
-- **Changed**: Requests with bodies over 8 KB now get a JSON
-  `{ "type": "payload-too-large", … }` error body with the `413` status.
+  is renamed to `nextContactAt`. It now returns `hasCookie`, `hasAuth`,
+  `nextContactAt`, and a `lastMamContact` tagged union (see
+  [the API docs](/docs/API.md)), in
+  [4c10402](https://github.com/t-mart/mousehole/commit/4c10402) and
+  [51b228c](https://github.com/t-mart/mousehole/commit/51b228c).
+- **Breaking**: `GET /ok` and `GET /health` return `{ ok, reason }`, where
+  `reason` is `ok`, `throttled`, `rejected`, `unreachable`, `no-cookie`, or
+  `pending`; `isOnline` / `neededUpdateReason` are removed, in
+  [b244901](https://github.com/t-mart/mousehole/commit/b244901).
+- **Breaking**: Removed `MOUSEHOLE_STALE_RESPONSE_SECONDS`. Every update
+  contacts MAM (which replies "No change" when nothing changed), in
+  [4c10402](https://github.com/t-mart/mousehole/commit/4c10402).
+- **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
+  call MAM, so a network blip can't fail or hang them, in
+  [b244901](https://github.com/t-mart/mousehole/commit/b244901).
+- **Changed**: Bearer-token requests are exempt from the cross-origin (CSRF)
+  check because a cross-site page can't attach your token, so there's nothing to
+  block, in [9755fd9](https://github.com/t-mart/mousehole/commit/9755fd9).
+- **Changed**: `POST /logout` enforces the origin check (no more cross-site
+  logout) in [9755fd9](https://github.com/t-mart/mousehole/commit/9755fd9).
+- **Changed**: Requests with bodies over 8 KB get a JSON
+  `{ "type": "payload-too-large", … }` body with the `413` status, in
+  [7677644](https://github.com/t-mart/mousehole/commit/7677644).
+- **Changed**: Server logs honor the [`NO_COLOR`](https://no-color.org)
+  convention in [6e3db04](https://github.com/t-mart/mousehole/commit/6e3db04).
+- **Changed**: The Unraid guide has been overhauled for clarity and the
+  associated template updated to match the latest version of Mousehole, in
+  [fd81847](https://github.com/t-mart/mousehole/commit/fd81847).
+- **Fixed**: A failure _reading_ `state.json` (permissions, IO) no longer passes
+  for a fresh install (which could overwrite the stored cookie) in
+  [0374bcd](https://github.com/t-mart/mousehole/commit/0374bcd).
 - **Fixed**: The web UI no longer spins forever when the server rejects its
-  requests — most notably browsing from a host missing from
-  `MOUSEHOLE_ALLOWED_HOSTS` — and instead shows the server's error with a
-  Retry button. Boundary rejection messages are written to be actionable
-  (naming the offending value and the setting to change). A failed
-  *background* refresh no longer replaces a working dashboard: the error
-  screen only appears when there's no loaded state at all.
-- **Changed**: `POST /login` now explains when browser login is unavailable
+  requests (e.g. browsing from a host missing from `MOUSEHOLE_ALLOWED_HOSTS`);
+  it shows the error with a Retry button, in
+  [05750e5](https://github.com/t-mart/mousehole/commit/05750e5).
+- **Changed**: HTTP error messages now have more actionable messages in
+  [05750e5](https://github.com/t-mart/mousehole/commit/05750e5).
+- **Changed**: `POST /login` explains when browser login is unavailable
   (`MOUSEHOLE_AUTH_PASSWORD` not set) instead of presenting like a wrong
-  password.
-- **Changed**: Invalid request bodies (`400` schema errors) carry a
-  structured `issues` array (`[{ path, message }]`) and a one-line `message`
-  instead of zod's raw multi-line text.
-- **Fixed**: Error banners in the web UI now actually appear on plain-HTTP
-  LAN deployments (they relied on `crypto.randomUUID`, which only exists in
-  secure contexts, so adding one threw and the banner was silently lost).
-  Banners also clear when a subsequent action succeeds, repeats of the same
-  error coalesce into one banner with a count, and new banners are announced
-  to screen readers.
+  password, in [05750e5](https://github.com/t-mart/mousehole/commit/05750e5).
+- **Changed**: Invalid request bodies (`400`) carry a structured
+  `issues: [{ path, message }]` array and a one-line `message` instead of zod's
+  multi-line text, in
+  [05750e5](https://github.com/t-mart/mousehole/commit/05750e5).
+- **Fixed**: Error banners now properly appear on plain-HTTP LAN deployments in
+  [505e992](https://github.com/t-mart/mousehole/commit/505e992).
+- **Changed**: Error banners clear when a later action succeeds, repeats
+  coalesce into one banner with a count, and new banners are announced to screen
+  readers, in [505e992](https://github.com/t-mart/mousehole/commit/505e992).
 
 ## [v0.4.0](https://github.com/t-mart/mousehole/releases/tag/v0.4.0) - 2026-06-04
 
