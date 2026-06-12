@@ -7,8 +7,8 @@ import { getNowZdt } from "#shared/time.ts";
 import { Section } from "./lib/section";
 
 export function Timer({
-  nextCheckAt,
-}: Readonly<{ nextCheckAt: Temporal.ZonedDateTime }>) {
+  nextContactAt,
+}: Readonly<{ nextContactAt: Temporal.ZonedDateTime }>) {
   const [now, setNow] = useState<Temporal.ZonedDateTime>(() => getNowZdt());
 
   useEffect(() => {
@@ -20,13 +20,13 @@ export function Timer({
   }, []);
 
   const timeLeftMilliseconds =
-    nextCheckAt.epochMilliseconds - now.epochMilliseconds;
+    nextContactAt.epochMilliseconds - now.epochMilliseconds;
 
   return (
     <Section className="flex-col">
-      <h2 className="sr-only">Next check</h2>
+      <h2 className="sr-only">Next update</h2>
 
-      <p className="text-center w-full">Time Until Next Check</p>
+      <p className="text-center w-full">Time Until Next Update</p>
 
       <p className="text-3xl font-mono">
         {formatMillisecondsAsDuration(timeLeftMilliseconds)}

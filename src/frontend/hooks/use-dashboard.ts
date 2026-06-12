@@ -13,22 +13,22 @@ import { useServerEvents } from "./use-server-events";
 
 /**
  * Bundles the dashboard's server interactions: fetches and live-syncs the server
- * state, exposes the "check now" and "log out" actions, and surfaces failed
+ * state, exposes the "update now" and "log out" actions, and surfaces failed
  * requests as errors. The component is left to render whatever this returns.
  */
 export function useDashboard(onLogout: () => void) {
   const { addError } = useErrors();
   const queryClient = useQueryClient();
 
-  const checkNowMutation = useMutation({
+  const updateNowMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/checks", { method: "POST" });
+      const response = await fetch("/updates", { method: "POST" });
       if (!response.ok) {
         const body = (await response.json().catch(() => undefined)) as
           | { message?: string }
           | undefined;
         throw new Error(
-          `${body?.message ?? "Check failed."} Check server logs for details.`,
+          `${body?.message ?? "Update failed."} Check server logs for details.`,
         );
       }
       return (await response.json()) as PublicState;
@@ -55,8 +55,8 @@ export function useDashboard(onLogout: () => void) {
 
   return {
     data: stateQuery.data,
-    checkNow: () => checkNowMutation.mutate(),
-    isCheckingNow: checkNowMutation.isPending,
+    updateNow: () => updateNowMutation.mutate(),
+    isUpdatingNow: updateNowMutation.isPending,
     logout: () => logoutMutation.mutate(),
   };
 }

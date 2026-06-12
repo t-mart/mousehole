@@ -129,7 +129,7 @@ function StatusContent({ data }: Readonly<{ data: PublicState }>) {
     // "no-cookie" here means a pre-cookie lookup is still the latest contact — a
     // brief window after setting a cookie. Treat it as pending.
     default: {
-      return <StatusLine state="warn" text="Pending check" />;
+      return <StatusLine state="warn" text="Awaiting first update" />;
     }
   }
 }

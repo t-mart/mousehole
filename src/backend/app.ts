@@ -7,12 +7,12 @@ import { proxy } from "hono/proxy";
 import type { AppContext } from "#backend/context.ts";
 
 import { toErrorResponseArgs } from "#backend/error.ts";
-import { handlePostCheck } from "#backend/handlers/checks.ts";
 import { handlePutCookie } from "#backend/handlers/cookie.ts";
 import { handleGetHealth } from "#backend/handlers/health.ts";
 import { handlePostLogin } from "#backend/handlers/login.ts";
 import { handleGetOk } from "#backend/handlers/ok.ts";
 import { handleGetState } from "#backend/handlers/state.ts";
+import { handlePostUpdate } from "#backend/handlers/updates.ts";
 import {
   hostAllowed,
   originAllowed,
@@ -22,7 +22,7 @@ import {
 import { logger } from "#backend/logger.ts";
 import { extractSessionId } from "#backend/session.ts";
 
-export const checksEndpointPath = "/checks";
+export const updatesEndpointPath = "/updates";
 export const stateEndpointPath = "/state";
 export const cookieEndpointPath = "/cookie";
 export const okEndpointPath = "/ok";
@@ -110,8 +110,8 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
     return c.json({ ok: true });
   });
 
-  app.post(checksEndpointPath, host, auth, origin, async (c) =>
-    c.json(await handlePostCheck(ctx)),
+  app.post(updatesEndpointPath, host, auth, origin, async (c) =>
+    c.json(await handlePostUpdate(ctx)),
   );
 
   app.get(stateEndpointPath, host, auth, async (c) =>

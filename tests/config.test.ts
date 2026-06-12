@@ -11,8 +11,8 @@ describe("defaults (empty env)", () => {
     expect(config.port).toBe(5010);
   });
 
-  test("checkIntervalSeconds defaults to 300", () => {
-    expect(config.checkIntervalSeconds).toBe(300);
+  test("updateIntervalSeconds defaults to 300", () => {
+    expect(config.updateIntervalSeconds).toBe(300);
   });
 
   test("mamRequestTimeoutSeconds defaults to 10", () => {
@@ -119,37 +119,45 @@ describe("MOUSEHOLE_PORT", () => {
   });
 });
 
-describe("MOUSEHOLE_CHECK_INTERVAL_SECONDS", () => {
+describe("MOUSEHOLE_UPDATE_INTERVAL_SECONDS", () => {
   test("accepts positive integer", () => {
     expect(
-      buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "60" })
-        .checkIntervalSeconds,
+      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "60" })
+        .updateIntervalSeconds,
     ).toBe(60);
   });
 
   test("accepts positive float", () => {
     expect(
-      buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "0.5" })
-        .checkIntervalSeconds,
+      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "0.5" })
+        .updateIntervalSeconds,
     ).toBe(0.5);
   });
 
   test("throws on zero", () => {
     expect(() =>
-      buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "0" }),
-    ).toThrow("MOUSEHOLE_CHECK_INTERVAL_SECONDS");
+      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "0" }),
+    ).toThrow("MOUSEHOLE_UPDATE_INTERVAL_SECONDS");
   });
 
   test("throws on negative", () => {
     expect(() =>
-      buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "-1" }),
-    ).toThrow("MOUSEHOLE_CHECK_INTERVAL_SECONDS");
+      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "-1" }),
+    ).toThrow("MOUSEHOLE_UPDATE_INTERVAL_SECONDS");
   });
 
   test("throws on non-numeric", () => {
     expect(() =>
-      buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "never" }),
-    ).toThrow("MOUSEHOLE_CHECK_INTERVAL_SECONDS");
+      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "never" }),
+    ).toThrow("MOUSEHOLE_UPDATE_INTERVAL_SECONDS");
+  });
+
+  test("the retired MOUSEHOLE_CHECK_INTERVAL_SECONDS name is ignored", () => {
+    // Hard rename, no alias: the old name falls back to the default.
+    expect(
+      buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "60" })
+        .updateIntervalSeconds,
+    ).toBe(300);
   });
 });
 

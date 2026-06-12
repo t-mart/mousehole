@@ -18,7 +18,8 @@ type BackgroundTask = {
 };
 
 export type ContactSchedulerOptions = {
-  checkIntervalSeconds: number;
+  /** Seconds between automatic contacts with MAM. */
+  intervalSeconds: number;
   userAgent: string;
   mamRequestTimeoutSeconds: number;
   stateFile: StateFileStore;
@@ -112,7 +113,7 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
 
   /**
    * Clear any current timer and schedule the next contact
-   * `checkIntervalSeconds` seconds from now. No-op once stopped.
+   * `intervalSeconds` seconds from now. No-op once stopped.
    */
   function scheduleNext() {
     if (currentBackgroundTask?.nextContactTimeoutId) {
@@ -125,7 +126,7 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
 
     const timeoutId = setTimeout(() => {
       void commitContact().catch(handleBackgroundContactError);
-    }, options.checkIntervalSeconds * 1000);
+    }, options.intervalSeconds * 1000);
     // The listener (server) keeps the process alive; an armed contact timer
     // alone shouldn't (relevant for tests and shutdown).
     (timeoutId as { unref?: () => void }).unref?.();
@@ -134,13 +135,13 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
     // the event loop doesn't event guarantee timely execution. this is just for
     // informational/logging purposes
     const nextContactAt = getNowZdt().add({
-      seconds: options.checkIntervalSeconds,
+      seconds: options.intervalSeconds,
     });
 
     currentBackgroundTask = { nextContactTimeoutId: timeoutId, nextContactAt };
 
     logger.info(
-      `Next automatic contact scheduled for ${nextContactAt.toString()}`,
+      `Next automatic update scheduled for ${nextContactAt.toString()}`,
     );
   }
 
@@ -150,11 +151,11 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
    * background loop or any other requests that use this method.
    *
    * The single entry point for every contact — startup, the interval timer, `POST
-   * /checks`, and `PUT /cookie`.
+   * /updates`, and `PUT /cookie`.
    *
    * @param newCookie - When provided, the cookie is replaced with this value
    *   *before* contacting MAM, inside the same locked section. Omit to contact
-   *   with the cookie already on disk (startup, interval, `POST /checks`).
+   *   with the cookie already on disk (startup, interval, `POST /updates`).
    * @returns the persisted state after the contact. Throws on an unexpected
    *   failure (e.g. a failed write) — an HTTP caller turns that into a 500.
    */
@@ -183,7 +184,7 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
     start(): void {
       commitContact().catch(handleBackgroundContactError);
       logger.info(
-        `Background contact task started, running on ${options.checkIntervalSeconds} second interval`,
+        `Background update task started, running on ${options.intervalSeconds} second interval`,
       );
     },
 

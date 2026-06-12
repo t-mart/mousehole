@@ -71,9 +71,9 @@ Mousehole's IP is not in the list of allowed ASNs for the session.
 
    Then press the "Update the session" button.
 
-5. Back in Mousehole, press the "Check Now" button.
+5. Back in Mousehole, press the "Update Now" button.
 
-   ![Mousehole Check Now Button](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/check-now-button.png)
+   ![Mousehole Update Now Button](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/check-now-button.png)
 
 6. You should now see an OK status.
 

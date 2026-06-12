@@ -10,8 +10,8 @@ address is not stable.
 
 Features:
 
-- Background service that regularly checks your host's IP and updates MAM when
-  it changes
+- Background service that automatically keeps MAM up to date with your host's
+  IP
 - Frontend website to manage the service
 - [API](docs/API.md) for programmatic access
 
@@ -92,15 +92,15 @@ override the healthcheck command accordingly.
 
 ## How It Works
 
-Mousehole runs on a loop. On each **check** (every
-`MOUSEHOLE_CHECK_INTERVAL_SECONDS`), it contacts MAM. If you've configured a
+Mousehole runs on a loop. On each **update** (every
+`MOUSEHOLE_UPDATE_INTERVAL_SECONDS`), it contacts MAM. If you've configured a
 cookie, it sends MAM your current IP through their dynamic-seedbox API — MAM
 commits any change, or simply replies "No change" if your IP is already correct.
-If you haven't set a cookie yet, the check just looks up your public IP so you
+If you haven't set a cookie yet, the contact just looks up your public IP so you
 can see it during setup.
 
-You can trigger an immediate check from the web UI with **Check Now**, and the
-dashboard updates live as checks happen (in this and any other open tab).
+You can trigger an immediate update from the web UI with **Update Now**, and the
+dashboard reflects each one live (in this and any other open tab).
 
 ## Environment Variables
 
@@ -143,10 +143,10 @@ dashboard updates live as checks happen (in this and any other open tab).
 
 - `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
   listen.
-- `MOUSEHOLE_CHECK_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The interval
-  in seconds between automatic checks. Each check contacts MAM; if your IP is
-  unchanged, MAM simply replies "No change", so there's no harm in a short
-  interval.
+- `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The
+  interval in seconds between automatic updates. Each one contacts MAM; if your
+  IP is unchanged, MAM simply replies "No change", so there's no harm in a
+  short interval.
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
   a response from MAM before aborting the request. Prevents Mousehole from
   hanging when the connection silently stalls (e.g. before the VPN is up).

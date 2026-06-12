@@ -204,13 +204,13 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
     stateDirPathDeprecationWarning,
 
     /**
-     * The number of seconds between checks of the host's IP.
+     * The number of seconds between automatic updates (contacts with MAM).
      *
      * Defaults to 300 seconds (5 minutes).
      */
-    checkIntervalSeconds: resolveNumber(
+    updateIntervalSeconds: resolveNumber(
       env,
-      "MOUSEHOLE_CHECK_INTERVAL_SECONDS",
+      "MOUSEHOLE_UPDATE_INTERVAL_SECONDS",
       positiveNumberSchema,
       60 * 5,
     ),

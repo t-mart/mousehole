@@ -41,7 +41,7 @@ function getDashboardView(
 
 export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
   const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
-  const { data, checkNow, isCheckingNow, logout } = useDashboard(onLogout);
+  const { data, updateNow, isUpdatingNow, logout } = useDashboard(onLogout);
 
   if (!data) return;
 
@@ -62,10 +62,10 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
       )}
 
       {/* Providing a key here ensures re-render on timer expiration, good visual feedback for user */}
-      {panel.kind === "running" && !isCheckingNow && data.nextCheckAt && (
+      {panel.kind === "running" && !isUpdatingNow && data.nextContactAt && (
         <Timer
-          nextCheckAt={Temporal.ZonedDateTime.from(data.nextCheckAt)}
-          key={data.nextCheckAt}
+          nextContactAt={Temporal.ZonedDateTime.from(data.nextContactAt)}
+          key={data.nextContactAt}
         />
       )}
 
@@ -79,11 +79,11 @@ export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
               Set Cookie
             </ControlsButton>
             <ControlsButton
-              key="check-now"
-              onClick={() => checkNow()}
-              disabled={isCheckingNow}
+              key="update-now"
+              onClick={() => updateNow()}
+              disabled={isUpdatingNow}
             >
-              {isCheckingNow ? <Spinner /> : "Check Now"}
+              {isUpdatingNow ? <Spinner /> : "Update Now"}
             </ControlsButton>
           </>
         )}

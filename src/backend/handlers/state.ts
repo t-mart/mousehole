@@ -4,14 +4,14 @@ import type { PublicState } from "#shared/public-state.ts";
 import { toPublicState, type State } from "#backend/state/serde.ts";
 
 // Builds the public view of state with the server-derived fields filled in. Shared
-// by every endpoint that returns state (GET /state, PUT /cookie, POST /checks).
+// by every endpoint that returns state (GET /state, PUT /cookie, POST /updates).
 export function makePublicState(
   ctx: AppContext,
   state: State | undefined,
 ): PublicState {
   return toPublicState(state, {
     hasAuth: ctx.config.auth.type === "configured",
-    nextCheckAt: ctx.contacts.getNextContactAt()?.toString(),
+    nextContactAt: ctx.contacts.getNextContactAt()?.toString(),
   });
 }
 

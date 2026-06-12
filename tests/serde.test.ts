@@ -42,7 +42,7 @@ describe("toPublicState", () => {
   test("omits the cookie, exposing only its presence", () => {
     const pub = toPublicState(state, {
       hasAuth: true,
-      nextCheckAt: "2025-06-21T14:00:00+00:00[UTC]",
+      nextContactAt: "2025-06-21T14:00:00+00:00[UTC]",
     });
 
     expect(pub.hasCookie).toBe(true);

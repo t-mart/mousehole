@@ -1,4 +1,4 @@
-// The public state contract: what GET /state (and PUT /cookie, POST /checks)
+// The public state contract: what GET /state (and PUT /cookie, POST /updates)
 // put on the wire, shared by the backend and the web UI. Deliberately
 // dependency-free — the frontend imports `classify` by value, and this module
 // must not drag zod or temporal into the web bundle. The backend's disk
@@ -30,7 +30,7 @@ export type SerializedMamContact = { at: string } & (
 export type PublicState = {
   hasCookie: boolean;
   hasAuth: boolean;
-  nextCheckAt?: string;
+  nextContactAt?: string;
   // identical to the on-disk MamContact — it carries no secret to strip
   lastMamContact?: SerializedMamContact;
 };

@@ -3,8 +3,8 @@ import type { PublicState } from "#shared/public-state.ts";
 
 import { makePublicState } from "./state.ts";
 
-// POST /checks — run a contact now and return the resulting state.
-export async function handlePostCheck(ctx: AppContext): Promise<PublicState> {
+// POST /updates — contact MAM now and return the resulting state.
+export async function handlePostUpdate(ctx: AppContext): Promise<PublicState> {
   const state = await ctx.contacts.commitContact();
   return makePublicState(ctx, state);
 }

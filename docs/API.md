@@ -19,14 +19,17 @@ curl -H "Authorization: Bearer mytoken" http://localhost:5010/state
 
 ## State shape
 
-`GET /state`, `PUT /cookie`, and `POST /checks` all return the same public state
+`GET /state`, `PUT /cookie`, and `POST /updates` all return the same public state
 object. It never contains your cookie — only whether one is set.
+
+Mousehole records each exchange with MAM as a **contact**; when a cookie is
+set, the contact performs an IP **update** (the `ipUpdate` field below).
 
 ```jsonc
 {
   "hasCookie": true, // is a MAM cookie configured?
   "hasAuth": true, // is the web UI password-protected?
-  "nextCheckAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]", // RFC 9557
+  "nextContactAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]", // RFC 9557
   // The most recent contact with MAM. Absent until the first check runs.
   "lastMamContact": {
     "at": "2025-06-21T14:22:28.111-05:00[America/Chicago]",
@@ -83,20 +86,20 @@ Example request body:
 
 `value` must be a non-empty string; an empty value is rejected with a `400`.
 
-## `POST /checks`
+## `POST /updates`
 
 Requires Auth?: Yes
 
-Run a check now: contact MAM and persist the result. Takes no body. Returns the
-[state shape](#state-shape).
+Run an update now: contact MAM and persist the result. Takes no body. Returns
+the [state shape](#state-shape).
 
 ## `GET /ok`
 
 Requires Auth?: No
 
 **Deprecated in favor of `/health`.** A convenience endpoint summarizing the
-last check. Returns `200` when the last check reached MAM and the IP update
-applied, `503` otherwise.
+last contact. Returns `200` when it reached MAM and the IP update applied,
+`503` otherwise.
 
 ```jsonc
 { "ok": true,  "reason": "ok" }          // 200
@@ -111,8 +114,8 @@ applied, `503` otherwise.
 Requires Auth?: No
 
 Health check endpoint, same body and status semantics as `/ok` (`200` healthy /
-`503` otherwise). It's a pure read of the last check — it makes no network call,
-so a `curl`/Docker healthcheck never hits MAM.
+`503` otherwise). It's a pure read of the last contact — it makes no network
+call, so a `curl`/Docker healthcheck never hits MAM.
 
 ```jsonc
 { "ok": true,  "reason": "ok" }

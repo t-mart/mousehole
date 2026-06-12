@@ -121,12 +121,12 @@ export function deserializeState(serialized: SerializedState): State {
 
 export function toPublicState(
   state: State | undefined,
-  derived: { hasAuth: boolean; nextCheckAt?: string },
+  derived: { hasAuth: boolean; nextContactAt?: string },
 ): PublicState {
   return {
     hasCookie: Boolean(state?.cookie),
     hasAuth: derived.hasAuth,
-    nextCheckAt: derived.nextCheckAt,
+    nextContactAt: derived.nextContactAt,
     lastMamContact: state?.lastMamContact && serializeMamContact(state.lastMamContact),
   };
 }

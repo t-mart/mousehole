@@ -12,22 +12,26 @@ automatically (your cookie is preserved).
 - **Breaking**: Setting the cookie moved from `PUT /state` (`{ "currentCookie":
   … }`) to `PUT /cookie` (`{ "value": … }`). It now also contacts MAM
   immediately, so the response reflects whether the cookie works.
-- **Breaking**: Triggering a check moved from `POST /update` (with an optional
-  `force` body) to `POST /checks` (no body).
+- **Breaking**: Triggering an update moved from `POST /update` (with an
+  optional `force` body) to `POST /updates` (no body).
+- **Breaking**: `MOUSEHOLE_CHECK_INTERVAL_SECONDS` is renamed to
+  `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`. The old name is ignored (the default of
+  300 seconds applies until you rename it).
 - **Breaking**: The `GET /state` response is reshaped. `host`, `lastMam`,
-  `lastUpdate`, `hasCurrentCookie`, and `isOnline` are gone; it now returns
-  `hasCookie`, `hasAuth`, `nextCheckAt`, and a `lastMamContact` tagged union. See
+  `lastUpdate`, `hasCurrentCookie`, and `isOnline` are gone, and `nextCheckAt`
+  is renamed to `nextContactAt`; it now returns `hasCookie`, `hasAuth`,
+  `nextContactAt`, and a `lastMamContact` tagged union. See
   [the API docs](/docs/API.md).
 - **Breaking**: `GET /ok` and `GET /health` now return `{ ok, reason }`, where
   `reason` is a contact status (`ok`, `throttled`, `rejected`, `unreachable`,
   `no-cookie`, `pending`). The old `isOnline` / `neededUpdateReason` fields are
   removed.
-- **Breaking**: Removed `MOUSEHOLE_STALE_RESPONSE_SECONDS`. Every check now
+- **Breaking**: Removed `MOUSEHOLE_STALE_RESPONSE_SECONDS`. Every update now
   contacts MAM (which replies "No change" when nothing changed), so the
   stale-forcing mechanism is no longer needed.
 - **Changed**: `GET /state`, `/ok`, and `/health` are now pure reads — they never
-  call MAM, so a network blip can't make them fail or hang. The background check
-  is the only thing that contacts MAM.
+  call MAM, so a network blip can't make them fail or hang. The background update
+  task is the only thing that contacts MAM.
 - **Changed**: Requests with bodies over 8 KB now get a JSON
   `{ "type": "payload-too-large", … }` error body with the `413` status.
 

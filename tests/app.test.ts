@@ -41,7 +41,7 @@ function makeTestContext(
       temporaryStateRoot,
       `${process.pid}-${stateDirectoryCounter++}`,
     ),
-    MOUSEHOLE_CHECK_INTERVAL_SECONDS: "3600",
+    MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "3600",
     ...options.env,
   });
   const ctx = createAppContext(config, {
@@ -160,7 +160,7 @@ const routeSpecs: readonly RouteSpec[] = [
   { method: "POST", path: "/logout", enforces: ["host", "origin"], sendsSession: false },
   {
     method: "POST",
-    path: "/checks",
+    path: "/updates",
     enforces: ["host", "auth", "origin"],
     sendsSession: true,
   },
@@ -580,27 +580,27 @@ describe("contact flows (simulated MAM)", () => {
     await putMamCookie(app, cookie, "original-mam-id");
     expect(fakeMam.received.at(-1)?.mamId).toBe("original-mam-id");
 
-    // POST /checks contacts again with whatever cookie is on disk — which must
-    // now be the rotated one.
-    const checksResponse = await app.request("/checks", {
+    // POST /updates contacts again with whatever cookie is on disk — which
+    // must now be the rotated one.
+    const updatesResponse = await app.request("/updates", {
       method: "POST",
       headers: { Cookie: cookie },
     });
-    expect(checksResponse.status).toBe(200);
+    expect(updatesResponse.status).toBe(200);
     expect(fakeMam.received.at(-1)?.mamId).toBe("rotated-mam-id");
   });
 
-  test("without a MAM cookie, a check is just an IP lookup via jsonIp.php", async () => {
+  test("without a MAM cookie, an update is just an IP lookup via jsonIp.php", async () => {
     const fakeMam = createFakeMam();
     const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
     const cookie = await login(app);
 
-    const checksResponse = await app.request("/checks", {
+    const updatesResponse = await app.request("/updates", {
       method: "POST",
       headers: { Cookie: cookie },
     });
-    expect(checksResponse.status).toBe(200);
-    const state = (await checksResponse.json()) as {
+    expect(updatesResponse.status).toBe(200);
+    const state = (await updatesResponse.json()) as {
       hasCookie: boolean;
       lastMamContact: { reached: boolean; ip: string; ipUpdate?: unknown };
     };
@@ -624,12 +624,12 @@ describe("contact flows (simulated MAM)", () => {
     });
     const cookie = await login(app);
 
-    const checksResponse = await app.request("/checks", {
+    const updatesResponse = await app.request("/updates", {
       method: "POST",
       headers: { Cookie: cookie },
     });
-    expect(checksResponse.status).toBe(200);
-    const state = (await checksResponse.json()) as {
+    expect(updatesResponse.status).toBe(200);
+    const state = (await updatesResponse.json()) as {
       lastMamContact: { reached: boolean; error: { type: string } };
     };
     expect(state.lastMamContact.reached).toBe(false);
@@ -650,12 +650,12 @@ describe("contact flows (simulated MAM)", () => {
     });
     const cookie = await login(app);
 
-    const checksResponse = await app.request("/checks", {
+    const updatesResponse = await app.request("/updates", {
       method: "POST",
       headers: { Cookie: cookie },
     });
-    expect(checksResponse.status).toBe(200);
-    const state = (await checksResponse.json()) as {
+    expect(updatesResponse.status).toBe(200);
+    const state = (await updatesResponse.json()) as {
       lastMamContact: { reached: boolean; error: { type: string } };
     };
     expect(state.lastMamContact.reached).toBe(false);

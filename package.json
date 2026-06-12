@@ -11,7 +11,7 @@
     "dev:web": "vite",
     "build": "vite build",
     "start": "PUBLIC_GIT_HASH=$(git rev-parse --short HEAD) NODE_ENV=production bun src/index.ts",
-    "check:lint": "eslint src",
+    "check:lint": "eslint src tests",
     "check:types": "tsc --noEmit",
     "check:test": "bun test",
     "fallow:dead-code": "bunx fallow dead-code",

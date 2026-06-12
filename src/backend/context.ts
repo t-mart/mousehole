@@ -39,7 +39,7 @@ export function createAppContext(
     onSessionDeleted: (sessionId) => sse.closeSessionStreams(sessionId),
   });
   const contacts = createContactScheduler({
-    checkIntervalSeconds: config.checkIntervalSeconds,
+    intervalSeconds: config.updateIntervalSeconds,
     userAgent: config.userAgent,
     mamRequestTimeoutSeconds: config.mamRequestTimeoutSeconds,
     stateFile,
