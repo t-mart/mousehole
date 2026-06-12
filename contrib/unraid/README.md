@@ -1,6 +1,6 @@
 # Running Mousehole on Unraid
 
-The Unraid template at [`my-mousehole.xml`](./my-mousehole.xml) can be placed on
+The Unraid template at [`my-mousehole.xml`](/contrib/unraid/my-mousehole.xml) can be placed on
 your Unraid server to pre-fill Mousehole's settings in the **Add Container**
 screen. Install it manually with the steps below.
 
