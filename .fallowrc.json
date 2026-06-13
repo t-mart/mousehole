@@ -2,8 +2,9 @@
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "entry": [
     "src/index.tsx",
+    "src/frontend/root.tsx",
     "tests/**/*.{ts,tsx}",
-    "bun-plugins/tailwind-plugin.ts"
+    "forum-post/gen-html.ts"
   ],
   "duplicates": {
     // Hide pair-only clones; focus on widespread copy-paste
