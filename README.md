@@ -66,7 +66,11 @@ for help with troubleshooting.
 
 ## Security
 
-See the [security guide](/docs/security-guide.md) for detailed information.
+Mousehole has security features to protect the cookie credential. Most are
+enabled by default. If you are running Mousehole on a custom domain or through a
+proxy, the defaults will not be sufficient. See the
+[security guide](/docs/security-guide.md) for common setups and detailed
+information.
 
 ## Docker Images
 
@@ -118,23 +122,25 @@ You can trigger an immediate update from the web UI with **Update Now**.
 
 ### When hosting beyond localhost
 
-- `MOUSEHOLE_ALLOWED_HOSTS`: Comma-separated allowlist of `Host` header values
-  for protected routes. Defaults to `localhost,127.0.0.1,[::1]`. If an entry in
-  this list does not have a port, then any port is allowed for that host. But,
-  if a port is specified (`localhost:5010`), only that port is allowed. As an
-  opt-out, set to `*` to allow any host. See
+- `MOUSEHOLE_ALLOWED_HOSTS`: Comma-separated allowlist of
+  [`Host` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host)
+  values for protected routes. Defaults to `localhost,127.0.0.1,[::1]`. If an
+  entry in this list does not have a port, then any port is allowed for that
+  host. But, if a port is specified (`localhost:5010`), only that port is
+  allowed. As an opt-out, set to `*` to allow any host. See
   [Host Allowlist](/docs/security-guide.md#host-allowlist) for more details.
-- `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of origins permitted to
-  make cross-origin requests to mutating routes and the live-update stream.
-  Defaults to same-origin only, which only allows the origin that matches the
-  host of the request. Values must be exact origins with no path, such as
-  `https://mousehole.example.com` or `http://nas.local:5010`. As an opt-out, set
-  to `*` to allow any origin. See
+- `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of
+  [`Origin` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin)
+  values permitted to make cross-origin requests to mutating routes and the
+  live-update stream. Defaults to same-origin only, which only allows the origin
+  that matches the host of the request. Values must be exact origins with no
+  path, such as `https://mousehole.example.com` or `http://nas.local:5010`. As
+  an opt-out, set to `*` to allow any origin. See
   [Origin Allowlist](/docs/security-guide.md#origin-allowlist) for more details.
 - `MOUSEHOLE_HTTPS_ONLY_COOKIES`: _(Default `false`)_ Set to `true` to add the
   `Secure` flag to session cookies, preventing browsers from sending them over
   plain HTTP. Enable this when Mousehole is accessed exclusively via HTTPS (e.g.
-  behind a reverse proxy). HTTP sessions will not work. See
+  behind a reverse proxy). HTTP sessions will not work when this is enabled. See
   [HTTPS-Only Cookies](/docs/security-guide.md#https-only-cookies) for more
   details.
 - `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
@@ -146,9 +152,8 @@ You can trigger an immediate update from the web UI with **Update Now**.
 - `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
   listen.
 - `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The
-  interval in seconds between automatic updates. Each one contacts MAM; if your
-  IP is unchanged, MAM simply replies "No change", so there's no harm in a short
-  interval.
+  interval in seconds between automatic updates. If your IP is unchanged, MAM
+  simply replies "No change", so there's no harm in a short interval.
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
   a response from MAM before aborting the request. Prevents Mousehole from
   hanging when the connection silently stalls (e.g. before the VPN is up).
@@ -171,8 +176,8 @@ You can trigger an immediate update from the web UI with **Update Now**.
 
 Want to contribute? Check out the [contribution guidelines](/CONTRIBUTING.md).
 
-There is also a [`contrib`](/contrib/) directory with useful, supplementary
-functionality.
+There is also a [`contrib`](/contrib/) directory with community-contributed
+work, maintained on a best-effort basis.
 
 ## Links
 
