@@ -187,7 +187,12 @@ const routeSpecs: readonly RouteSpec[] = [
     body: { password: "s3cr3t" },
     sendsSession: false,
   },
-  { method: "POST", path: "/logout", enforces: ["host", "origin"], sendsSession: false },
+  {
+    method: "POST",
+    path: "/logout",
+    enforces: ["host", "origin"],
+    sendsSession: false,
+  },
   {
     method: "POST",
     path: "/updates",
@@ -399,9 +404,11 @@ describe("public probes", () => {
   test("with no contact yet, /health answer 200 but report not-ok", async () => {
     const { app } = makeTestContext();
     const response = await app.request("/health");
-      
-      expect(response.status).toBe(200);
-      expect(await response.json()).toEqual({ ok: false, reason: "pending" });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      sync: { ok: false, reason: "pending" },
+    });
   });
 });
 
@@ -547,7 +554,9 @@ describe("contact flows (simulated MAM)", () => {
 
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
-    expect(await healthResponse.json()).toEqual({ ok: true, reason: "ok" });
+    expect(await healthResponse.json()).toEqual({
+      sync: { ok: true, reason: "ok" },
+    });
 
     // GET /state serves the same persisted contact.
     const stateResponse = await app.request("/state", {
@@ -582,8 +591,7 @@ describe("contact flows (simulated MAM)", () => {
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      ok: false,
-      reason: "throttled",
+      sync: { ok: false, reason: "throttled" },
     });
   });
 
@@ -598,8 +606,10 @@ describe("contact flows (simulated MAM)", () => {
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      ok: false,
-      reason: "rejected",
+      sync: {
+        ok: false,
+        reason: "rejected",
+      },
     });
   });
 
@@ -644,8 +654,7 @@ describe("contact flows (simulated MAM)", () => {
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      ok: false,
-      reason: "no-cookie",
+      sync: { ok: false, reason: "no-cookie" },
     });
   });
 
@@ -669,8 +678,7 @@ describe("contact flows (simulated MAM)", () => {
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      ok: false,
-      reason: "unreachable",
+      sync: { ok: false, reason: "unreachable" },
     });
   });
 

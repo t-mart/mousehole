@@ -2,7 +2,9 @@ import type { AppContext } from "#backend/context.ts";
 
 import { classify, type ContactStatus } from "#shared/public-state.ts";
 
-export type GetHealthResponseBody = { ok: boolean; reason: ContactStatus };
+export type GetHealthResponseBody = {
+  sync: { ok: boolean; reason: ContactStatus };
+};
 
 // A pure read of the last contact: `ok` when the most recent contact reached MAM
 // and the IP update applied (MAM's 200). No network call, so the Docker
@@ -15,5 +17,5 @@ export async function handleGetHealth(
 ): Promise<GetHealthResponseBody> {
   const state = await ctx.stateFile.readIfExists();
   const reason = classify(state?.lastMamContact);
-  return { ok: reason === "ok", reason };
+  return { sync: { ok: reason === "ok", reason } };
 }

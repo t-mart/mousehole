@@ -30,16 +30,18 @@ automatically (your cookie is preserved).
   [the API docs](/docs/API.md)), in
   [4c10402](https://github.com/t-mart/mousehole/commit/4c10402) and
   [51b228c](https://github.com/t-mart/mousehole/commit/51b228c).
-- **Breaking**: `GET /ok` and `GET /health` return `{ ok, reason }`, where
-  `reason` is `ok`, `throttled`, `rejected`, `unreachable`, `no-cookie`, or
-  `pending`; `isOnline` / `neededUpdateReason` are removed, in
+- **Breaking**: `GET /health` return `{ sync: { ok, reason } }`, where `reason`
+  is `ok`, `throttled`, `rejected`, `unreachable`, `no-cookie`, or `pending`;
+  `isOnline` / `neededUpdateReason` are removed, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).
-- **Breaking**: `GET /health` (and the deprecated `GET /ok`) now always return
-  HTTP `200` while the server is up — they're liveness probes. The `ok`/`reason`
-  body still reports the MAM sync state, but no longer drives the status code (it
-  was `503` when not `ok`). This keeps the container healthy when your IP simply
-  needs re-syncing, so reverse proxies and orchestrators don't restart it or pull
-  it from rotation over something only you can fix.
+- **Breaking**: The `/ok` endpoint is removed in favor of `/health` in
+  [b7d67d2](https://github.com/t-mart/mousehole/commit/b7d67d2).
+- **Breaking**: `GET /health` now always returns HTTP `200` while the server is
+  up. The `ok`/`reason` body still reports the MAM sync state, but no longer
+  drives the status code (it was `503` when not `ok`). This keeps the container
+  healthy when your IP simply needs re-syncing, so reverse proxies and
+  orchestrators don't restart it or pull it from rotation over something only
+  you can fix.
 - **Breaking**: Removed `MOUSEHOLE_STALE_RESPONSE_SECONDS`. Every update
   contacts MAM (which replies "No change" when nothing changed), in
   [4c10402](https://github.com/t-mart/mousehole/commit/4c10402).
