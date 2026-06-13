@@ -55,12 +55,10 @@ export function startServer(env: NodeJS.ProcessEnv = process.env) {
 
 // Startup-time validation of the resolved auth config: refuse to run without
 // credentials unless explicitly opted out, and warn about partial setups.
-// Lives here rather than in http-boundary.ts because it's a composition-root
-// concern (logs and throws at boot), not a per-request check.
 function validateRuntimeSecurityConfig(auth: AuthConfig): void {
   if (auth.type === "configured" && !auth.password) {
     logger.warn(
-      "MOUSEHOLE_AUTH_PASSWORD is not set. Browser login will be unavailable.",
+      "Browser login will be unavailable. Set MOUSEHOLE_AUTH_PASSWORD to enable it.",
     );
   }
   if (auth.type !== "none") {

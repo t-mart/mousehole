@@ -5,7 +5,8 @@ Mousehole provides an API for programmatic access to its functionality.
 ## Authentication
 
 Protected endpoints accept a Bearer token. Set the `MOUSEHOLE_AUTH_TOKEN`
-environment variable and pass it in the `Authorization` header:
+environment variable (or its [`_FILE` variant](/README.md#docker-secrets)) and
+pass it in the `Authorization` header:
 
 ```
 Authorization: Bearer <token>
@@ -19,11 +20,11 @@ curl -H "Authorization: Bearer mytoken" http://localhost:5010/state
 
 ## State shape
 
-`GET /state`, `PUT /cookie`, and `POST /updates` all return the same public state
-object. It never contains your cookie — only whether one is set.
+`GET /state`, `PUT /cookie`, and `POST /updates` all return the same public
+state object. It never contains your cookie.
 
-Mousehole records each exchange with MAM as a **contact**; when a cookie is
-set, the contact performs an IP **update** (the `ipUpdate` field below).
+Mousehole records each exchange with MAM as a **contact**; when a cookie is set,
+the contact performs an IP **update** (the `ipUpdate` field below).
 
 ```jsonc
 {
@@ -93,28 +94,19 @@ Requires Auth?: Yes
 Run an update now: contact MAM and persist the result. Takes no body. Returns
 the [state shape](#state-shape).
 
-## `GET /ok`
-
-Requires Auth?: No
-
-**Deprecated in favor of [`/health`](#get-health),** which it now mirrors exactly
-(same body, same always-`200` behavior). Prefer `/health`.
-
 ## `GET /health`
 
 Requires Auth?: No
 
-A liveness probe: it answers **`200` whenever the server is up and serving**,
-which is what the Docker healthcheck and reverse proxies key off. It's a pure read
-of the last contact (no network call, so a `curl`/Docker healthcheck never hits
-MAM); the `ok`/`reason` body reports the MAM sync state for humans and monitors,
-but **never** changes the status code. So the container stays healthy even when
-your IP needs re-syncing — that's a job for you on the dashboard, not a reason to
-restart the container or pull it from rotation.
+Answers **`200` whenever the server is up and serving**. The `ok`/`reason` body
+reports the MAM sync state for humans and monitors, but **never** changes the
+status code. So the container stays healthy even when your IP needs re-syncing —
+that's a job for you on the dashboard, not a reason to restart the container or
+pull it from rotation.
 
 ```jsonc
-{ "ok": true,  "reason": "ok" }       // synced
-{ "ok": false, "reason": "rejected" } // needs attention — still HTTP 200
+{ "sync": { "ok": true,  "reason": "ok" }}       // synced
+{ "sync": { "ok": false, "reason": "rejected" }} // needs attention — still HTTP 200
 ```
 
 `reason` is one of: `ok`, `throttled` (429), `rejected` (403), `unreachable`,

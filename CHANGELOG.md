@@ -51,6 +51,10 @@ automatically (your cookie is preserved).
   `MOUSEHOLE_STATE_DIR_PATH=/srv/mousehole` in
   [ce9bad5](https://github.com/t-mart/mousehole/commit/ce9bad5). See
   [#51](https://github.com/t-mart/mousehole/issues/51) for migration steps.
+- **Added**: Docker secrets support with `MOUSEHOLE_AUTH_PASSWORD_FILE` and
+  `MOUSEHOLE_AUTH_TOKEN_FILE`, which read the credential from a file and take
+  precedence over the plain variable. Resolves
+  [#125](https://github.com/t-mart/mousehole/discussions/125).
 - **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
   call MAM, so a network blip can't fail or hang them, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).

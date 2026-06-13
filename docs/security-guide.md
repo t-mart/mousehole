@@ -71,20 +71,26 @@ In Docker setups, treat the volume that stores this directory in the same way.
 
 ## Port Binding
 
-Throughout Mousehole's Docker documentation, you will see examples that bind port `5010` for the localhost interface only. This is the most secure way to run Mousehole:
-
-```yaml
-# mousehole or VPN service definition in compose.yml
-ports:
-  - "127.0.0.1:5010:5010" # localhost only
-```
-
-However, if you understand the risks and want to access Mousehole from other devices on your network (e.g., other computer, phone), you can bind to all interfaces:
+Throughout Mousehole's Docker documentation, you will see examples that bind
+`5010` to all interfaces.
 
 ```yaml
 # mousehole or VPN service definition in compose.yml
 ports:
   - "5010:5010" # all interfaces
+```
+
+You should only do this if you understand the risks and want to access Mousehole
+from other devices on your network (e.g., other computer, phone). This form is
+used because it is conventional among other projects that document Docker port
+binding.
+
+You can also bind to the localhost interface only, which is more secure.
+
+```yaml
+# mousehole or VPN service definition in compose.yml
+ports:
+  - "127.0.0.1:5010:5010" # localhost only
 ```
 
 See the
@@ -102,8 +108,12 @@ UI. Sessions persist for one week by default (see
 
 **API token** (`MOUSEHOLE_AUTH_TOKEN`): Enables Bearer token authentication for
 API clients. Clients send `Authorization: Bearer <token>` with each request.
-Useful for scripts or tools that access the [API](/docs/API.md) without a browser
-session.
+Useful for scripts or tools that access the [API](/docs/API.md) without a
+browser session.
+
+Both credentials support a `_FILE` form that reads the value from a file (for
+example a Docker secret under `/run/secrets/`) instead of an environment
+variable. See [Docker Secrets](/README.md#docker-secrets).
 
 To disable all authentication (not recommended outside of a trusted localhost
 setup): set `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true`.

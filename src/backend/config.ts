@@ -1,5 +1,6 @@
 import type { RequireAtLeastOne } from "type-fest";
 
+import { readFileSync } from "node:fs";
 import * as z from "zod";
 
 import type { LogLevelName } from "#backend/logger.ts";
@@ -48,9 +49,7 @@ const logLevelSchema = z.enum(LOG_LEVEL_NAMES);
 const positiveNumberSchema = z.coerce.number().positive();
 const positiveIntSchema = z.coerce.number().int().positive();
 const portSchema = z.coerce.number().int().min(1).max(65_535);
-const boolFlagSchema = z
-  .enum(["true", "false"])
-  .transform((v) => v === "true");
+const boolFlagSchema = z.enum(["true", "false"]).transform((v) => v === "true");
 
 function getEnv(env: NodeJS.ProcessEnv, name: string): string | undefined {
   return env[name]?.trim() || undefined;
@@ -97,10 +96,51 @@ function resolveFlag(env: NodeJS.ProcessEnv, name: string): boolean {
   return parseEnvVar(name, boolFlagSchema, raw);
 }
 
-function resolveAuthConfig(env: NodeJS.ProcessEnv): AuthConfig {
-  const password = getEnv(env, "MOUSEHOLE_AUTH_PASSWORD");
-  const token = getEnv(env, "MOUSEHOLE_AUTH_TOKEN");
-  const insecureAllowNoAuth = resolveFlag(env, "MOUSEHOLE_INSECURE_ALLOW_NO_AUTH");
+// The default reader for `*_FILE` secret resolution, injectable so config tests
+// stay hermetic (no disk)
+const defaultReadTextFileSync = (filePath: string): string =>
+  readFileSync(filePath, "utf8");
+
+/**
+ * Resolve a secret credential. A `${name}_FILE` variable points at a file whose
+ * trimmed contents are the value. Takes precedence over the plain `${name}`. A
+ * file that can't be read fails fast; a file whose trimmed contents are empty
+ * resolves to `undefined`, exactly as an empty or unset env var does.
+ */
+function resolveSecret(
+  env: NodeJS.ProcessEnv,
+  name: string,
+  readTextFileSync: (filePath: string) => string,
+): string | undefined {
+  const filePath = getEnv(env, `${name}_FILE`);
+  if (filePath === undefined) return getEnv(env, name);
+
+  let contents: string;
+  try {
+    contents = readTextFileSync(filePath);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Invalid environment variable ${name}_FILE="${filePath}": could not read file (${reason})`,
+    );
+  }
+  return contents.trim() || undefined;
+}
+
+function resolveAuthConfig(
+  env: NodeJS.ProcessEnv,
+  readTextFileSync: (filePath: string) => string,
+): AuthConfig {
+  const password = resolveSecret(
+    env,
+    "MOUSEHOLE_AUTH_PASSWORD",
+    readTextFileSync,
+  );
+  const token = resolveSecret(env, "MOUSEHOLE_AUTH_TOKEN", readTextFileSync);
+  const insecureAllowNoAuth = resolveFlag(
+    env,
+    "MOUSEHOLE_INSECURE_ALLOW_NO_AUTH",
+  );
 
   if (password !== undefined) {
     return { type: "configured", password, token };
@@ -113,7 +153,8 @@ function resolveAuthConfig(env: NodeJS.ProcessEnv): AuthConfig {
 
 function resolveAllowedHosts(env: NodeJS.ProcessEnv): AllowedHostsConfig {
   const value = getEnv(env, "MOUSEHOLE_ALLOWED_HOSTS");
-  if (value === undefined) return { type: "allowlist", hosts: DEFAULT_ALLOWED_HOSTS };
+  if (value === undefined)
+    return { type: "allowlist", hosts: DEFAULT_ALLOWED_HOSTS };
   if (value === "*") return { type: "all" };
   const hosts = parseCommaSeparated(value);
   if (hosts.length === 0) {
@@ -124,7 +165,9 @@ function resolveAllowedHosts(env: NodeJS.ProcessEnv): AllowedHostsConfig {
   return { type: "allowlist", hosts };
 }
 
-function resolveAllowedOriginsConfig(env: NodeJS.ProcessEnv): AllowedOriginsConfig {
+function resolveAllowedOriginsConfig(
+  env: NodeJS.ProcessEnv,
+): AllowedOriginsConfig {
   const value = getEnv(env, "MOUSEHOLE_ALLOWED_ORIGINS");
   if (value === undefined) return { type: "same-origin" };
   if (value === "*") return { type: "all" };
@@ -137,7 +180,10 @@ function resolveAllowedOriginsConfig(env: NodeJS.ProcessEnv): AllowedOriginsConf
   return { type: "allowlist", origins };
 }
 
-export function buildConfig(env: NodeJS.ProcessEnv) {
+export function buildConfig(
+  env: NodeJS.ProcessEnv,
+  readTextFileSync: (filePath: string) => string = defaultReadTextFileSync,
+) {
   return {
     /**
      * The log level threshold, by name. Messages below this level are suppressed.
@@ -152,7 +198,8 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
      * Defaults to "mousehole-by-timtimtim/<version>".
      */
     userAgent:
-      getEnv(env, "MOUSEHOLE_USER_AGENT") ?? `mousehole-by-timtimtim/${version}`,
+      getEnv(env, "MOUSEHOLE_USER_AGENT") ??
+      `mousehole-by-timtimtim/${version}`,
 
     /**
      * The directory path where Mousehole stores its state.
@@ -216,7 +263,7 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
     /**
      * Authentication configuration, derived from environment variables.
      */
-    auth: resolveAuthConfig(env),
+    auth: resolveAuthConfig(env, readTextFileSync),
 
     /**
      * Allowlist of Host header values that Mousehole will accept.
