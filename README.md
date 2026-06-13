@@ -143,9 +143,6 @@ You can trigger an immediate update from the web UI with **Update Now**.
   behind a reverse proxy). HTTP sessions will not work when this is enabled. See
   [HTTPS-Only Cookies](/docs/security-guide.md#https-only-cookies) for more
   details.
-- `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
-  Clients can send HTTP headers in the format `Authorization: Bearer <token>`
-  when accessing [API endpoints](/docs/API.md).
 
 ### Occasional tuning
 
@@ -154,6 +151,10 @@ You can trigger an immediate update from the web UI with **Update Now**.
 - `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The
   interval in seconds between automatic updates. If your IP is unchanged, MAM
   simply replies "No change", so there's no harm in a short interval.
+- `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
+  Only needed if you're writing/integrating code against the API. Clients can
+  send HTTP headers in the format `Authorization: Bearer <token>` when accessing
+  [API endpoints](/docs/API.md).
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
   a response from MAM before aborting the request. Prevents Mousehole from
   hanging when the connection silently stalls (e.g. before the VPN is up).
