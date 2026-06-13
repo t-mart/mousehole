@@ -20,7 +20,7 @@ type HostAndPort = {
 // names offending values and the env var to set). The boundary does not log
 // rejections — the client surfaces them, and duplicating them into the
 // server log was decided to be noise.
-export type BoundaryFailure = {
+type BoundaryFailure = {
   headers?: Record<string, string>;
   message: string;
   status: ContentfulStatusCode;
@@ -37,7 +37,7 @@ export type SessionAuthValidator = (request: Request) => boolean;
  * How a request cleared `requireAuth`, published on the Hono context so
  * downstream boundary checks can adapt (`originAllowed` skips for "token").
  */
-export type AuthMethod = "none" | "session" | "token";
+type AuthMethod = "none" | "session" | "token";
 
 type BoundaryEnv = { Variables: { authMethod?: AuthMethod } };
 

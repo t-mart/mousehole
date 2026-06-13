@@ -22,12 +22,7 @@ import {
 import { logger } from "#backend/logger.ts";
 import { extractSessionId } from "#backend/session.ts";
 
-export const updatesEndpointPath = "/updates";
-export const stateEndpointPath = "/state";
-export const cookieEndpointPath = "/cookie";
-export const okEndpointPath = "/ok";
-export const healthEndpointPath = "/health";
-export const eventsEndpointPath = "/events";
+const okEndpointPath = "/ok";
 
 const maxJsonRequestBodyBytes = 8 * 1024;
 
@@ -112,29 +107,27 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
     return c.json({ ok: true });
   });
 
-  app.post(updatesEndpointPath, host, auth, origin, async (c) =>
+  app.post("/updates", host, auth, origin, async (c) =>
     c.json(await handlePostUpdate(ctx)),
   );
 
-  app.get(stateEndpointPath, host, auth, async (c) =>
-    c.json(await handleGetState(ctx)),
-  );
+  app.get("/state", host, auth, async (c) => c.json(await handleGetState(ctx)));
 
-  app.put(cookieEndpointPath, host, auth, origin, requireJsonBody, async (c) =>
+  app.put("/cookie", host, auth, origin, requireJsonBody, async (c) =>
     c.json(await handlePutCookie(ctx, c.req.raw)),
   );
 
-  app.get(okEndpointPath, async (c) => {
+  app.get("/ok", async (c) => {
     const body = await handleGetOk(ctx);
     return c.json(body, body.ok ? 200 : 503);
   });
 
-  app.get(healthEndpointPath, async (c) => {
+  app.get("/health", async (c) => {
     const body = await handleGetHealth(ctx);
     return c.json(body, body.ok ? 200 : 503);
   });
 
-  app.get(eventsEndpointPath, host, auth, origin, (c) => {
+  app.get("/events", host, auth, origin, (c) => {
     const sessionId = extractSessionId(c.req.raw) ?? "";
     let unregister: (() => void) | undefined;
     const stream = new ReadableStream<string>({

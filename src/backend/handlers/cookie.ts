@@ -9,7 +9,7 @@ import { makePublicState } from "./state.ts";
 
 // A non-empty cookie value is required; clearing a stored cookie via the API
 // is deliberately not supported (delete state.json instead).
-export const putCookieRequestBodySchema = z.object({
+const putCookieRequestBodySchema = z.object({
   value: z.string().min(1),
 });
 

@@ -11,7 +11,7 @@ export class UnauthenticatedError extends Error {
 }
 
 /** A non-401 failure of GET /state, carrying the server's message and status. */
-export class StateRequestError extends Error {
+class StateRequestError extends Error {
   readonly status: number;
 
   constructor(message: string, status: number) {
