@@ -40,9 +40,6 @@ export function startServer(env: NodeJS.ProcessEnv = process.env) {
 
   logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
   validateRuntimeSecurityConfig(config.auth);
-  if (config.stateDirPathDeprecationWarning) {
-    logger.warn(config.stateDirPathDeprecationWarning);
-  }
 
   ctx.contacts.start();
 

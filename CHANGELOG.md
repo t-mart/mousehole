@@ -34,7 +34,7 @@ automatically (your cookie is preserved).
   is `ok`, `throttled`, `rejected`, `unreachable`, `no-cookie`, or `pending`;
   `isOnline` / `neededUpdateReason` are removed, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).
-- **Breaking**: The `/ok` endpoint is removed in favor of `/health` in
+- **Breaking**: The `/ok` endpoint (deprecated in v0.4.0) is removed in favor of `/health` in
   [b7d67d2](https://github.com/t-mart/mousehole/commit/b7d67d2).
 - **Breaking**: `GET /health` now always returns HTTP `200` while the server is
   up. The `ok`/`reason` body still reports the MAM sync state, but no longer
@@ -45,6 +45,11 @@ automatically (your cookie is preserved).
 - **Breaking**: Removed `MOUSEHOLE_STALE_RESPONSE_SECONDS`. Every update
   contacts MAM (which replies "No change" when nothing changed), in
   [4c10402](https://github.com/t-mart/mousehole/commit/4c10402).
+- **Breaking**: Removed the `/srv/mousehole` legacy state-directory fallback
+  (deprecated in v0.3.0). Mousehole always defaults to `/var/lib/mousehole` now.
+  If your state still lives at `/srv/mousehole`, move it or set
+  `MOUSEHOLE_STATE_DIR_PATH=/srv/mousehole`. See
+  [#51](https://github.com/t-mart/mousehole/issues/51) for migration steps.
 - **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
   call MAM, so a network blip can't fail or hang them, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).

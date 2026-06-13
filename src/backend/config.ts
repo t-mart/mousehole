@@ -1,7 +1,5 @@
 import type { RequireAtLeastOne } from "type-fest";
 
-import { existsSync } from "node:fs";
-import path from "node:path";
 import * as z from "zod";
 
 import type { LogLevelName } from "#backend/logger.ts";
@@ -42,9 +40,6 @@ export type AllowedOriginsConfig =
     }
   | { type: "all" };
 
-// TODO: Remove this migration compatibility code in a future major release, after giving
-// users sufficient time to migrate.
-const LEGACY_STATE_DIR = "/srv/mousehole";
 const DEFAULT_STATE_DIR = "/var/lib/mousehole";
 
 const DEFAULT_ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
@@ -77,36 +72,6 @@ function parseCommaSeparated(value: string): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-}
-
-function resolveStateDirectoryPath(env: NodeJS.ProcessEnv): {
-  stateDirPath: string;
-  stateDirPathDeprecationWarning: string | undefined;
-} {
-  const environmentValue = getEnv(env, "MOUSEHOLE_STATE_DIR_PATH");
-  if (environmentValue !== undefined) {
-    return {
-      stateDirPath: environmentValue,
-      stateDirPathDeprecationWarning: undefined,
-    };
-  }
-
-  const legacyExists = existsSync(path.join(LEGACY_STATE_DIR, "state.json"));
-  const newExists = existsSync(path.join(DEFAULT_STATE_DIR, "state.json"));
-
-  if (legacyExists && !newExists) {
-    return {
-      stateDirPath: LEGACY_STATE_DIR,
-      stateDirPathDeprecationWarning:
-        `[DEPRECATION] State found at legacy path ${LEGACY_STATE_DIR}. ` +
-        `Migrate to ${DEFAULT_STATE_DIR}. See https://github.com/t-mart/mousehole/issues/51 for migration steps.`,
-    };
-  }
-
-  return {
-    stateDirPath: DEFAULT_STATE_DIR,
-    stateDirPathDeprecationWarning: undefined,
-  };
 }
 
 function resolveLogLevel(env: NodeJS.ProcessEnv): LogLevelName {
@@ -173,9 +138,6 @@ function resolveAllowedOriginsConfig(env: NodeJS.ProcessEnv): AllowedOriginsConf
 }
 
 export function buildConfig(env: NodeJS.ProcessEnv) {
-  const { stateDirPath, stateDirPathDeprecationWarning } =
-    resolveStateDirectoryPath(env);
-
   return {
     /**
      * The log level threshold, by name. Messages below this level are suppressed.
@@ -195,13 +157,9 @@ export function buildConfig(env: NodeJS.ProcessEnv) {
     /**
      * The directory path where Mousehole stores its state.
      *
-     * Defaults to "/var/lib/mousehole", falling back to "/srv/mousehole" if
-     * state already exists there and no env var is set (migration compatibility).
+     * Defaults to "/var/lib/mousehole".
      */
-    stateDirPath,
-
-    /** Set when the legacy state directory is in use. */
-    stateDirPathDeprecationWarning,
+    stateDirPath: getEnv(env, "MOUSEHOLE_STATE_DIR_PATH") ?? DEFAULT_STATE_DIR,
 
     /**
      * The number of seconds between automatic updates (contacts with MAM).

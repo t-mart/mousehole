@@ -50,11 +50,8 @@ describe("MOUSEHOLE_STATE_DIR_PATH", () => {
     ).toBe("/custom/path");
   });
 
-  test("override produces no deprecation warning", () => {
-    expect(
-      buildConfig({ MOUSEHOLE_STATE_DIR_PATH: "/custom/path" })
-        .stateDirPathDeprecationWarning,
-    ).toBeUndefined();
+  test("defaults to /var/lib/mousehole when unset", () => {
+    expect(buildConfig({}).stateDirPath).toBe("/var/lib/mousehole");
   });
 });
 
