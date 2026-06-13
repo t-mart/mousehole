@@ -64,7 +64,7 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
     try {
       if (!cookie) {
         const host: HostInfo = await getHostInfo(fetchOptions);
-        logger.info("Looked up host IP (no cookie set yet)");
+        logger.info("No cookie set yet. Visit the web UI to configure.");
         return {
           lastMamContact: {
             at,
