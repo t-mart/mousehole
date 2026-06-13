@@ -71,7 +71,6 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
   );
 
   app.onError((error, c) => {
-    logger.error(error);
     const { body, status } = toErrorResponseArgs(error);
     return c.json(body, status);
   });
