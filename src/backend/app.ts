@@ -117,15 +117,8 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
     c.json(await handlePutCookie(ctx, c.req.raw)),
   );
 
-  app.get("/ok", async (c) => {
-    const body = await handleGetOk(ctx);
-    return c.json(body, body.ok ? 200 : 503);
-  });
-
-  app.get("/health", async (c) => {
-    const body = await handleGetHealth(ctx);
-    return c.json(body, body.ok ? 200 : 503);
-  });
+  app.get("/ok", async (c) => c.json(await handleGetOk(ctx)));
+  app.get("/health", async (c) => c.json(await handleGetHealth(ctx)));
 
   app.get("/events", host, auth, origin, (c) => {
     const sessionId = extractSessionId(c.req.raw) ?? "";

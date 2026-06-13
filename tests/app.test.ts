@@ -396,13 +396,13 @@ describe("login/logout flow", () => {
 });
 
 describe("public probes", () => {
-  test("with no contact yet, /ok and /health are 503 and not ok", async () => {
+  test("with no contact yet, /ok and /health answer 200 but report not-ok", async () => {
     const { app } = makeTestContext();
     for (const probePath of ["/ok", "/health"]) {
       const response = await app.request(probePath);
-      expect(response.status).toBe(503);
-      const body = (await response.json()) as { ok: boolean };
-      expect(body.ok).toBe(false);
+      
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ ok: false, reason: "pending" });
     }
   });
 });
@@ -582,7 +582,7 @@ describe("contact flows (simulated MAM)", () => {
     });
 
     const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(503);
+    expect(okResponse.status).toBe(200);
     expect(await okResponse.json()).toEqual({
       ok: false,
       reason: "throttled",
@@ -598,7 +598,7 @@ describe("contact flows (simulated MAM)", () => {
     expect(putResponse.status).toBe(200);
 
     const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(503);
+    expect(okResponse.status).toBe(200);
     expect(await okResponse.json()).toEqual({
       ok: false,
       reason: "rejected",
@@ -644,7 +644,7 @@ describe("contact flows (simulated MAM)", () => {
     expect(fakeMam.received.at(-1)?.path).toBe("/json/jsonIp.php");
 
     const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(503);
+    expect(okResponse.status).toBe(200);
     expect(await okResponse.json()).toEqual({
       ok: false,
       reason: "no-cookie",
@@ -669,7 +669,7 @@ describe("contact flows (simulated MAM)", () => {
     expect(state.lastMamContact.error.type).toBe("network-error");
 
     const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(503);
+    expect(okResponse.status).toBe(200);
     expect(await okResponse.json()).toEqual({
       ok: false,
       reason: "unreachable",

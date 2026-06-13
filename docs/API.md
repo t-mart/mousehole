@@ -97,30 +97,28 @@ the [state shape](#state-shape).
 
 Requires Auth?: No
 
-**Deprecated in favor of `/health`.** A convenience endpoint summarizing the
-last contact. Returns `200` when it reached MAM and the IP update applied,
-`503` otherwise.
-
-```jsonc
-{ "ok": true,  "reason": "ok" }          // 200
-{ "ok": false, "reason": "unreachable" } // 503
-```
-
-`reason` is one of: `ok`, `throttled` (429), `rejected` (403), `unreachable`,
-`no-cookie` (set one up), `pending` (no check has run yet).
+**Deprecated in favor of [`/health`](#get-health),** which it now mirrors exactly
+(same body, same always-`200` behavior). Prefer `/health`.
 
 ## `GET /health`
 
 Requires Auth?: No
 
-Health check endpoint, same body and status semantics as `/ok` (`200` healthy /
-`503` otherwise). It's a pure read of the last contact — it makes no network
-call, so a `curl`/Docker healthcheck never hits MAM.
+A liveness probe: it answers **`200` whenever the server is up and serving**,
+which is what the Docker healthcheck and reverse proxies key off. It's a pure read
+of the last contact (no network call, so a `curl`/Docker healthcheck never hits
+MAM); the `ok`/`reason` body reports the MAM sync state for humans and monitors,
+but **never** changes the status code. So the container stays healthy even when
+your IP needs re-syncing — that's a job for you on the dashboard, not a reason to
+restart the container or pull it from rotation.
 
 ```jsonc
-{ "ok": true,  "reason": "ok" }
-{ "ok": false, "reason": "rejected" }
+{ "ok": true,  "reason": "ok" }       // synced
+{ "ok": false, "reason": "rejected" } // needs attention — still HTTP 200
 ```
+
+`reason` is one of: `ok`, `throttled` (429), `rejected` (403), `unreachable`,
+`no-cookie` (set one up), `pending` (no check has run yet).
 
 ## `GET /events`
 

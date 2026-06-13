@@ -4,9 +4,12 @@ import { classify, type ContactStatus } from "#shared/public-state.ts";
 
 export type GetHealthResponseBody = { ok: boolean; reason: ContactStatus };
 
-// A pure read of the last contact: ok when the most recent contact reached MAM and
-// the IP update applied (200). No network call, so the Docker healthcheck doesn't
-// hammer MAM. The route maps `ok` onto the HTTP status (200/503).
+// A pure read of the last contact: `ok` when the most recent contact reached MAM
+// and the IP update applied (MAM's 200). No network call, so the Docker
+// healthcheck doesn't hammer MAM. The route always answers HTTP 200 while the
+// server is up (a liveness signal); `ok`/`reason` report the MAM sync state in
+// the body without gating the status, so the container stays healthy even when
+// the user must intervene.
 export async function handleGetHealth(
   ctx: AppContext,
 ): Promise<GetHealthResponseBody> {

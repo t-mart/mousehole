@@ -34,6 +34,12 @@ automatically (your cookie is preserved).
   `reason` is `ok`, `throttled`, `rejected`, `unreachable`, `no-cookie`, or
   `pending`; `isOnline` / `neededUpdateReason` are removed, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).
+- **Breaking**: `GET /health` (and the deprecated `GET /ok`) now always return
+  HTTP `200` while the server is up — they're liveness probes. The `ok`/`reason`
+  body still reports the MAM sync state, but no longer drives the status code (it
+  was `503` when not `ok`). This keeps the container healthy when your IP simply
+  needs re-syncing, so reverse proxies and orchestrators don't restart it or pull
+  it from rotation over something only you can fix.
 - **Breaking**: Removed `MOUSEHOLE_STALE_RESPONSE_SECONDS`. Every update
   contacts MAM (which replies "No change" when nothing changed), in
   [4c10402](https://github.com/t-mart/mousehole/commit/4c10402).

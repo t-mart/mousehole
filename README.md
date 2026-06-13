@@ -86,9 +86,15 @@ Several tags are published throughout the lifecycle of the project:
 
 The Dockerfile includes a default healthcheck that hits the
 `http://localhost:5010/health` endpoint (see
-[API Documentation](/docs/API.md#get-health)). If you change the port on which
-Mousehole listens with the `MOUSEHOLE_PORT` environment variable, make sure to
-override the healthcheck command accordingly.
+[API Documentation](/docs/API.md#get-health)). It reports liveness only: the
+container stays healthy as long as the service is up and serving. Conditions that
+need your attention (for example, an IP that no longer matches your cookie) are
+surfaced on the dashboard and in the response body — they don't mark the container
+unhealthy, so a reverse proxy or orchestrator won't restart it or pull it from
+rotation over something only you can fix.
+
+If you change the port on which Mousehole listens with the `MOUSEHOLE_PORT`
+environment variable, make sure to override the healthcheck command accordingly.
 
 ## How It Works
 
