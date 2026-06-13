@@ -10,7 +10,6 @@ import { toErrorResponseArgs } from "#backend/error.ts";
 import { handlePutCookie } from "#backend/handlers/cookie.ts";
 import { handleGetHealth } from "#backend/handlers/health.ts";
 import { handlePostLogin } from "#backend/handlers/login.ts";
-import { handleGetOk } from "#backend/handlers/ok.ts";
 import { handleGetState } from "#backend/handlers/state.ts";
 import { handlePostUpdate } from "#backend/handlers/updates.ts";
 import {
@@ -22,7 +21,7 @@ import {
 import { logger } from "#backend/logger.ts";
 import { extractSessionId } from "#backend/session.ts";
 
-const okEndpointPath = "/ok";
+const healthEndpointPath = "/health";
 
 const maxJsonRequestBodyBytes = 8 * 1024;
 
@@ -85,7 +84,7 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
       supports: ["text/html", "application/json"],
       default: "text/html",
     });
-    return c.redirect(mediaType === "text/html" ? "/web" : okEndpointPath);
+    return c.redirect(mediaType === "text/html" ? "/web" : healthEndpointPath);
   });
 
   app.post("/login", host, origin, requireJsonBody, async (c) => {
@@ -117,8 +116,7 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
     c.json(await handlePutCookie(ctx, c.req.raw)),
   );
 
-  app.get("/ok", async (c) => c.json(await handleGetOk(ctx)));
-  app.get("/health", async (c) => c.json(await handleGetHealth(ctx)));
+  app.get(healthEndpointPath, async (c) => c.json(await handleGetHealth(ctx)));
 
   app.get("/events", host, auth, origin, (c) => {
     const sessionId = extractSessionId(c.req.raw) ?? "";

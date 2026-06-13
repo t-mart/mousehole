@@ -71,12 +71,12 @@ async function login(
 describe("GET / content negotiation", () => {
   const { app } = makeTestContext();
 
-  test("Accept: application/json redirects to /ok", async () => {
+  test("Accept: application/json redirects to /health", async () => {
     const response = await app.request("/", {
       headers: { Accept: "application/json" },
     });
     expect(response.status).toBe(302);
-    expect(response.headers.get("location")).toBe("/ok");
+    expect(response.headers.get("location")).toBe("/health");
   });
 
   test("Accept: text/html redirects to /web", async () => {
@@ -176,7 +176,7 @@ type RouteSpec = {
   sendsSession: boolean;
 };
 
-// The expected protection profile of every backend endpoint. /ok, /health,
+// The expected protection profile of every backend endpoint. /health,
 // and / are deliberately public (probes and the web entry redirect); /web
 // serves the login page's own assets.
 const routeSpecs: readonly RouteSpec[] = [
@@ -396,14 +396,12 @@ describe("login/logout flow", () => {
 });
 
 describe("public probes", () => {
-  test("with no contact yet, /ok and /health answer 200 but report not-ok", async () => {
+  test("with no contact yet, /health answer 200 but report not-ok", async () => {
     const { app } = makeTestContext();
-    for (const probePath of ["/ok", "/health"]) {
-      const response = await app.request(probePath);
+    const response = await app.request("/health");
       
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({ ok: false, reason: "pending" });
-    }
   });
 });
 
@@ -517,7 +515,7 @@ describe("PUT /cookie validation", () => {
 });
 
 describe("contact flows (simulated MAM)", () => {
-  test("PUT /cookie runs an update, persists, and flips /ok to healthy", async () => {
+  test("PUT /cookie runs an update, persists, and flips /health to healthy", async () => {
     const fakeMam = createFakeMam();
     const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
     const cookie = await login(app);
@@ -547,9 +545,9 @@ describe("contact flows (simulated MAM)", () => {
     expect(seen?.mamId).toBe("mam-session-cookie");
     expect(seen?.userAgent).toStartWith("mousehole-by-timtimtim/");
 
-    const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(200);
-    expect(await okResponse.json()).toEqual({ ok: true, reason: "ok" });
+    const healthResponse = await app.request("/health");
+    expect(healthResponse.status).toBe(200);
+    expect(await healthResponse.json()).toEqual({ ok: true, reason: "ok" });
 
     // GET /state serves the same persisted contact.
     const stateResponse = await app.request("/state", {
@@ -561,7 +559,7 @@ describe("contact flows (simulated MAM)", () => {
     expect(state.lastMamContact).toEqual(putState.lastMamContact);
   });
 
-  test("a throttled update (429) is persisted and surfaces via /ok", async () => {
+  test("a throttled update (429) is persisted and surfaces via /health", async () => {
     const fakeMam = createFakeMam({ outcome: "lastChangeTooRecent" });
     const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
     const cookie = await login(app);
@@ -581,15 +579,15 @@ describe("contact flows (simulated MAM)", () => {
       httpStatus: 429,
     });
 
-    const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(200);
-    expect(await okResponse.json()).toEqual({
+    const healthResponse = await app.request("/health");
+    expect(healthResponse.status).toBe(200);
+    expect(await healthResponse.json()).toEqual({
       ok: false,
       reason: "throttled",
     });
   });
 
-  test("a rejected session (403) is persisted and surfaces via /ok", async () => {
+  test("a rejected session (403) is persisted and surfaces via /health", async () => {
     const fakeMam = createFakeMam({ outcome: "ipMismatch" });
     const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
     const cookie = await login(app);
@@ -597,9 +595,9 @@ describe("contact flows (simulated MAM)", () => {
     const putResponse = await putMamCookie(app, cookie);
     expect(putResponse.status).toBe(200);
 
-    const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(200);
-    expect(await okResponse.json()).toEqual({
+    const healthResponse = await app.request("/health");
+    expect(healthResponse.status).toBe(200);
+    expect(await healthResponse.json()).toEqual({
       ok: false,
       reason: "rejected",
     });
@@ -643,9 +641,9 @@ describe("contact flows (simulated MAM)", () => {
     expect(state.lastMamContact.ipUpdate).toBeUndefined();
     expect(fakeMam.received.at(-1)?.path).toBe("/json/jsonIp.php");
 
-    const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(200);
-    expect(await okResponse.json()).toEqual({
+    const healthResponse = await app.request("/health");
+    expect(healthResponse.status).toBe(200);
+    expect(await healthResponse.json()).toEqual({
       ok: false,
       reason: "no-cookie",
     });
@@ -668,9 +666,9 @@ describe("contact flows (simulated MAM)", () => {
     expect(state.lastMamContact.reached).toBe(false);
     expect(state.lastMamContact.error.type).toBe("network-error");
 
-    const okResponse = await app.request("/ok");
-    expect(okResponse.status).toBe(200);
-    expect(await okResponse.json()).toEqual({
+    const healthResponse = await app.request("/health");
+    expect(healthResponse.status).toBe(200);
+    expect(await healthResponse.json()).toEqual({
       ok: false,
       reason: "unreachable",
     });

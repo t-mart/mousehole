@@ -10,8 +10,7 @@ address is not stable.
 
 Features:
 
-- Background service that automatically keeps MAM up to date with your host's
-  IP
+- Background service that automatically keeps MAM up to date with your host's IP
 - Frontend website to manage the service
 - [API](/docs/API.md) for programmatic access
 
@@ -35,7 +34,8 @@ Starter Docker Compose examples:
 - [binhex/arch-qbittorrentvpn + Mousehole](/docs/docker-compose-examples/binhex-qb.md)
 - [Non-VPN Example](/docs/docker-compose-examples/non-vpn.md)
 
-Any Docker Compose setup can be adapted to include [Mousehole as a sidecar](/docs/compose-setups.md).
+Any Docker Compose setup can be adapted to include
+[Mousehole as a sidecar](/docs/compose-setups.md).
 
 #### Unraid
 
@@ -86,27 +86,23 @@ Several tags are published throughout the lifecycle of the project:
 
 The Dockerfile includes a default healthcheck that hits the
 `http://localhost:5010/health` endpoint (see
-[API Documentation](/docs/API.md#get-health)). It reports liveness only: the
-container stays healthy as long as the service is up and serving. Conditions that
-need your attention (for example, an IP that no longer matches your cookie) are
-surfaced on the dashboard and in the response body — they don't mark the container
-unhealthy, so a reverse proxy or orchestrator won't restart it or pull it from
-rotation over something only you can fix.
+[API Documentation](/docs/API.md#get-health)). A `200` status code indicates the
+service is live, and therefore, it is suitable for use in container
+orchestration.
 
 If you change the port on which Mousehole listens with the `MOUSEHOLE_PORT`
-environment variable, make sure to override the healthcheck command accordingly.
+environment variable, make sure to override the
+[healthcheck command](/Dockerfile) accordingly.
 
 ## How It Works
 
-Mousehole runs on a loop. On each **update** (every
-`MOUSEHOLE_UPDATE_INTERVAL_SECONDS`), it contacts MAM. If you've configured a
-cookie, it sends MAM your current IP through their dynamic-seedbox API — MAM
-commits any change, or simply replies "No change" if your IP is already correct.
-If you haven't set a cookie yet, the contact just looks up your public IP so you
-can see it during setup.
+On a schedule, Mousehole contacts MAM. If you've set a cookie, it sends MAM your
+current IP through their
+[dynamic-seedbox API](https://www.myanonamouse.net/api/endpoint.php/3/json/dynamicSeedbox.php).
+Otherwise, the request just looks up your public IP so you can see it during
+setup.
 
-You can trigger an immediate update from the web UI with **Update Now**, and the
-dashboard reflects each one live (in this and any other open tab).
+You can trigger an immediate update from the web UI with **Update Now**.
 
 ## Environment Variables
 
@@ -129,9 +125,9 @@ dashboard reflects each one live (in this and any other open tab).
   opt-out, set to `*` to allow any host. See
   [Host Allowlist](/docs/security-guide.md#host-allowlist) for more details.
 - `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of origins permitted to
-  make cross-origin requests to mutating routes and the live-update stream. Defaults
-  to same-origin only, which only allows the origin that matches the host of the
-  request. Values must be exact origins with no path, such as
+  make cross-origin requests to mutating routes and the live-update stream.
+  Defaults to same-origin only, which only allows the origin that matches the
+  host of the request. Values must be exact origins with no path, such as
   `https://mousehole.example.com` or `http://nas.local:5010`. As an opt-out, set
   to `*` to allow any origin. See
   [Origin Allowlist](/docs/security-guide.md#origin-allowlist) for more details.
@@ -151,8 +147,8 @@ dashboard reflects each one live (in this and any other open tab).
   listen.
 - `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The
   interval in seconds between automatic updates. Each one contacts MAM; if your
-  IP is unchanged, MAM simply replies "No change", so there's no harm in a
-  short interval.
+  IP is unchanged, MAM simply replies "No change", so there's no harm in a short
+  interval.
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
   a response from MAM before aborting the request. Prevents Mousehole from
   hanging when the connection silently stalls (e.g. before the VPN is up).
@@ -198,8 +194,8 @@ functionality.
   reverse-proxies `/web/*` to Vite in development, so the dev URL matches
   production.
 
-- Run tests with `bun check:test`, check types with `bun check:types`, and
-  lint with `bun check:lint`.
+- Run tests with `bun check:test`, check types with `bun check:types`, and lint
+  with `bun check:lint`.
 
 - New versions can be tagged, released and pushed to Docker Hub by simply
   changing the version in `package.json` and pushing to GitHub. The CI workflows
