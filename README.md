@@ -113,7 +113,8 @@ You can trigger an immediate update from the web UI with **Update Now**.
 ### Commonly set
 
 - `MOUSEHOLE_AUTH_PASSWORD`: Enables browser login via the web UI login page.
-  Set this to a strong password.
+  Set this to a strong password. Supports the
+  [`_FILE` variant](#docker-secrets).
 - `TZ`: _(Default `Etc/UTC`)_ The timezone identifier for displaying localized
   times. Use the "TZ identifier" column from this
   [list of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
@@ -154,7 +155,8 @@ You can trigger an immediate update from the web UI with **Update Now**.
 - `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
   Only needed if you're writing/integrating code against the API. Clients can
   send HTTP headers in the format `Authorization: Bearer <token>` when accessing
-  [API endpoints](/docs/API.md).
+  [API endpoints](/docs/API.md). Supports the
+  [`_FILE` variant](#docker-secrets).
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
   a response from MAM before aborting the request. Prevents Mousehole from
   hanging when the connection silently stalls (e.g. before the VPN is up).
@@ -172,6 +174,30 @@ You can trigger an immediate update from the web UI with **Update Now**.
   authentication. Do not use in mixed-trust environments.
 - `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
   user agent to use for requests to MAM.
+
+### Docker Secrets
+
+As an alternative to placing a credential in an environment variable, you can
+specify a file that contains it with the `_FILE` form. This enables use of
+[Docker secrets](https://docs.docker.com/compose/how-tos/use-secrets/). The
+contents are whitespace-trimmed, and the `_FILE` form takes precedence when both
+are set. If the file can't be read, Mousehole fails to start.
+
+Supported for `MOUSEHOLE_AUTH_PASSWORD` and `MOUSEHOLE_AUTH_TOKEN`:
+
+```yaml
+services:
+  mousehole:
+    image: tmmrtn/mousehole:latest
+    environment:
+      MOUSEHOLE_AUTH_PASSWORD_FILE: /run/secrets/mousehole-auth-password
+    secrets:
+      - mousehole-auth-password
+
+secrets:
+  mousehole-auth-password:
+    file: mousehole-auth-password.txt
+```
 
 ## Contributing
 

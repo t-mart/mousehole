@@ -55,6 +55,93 @@ describe("MOUSEHOLE_STATE_DIR_PATH", () => {
   });
 });
 
+// A hermetic stand-in for the file reader buildConfig injects for `*_FILE`
+// secrets: serves the given path→contents map, and throws ENOENT like the real
+// reader for anything else.
+function fakeReader(files: Record<string, string>): (path: string) => string {
+  return (path) => {
+    const contents = files[path];
+    if (contents === undefined) {
+      const error = new Error(
+        `ENOENT: no such file or directory, open '${path}'`,
+      ) as NodeJS.ErrnoException;
+      error.code = "ENOENT";
+      throw error;
+    }
+    return contents;
+  };
+}
+
+describe("MOUSEHOLE_AUTH_PASSWORD_FILE / MOUSEHOLE_AUTH_TOKEN_FILE (Docker secrets)", () => {
+  test("reads the password from the file, trimmed", () => {
+    const { auth } = buildConfig(
+      { MOUSEHOLE_AUTH_PASSWORD_FILE: "/run/secrets/pw" },
+      fakeReader({ "/run/secrets/pw": "  s3cr3t\n" }),
+    );
+    expect(auth).toEqual({
+      type: "configured",
+      password: "s3cr3t",
+      token: undefined,
+    });
+  });
+
+  test("reads the API token from a file too", () => {
+    const { auth } = buildConfig(
+      { MOUSEHOLE_AUTH_TOKEN_FILE: "/run/secrets/token" },
+      fakeReader({ "/run/secrets/token": "tok\n" }),
+    );
+    expect(auth).toEqual({ type: "configured", token: "tok" });
+  });
+
+  test("_FILE takes precedence over the plain variable", () => {
+    const { auth } = buildConfig(
+      {
+        MOUSEHOLE_AUTH_PASSWORD: "from-env",
+        MOUSEHOLE_AUTH_PASSWORD_FILE: "/run/secrets/pw",
+      },
+      fakeReader({ "/run/secrets/pw": "from-file" }),
+    );
+    expect(auth).toMatchObject({ type: "configured", password: "from-file" });
+  });
+
+  test("a _FILE-provided credential satisfies the auth requirement", () => {
+    // The must-have-auth check (server.ts) keys on auth.type !== "none".
+    const { auth } = buildConfig(
+      { MOUSEHOLE_AUTH_PASSWORD_FILE: "/run/secrets/pw" },
+      fakeReader({ "/run/secrets/pw": "s3cr3t" }),
+    );
+    expect(auth.type).toBe("configured");
+  });
+
+  test("an empty/whitespace-only file is treated as no credential", () => {
+    const { auth } = buildConfig(
+      { MOUSEHOLE_AUTH_PASSWORD_FILE: "/run/secrets/pw" },
+      fakeReader({ "/run/secrets/pw": "   \n  " }),
+    );
+    expect(auth).toEqual({ type: "none", insecureAllowNoAuth: false });
+  });
+
+  test("an empty _FILE overrides a set plain variable (precedence wins)", () => {
+    const { auth } = buildConfig(
+      {
+        MOUSEHOLE_AUTH_PASSWORD: "from-env",
+        MOUSEHOLE_AUTH_PASSWORD_FILE: "/run/secrets/pw",
+      },
+      fakeReader({ "/run/secrets/pw": "" }),
+    );
+    expect(auth).toEqual({ type: "none", insecureAllowNoAuth: false });
+  });
+
+  test("an unreadable file fails fast, naming the variable", () => {
+    expect(() =>
+      buildConfig(
+        { MOUSEHOLE_AUTH_PASSWORD_FILE: "/run/secrets/missing" },
+        fakeReader({}),
+      ),
+    ).toThrow("MOUSEHOLE_AUTH_PASSWORD_FILE");
+  });
+});
+
 describe("MOUSEHOLE_LOG_LEVEL", () => {
   for (const level of ["error", "warn", "info", "debug"] as const) {
     test(`accepts "${level}"`, () => {
