@@ -61,8 +61,10 @@ full walkthrough of how to obtain the cookie from MAM.
 ## Handling Errors
 
 Even with Mousehole up and running, things can still go wrong that Mousehole
-cannot fix automatically. Check out the [error documentation](/docs/errors.md)
+cannot fix automatically. Check out the [MAM error documentation](/docs/mam-errors.md)
 for help with troubleshooting.
+
+If Mousehole isn't even up and running, check the [network troubleshooting guide](/docs/network-troubleshooting.md).
 
 ## Security
 

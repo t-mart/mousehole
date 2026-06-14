@@ -29,7 +29,7 @@ the contact performs an IP **update** (the `ipUpdate` field below).
 ```jsonc
 {
   "hasCookie": true, // is a MAM cookie configured?
-  "hasAuth": true, // is the web UI password-protected?
+  "hasAuth": true, // is the web UI password-protected? (frontend concern)
   "nextContactAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]", // RFC 9557
   // The most recent contact with MAM. Absent until the first check runs.
   "lastMamContact": {

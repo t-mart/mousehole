@@ -16,6 +16,12 @@ in which you should use them.
 - [HTTPS-Only Cookies](#https-only-cookies)
 - [Session Duration](#session-duration)
 
+> [!NOTE]
+>
+> For MAM-specific errors (`ASN mismatch` or `Last Change Too Recent`), see the
+> [MAM error documentation](/docs/mam-errors.md). For network errors, see the
+> [network troubleshooting guide](/docs/network-troubleshooting.md).
+
 ## Quick Start
 
 ### Localhost Only

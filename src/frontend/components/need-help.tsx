@@ -12,8 +12,8 @@ export function NeedHelp({ ref }: Readonly<{ ref?: Ref<HTMLElement> }>) {
 
       <p className="text-center w-full">
         Need help? Check the{" "}
-        <Link href={`${docsBaseUrl}/errors.md`} target="_blank">
-          error documentation
+        <Link href={`${docsBaseUrl}/mam-errors.md`} target="_blank">
+          MAM error documentation
         </Link>
         .
       </p>
