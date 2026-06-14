@@ -12,7 +12,7 @@ automatically (your cookie is preserved).
   [57c71fc](https://github.com/t-mart/mousehole/commit/57c71fc) and
   [7677644](https://github.com/t-mart/mousehole/commit/7677644).
 - **Breaking**: Setting the cookie moved from `PUT /state`
-  (`{ "currentCookie": … }`) to `PUT /cookie` (`{ "value": … }`, non-empty),
+  (`{ "currentCookie": ... }`) to `PUT /cookie` (`{ "value": ... }`, non-empty),
   which contacts MAM immediately so the response shows whether the cookie works,
   in [b244901](https://github.com/t-mart/mousehole/commit/b244901).
 - **Breaking**: Triggering an update moved from `POST /update` (optional `force`
@@ -60,9 +60,9 @@ automatically (your cookie is preserved).
   healthy (`depends_on` with `condition: service_healthy`) before starting
   qBittorrent and Mousehole. Closes
   [#127](https://github.com/t-mart/mousehole/issues/127).
-- **Breaking**: Removed the `MOUSEHOLE_USER_AGENT` environment variable. The user
-  agent Mousehole sends to MAM is now fixed; if you set this variable, it is
-  ignored. Closes [#128](https://github.com/t-mart/mousehole/issues/128).
+- **Breaking**: Removed the `MOUSEHOLE_USER_AGENT` environment variable. The
+  user agent Mousehole sends to MAM is now fixed; if you set this variable, it
+  is ignored. Closes [#128](https://github.com/t-mart/mousehole/issues/128).
 - **Changed**: Mousehole now warns at startup when `MOUSEHOLE_ALLOWED_HOSTS` or
   `MOUSEHOLE_ALLOWED_ORIGINS` is set to `*`, since allowing all hosts/origins is
   less safe and almost always avoidable. Closes
@@ -71,6 +71,9 @@ automatically (your cookie is preserved).
   [Twelve-Factor App](https://12factor.net/logs). Previously error-level logs
   went to `stderr`. Closes
   [#135](https://github.com/t-mart/mousehole/issues/135).
+- **Fixed**: Dashboard sections now enter and exit smoothly — the header and
+  footer no longer jump abruptly when a section appears or disappears. Closes
+  [#129](https://github.com/t-mart/mousehole/issues/129).
 - **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
   call MAM, so a network blip can't fail or hang them, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).
@@ -79,6 +82,9 @@ automatically (your cookie is preserved).
   block, in [9755fd9](https://github.com/t-mart/mousehole/commit/9755fd9).
 - **Changed**: `POST /logout` enforces the origin check (no more cross-site
   logout) in [9755fd9](https://github.com/t-mart/mousehole/commit/9755fd9).
+- **Changed**: The frontend has been now has less layout shift, fewer
+  components, and other little design touches. Fixes
+  [#129](https://github.com/t-mart/mousehole/issues/129).
 - **Changed**: Requests with bodies over 8 KB get a JSON
   `{ "type": "payload-too-large", … }` body with the `413` status, in
   [7677644](https://github.com/t-mart/mousehole/commit/7677644).

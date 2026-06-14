@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 
-import { useErrors } from "#frontend/lib/error-context.tsx";
+import { useErrors } from "#frontend/contexts/error.tsx";
 
 export function ErrorDisplay() {
   const { errors, dismissError } = useErrors();

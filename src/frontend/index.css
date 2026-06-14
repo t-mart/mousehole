@@ -31,6 +31,7 @@
 :root {
   background-color: var(--color-background-dark);
   color: var(--color-text);
+  scrollbar-gutter: stable;
 }
 
 @keyframes disco-shift {
@@ -47,6 +48,14 @@
     color: transparent;
     animation: disco-shift 3s linear infinite;
   }
+}
+
+/* Countdown ring depletion: stroke-dashoffset 0 (full) → circumference (empty).
+   The element sets `--donut-circ` inline and drives duration/negative-delay so
+   one continuous animation covers the whole wait. See next-update.tsx. */
+@keyframes donut-deplete {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: var(--donut-circ); }
 }
 
 @keyframes sp-rotate { 100% { transform: rotate(360deg); } }

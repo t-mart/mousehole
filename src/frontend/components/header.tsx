@@ -1,8 +1,12 @@
+import { motion } from "motion/react";
+
 import { Link } from "./lib/link";
 
 export function Header() {
   return (
-    <header className="space-y-2 w-full">
+    // `layout` so the header glides to its new position when content below it
+    // changes height (the page stays vertically centered — see motion memory).
+    <motion.header layout className="space-y-2 w-full">
       <h1 className="font-bold text-5xl">Mousehole</h1>
       <p>
         Keep your{" "}
@@ -11,6 +15,6 @@ export function Header() {
         </Link>{" "}
         seedbox IP updated.
       </p>
-    </header>
+    </motion.header>
   );
 }

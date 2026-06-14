@@ -1,86 +1,85 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AnimatePresence } from "motion/react";
-import { type ReactNode } from "react";
-
-import { useErrors } from "#frontend/lib/error-context.tsx";
-
 import {
-  stateQueryFunction,
-  stateQueryKey,
-  stateQueryRetry,
-  UnauthenticatedError,
-} from "../lib/state-query";
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  MotionConfig,
+} from "motion/react";
+import { type ReactNode, type Ref } from "react";
+
+import { useErrors } from "#frontend/contexts/error.tsx";
+import { useStateQuery } from "#frontend/hooks/state.ts";
+
 import { Dashboard } from "./dashboard";
 import { ErrorDisplay } from "./error-display";
 import { Footer } from "./footer";
 import { Header } from "./header";
 import { Button } from "./lib/button";
 import { Loading } from "./lib/loading";
+import { layoutTransition } from "./lib/motion";
 import { Section } from "./lib/section";
 import { LoginForm } from "./login-form";
 
-function AppLayout({ children }: Readonly<{ children: ReactNode }>) {
+export function App() {
   const { errors } = useErrors();
+  // The state query lives here, above <AnimatePresence>, on purpose: the
+  // presence/layout machinery remounts its subtree as content swaps, and a
+  // query observer mounted *inside* it would be torn down and restarted on
+  // every swap — an endless pending→error→remount loop. Keep it in this stable
+  // parent and feed the result down as already-resolved content.
+  const { isPending, isError, error, isAuthError, refetch, data } =
+    useStateQuery();
+
+  let content: ReactNode;
+  if (isPending) {
+    content = <Loading key="loading" spinnerClassName="size-32" />;
+  } else if (isError) {
+    content = isAuthError ? (
+      <LoginForm key="login" />
+    ) : (
+      <StateQueryErrorDisplay key="error" error={error} refetch={refetch} />
+    );
+  } else {
+    content = <Dashboard key="dashboard" state={data} />;
+  }
+
   return (
-    <div className="mx-auto my-0 p-8 text-center relative z-10 space-y-8 max-w-prose w-full">
-      <Header />
-      {errors.length > 0 && <ErrorDisplay />}
-      <main className="space-y-4">
-        <AnimatePresence>{children}</AnimatePresence>
-      </main>
-      <Footer />
-    </div>
+    <MotionConfig transition={layoutTransition}>
+      <LayoutGroup>
+        <motion.div
+          layout
+          className="mx-auto my-0 p-8 text-center relative z-10 space-y-8 max-w-prose w-full"
+        >
+          <Header />
+          {errors.length > 0 && <ErrorDisplay />}
+          <motion.main layout className="relative space-y-4">
+            <AnimatePresence mode="popLayout">{content}</AnimatePresence>
+          </motion.main>
+          <Footer />
+        </motion.div>
+      </LayoutGroup>
+    </MotionConfig>
   );
 }
 
-export function App() {
-  const queryClient = useQueryClient();
-  const stateQuery = useQuery({
-    queryKey: stateQueryKey,
-    queryFn: stateQueryFunction,
-    retry: stateQueryRetry,
-  });
-
-  function handleLogout() {
-    void queryClient.invalidateQueries({ queryKey: stateQueryKey });
-  }
-
-  if (stateQuery.isPending) {
-    return (
-      <AppLayout>
-        <Loading spinnerClassName="size-32" />
-      </AppLayout>
-    );
-  }
-
-  if (stateQuery.error instanceof UnauthenticatedError) {
-    return (
-      <AppLayout>
-        <LoginForm />
-      </AppLayout>
-    );
-  }
-
-  if (stateQuery.isError) {
-    return (
-      <AppLayout>
-        <Section className="flex-col items-center gap-4">
-          <p className="text-destructive">{stateQuery.error.message}</p>
-          <Button
-            onClick={() => {
-              void stateQuery.refetch();
-            }}
-          >
-            Retry
-          </Button>
-        </Section>
-      </AppLayout>
-    );
-  }
-
+function StateQueryErrorDisplay({
+  error,
+  refetch,
+  ref,
+}: {
+  error: Error;
+  refetch: () => Promise<unknown>;
+  ref?: Ref<HTMLElement>;
+}) {
   return (
-    <AppLayout>
-      <Dashboard onLogout={handleLogout} />
-    </AppLayout>
+    <Section ref={ref} className="flex-col items-center gap-4">
+      <p className="text-destructive">{error.message}</p>
+      <Button
+        onClick={() => {
+          void refetch();
+        }}
+      >
+        Retry
+      </Button>
+    </Section>
   );
 }

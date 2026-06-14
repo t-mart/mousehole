@@ -1,122 +1,111 @@
+import { AnimatePresence, motion } from "motion/react";
 import { useState, type ReactNode } from "react";
-import { Temporal } from "temporal-polyfill";
 
+import { useLogout } from "#frontend/hooks/logout.ts";
+import { useServerEvents } from "#frontend/hooks/server-events.ts";
+import { useUpdate } from "#frontend/hooks/update.ts";
 import { classify, type PublicState } from "#shared/public-state.ts";
 
-import { useDashboard } from "../hooks/use-dashboard";
 import { CookieForm } from "./cookie-form";
 import { Button } from "./lib/button";
-import { Spinner } from "./lib/spinner";
 import { MamResponse } from "./mam-response";
 import { NeedHelp } from "./need-help";
-import { Timer } from "./timer";
 
-// The dashboard is in one of two mutually-exclusive modes: collecting a usable
-// cookie via the form ("cookie-setup"), or running normally with one
-// ("running"). `panel` captures which, and the orthogonal `showNeedHelp` flag
-// rides alongside since the help text can appear in either mode. Extracting
-// this into a separate function helps confine all the boolean logic for this in
-// one place.
-function getDashboardView(
-  data: PublicState,
-  userWantsInputCookie: boolean,
-): {
-  showNeedHelp: boolean;
-  panel: { kind: "cookie-setup"; showCancel: boolean } | { kind: "running" };
-} {
+function getDashboardState(data: PublicState, userWantsInputCookie: boolean) {
   const status = classify(data.lastMamContact);
   const rejected = status === "rejected"; // 403 — the cookie/session is bad
-  const mamProblem = rejected || status === "throttled"; // MAM returned Success:false
-
-  const needsCookieForm =
-    userWantsInputCookie || !data.hasCookie || rejected;
+  const showNeedHelp = rejected || status === "throttled";
 
   return {
-    showNeedHelp: mamProblem,
-    panel: needsCookieForm
-      ? { kind: "cookie-setup", showCancel: data.hasCookie && !rejected }
-      : { kind: "running" },
+    showCookieForm:
+      userWantsInputCookie || // they pressed the button to show it, or
+      !data.hasCookie || // the server says they have no cookie on file, or
+      rejected, // MAM says the cookie on file ain't no gud
+    showCookieFormCancelButton: data.hasCookie && !rejected, // only show the cancel button if there's a cookie to cancel to
+    showNeedHelp,
+    showOkTip: status === "ok",
   };
 }
 
-export function Dashboard({ onLogout }: Readonly<{ onLogout: () => void }>) {
-  const [userWantsInputCookie, setUserWantsInputCookie] = useState(false);
-  const { data, updateNow, isUpdatingNow, logout } = useDashboard(onLogout);
+export function Dashboard({ state }: { state: PublicState }) {
+  const [userWantsCookieInput, setUserWantsCookieInput] = useState(false);
+  useServerEvents();
+  const { mutate: update, isPending: isUpdatePending } = useUpdate();
+  const { mutate: logout, isPending: isLogoutPending } = useLogout();
 
-  if (!data) return;
-
-  const { showNeedHelp, panel } = getDashboardView(data, userWantsInputCookie);
+  const {
+    showCookieForm,
+    showCookieFormCancelButton,
+    showNeedHelp,
+    showOkTip,
+  } = getDashboardState(state, userWantsCookieInput);
 
   return (
-    <>
-      <MamResponse data={data} />
+    <AnimatePresence mode="popLayout">
+      <MamResponse key={state.nextContactAt ?? "mam-response"} state={state} />
 
-      {showNeedHelp && <NeedHelp />}
+      {showNeedHelp && <NeedHelp key="need-help" />}
 
-      {panel.kind === "cookie-setup" && (
+      {showCookieForm && (
         <CookieForm
-          onUpdate={() => setUserWantsInputCookie(false)}
-          onCancel={() => setUserWantsInputCookie(false)}
-          showCancel={panel.showCancel}
+          key="cookie-form"
+          onSetSuccess={() => setUserWantsCookieInput(false)}
+          onCancel={() => setUserWantsCookieInput(false)}
+          showCancel={showCookieFormCancelButton}
         />
       )}
 
-      {/* Providing a key here ensures re-render on timer expiration, good visual feedback for user */}
-      {panel.kind === "running" && !isUpdatingNow && data.nextContactAt && (
-        <Timer
-          nextContactAt={Temporal.ZonedDateTime.from(data.nextContactAt)}
-          key={data.nextContactAt}
-        />
-      )}
-
-      <div className="flex items-center justify-center gap-4">
-        {panel.kind === "running" && (
+      <motion.div
+        key="controls"
+        layout
+        className="flex items-center justify-center gap-4"
+      >
+        {!showCookieForm && (
           <>
-            <ControlsButton
-              key="set-cookie"
-              onClick={() => setUserWantsInputCookie(true)}
-            >
+            <ControlsButton onClick={() => setUserWantsCookieInput(true)}>
               Set Cookie
             </ControlsButton>
-            <ControlsButton
-              key="update-now"
-              onClick={() => updateNow()}
-              disabled={isUpdatingNow}
-            >
-              {isUpdatingNow ? <Spinner /> : "Update Now"}
+            <ControlsButton onClick={() => update()} loading={isUpdatePending}>
+              Update Now
             </ControlsButton>
           </>
         )}
-        {data.hasAuth && (
-          <ControlsButton key="logout" onClick={logout}>
+        {state.hasAuth && (
+          <ControlsButton onClick={() => logout()} loading={isLogoutPending}>
             Log out
           </ControlsButton>
         )}
-      </div>
+      </motion.div>
 
-      {panel.kind === "running" && (
-        <aside>
+      {showOkTip && (
+        <motion.aside
+          key="running-tip"
+          layout
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
           <p className="text-sm text-muted-text text-balance">
             You don't need to keep this page open! Automatic updates will occur
             on the server.
           </p>
-        </aside>
+        </motion.aside>
       )}
-    </>
+    </AnimatePresence>
   );
 }
 
 function ControlsButton({
   onClick,
-  disabled,
+  loading,
   children,
 }: Readonly<{
   onClick: () => void;
-  disabled?: boolean;
+  loading?: boolean;
   children: ReactNode;
 }>) {
   return (
-    <Button variant="ghost" onClick={onClick} disabled={disabled}>
+    <Button variant="ghost" onClick={onClick} loading={loading}>
       {children}
     </Button>
   );

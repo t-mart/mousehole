@@ -11,7 +11,7 @@ import { createRoot } from "react-dom/client";
 
 import "./index.css";
 import { App } from "./components/app";
-import { ErrorProvider } from "./lib/error-context";
+import { ErrorProvider } from "./contexts/error";
 import logoUrl from "./logo.svg";
 
 document.head.append(

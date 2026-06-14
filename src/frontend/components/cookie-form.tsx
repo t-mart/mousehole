@@ -1,77 +1,54 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useId, useState } from "react";
+import { useId, useState, type Ref } from "react";
 
-import type { PublicState } from "#shared/public-state.ts";
-
-import { useErrors } from "#frontend/lib/error-context.tsx";
-import { stateQueryKey } from "#frontend/lib/state-query.ts";
+import { useCookie } from "#frontend/hooks/cookie.ts";
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
 import { Button } from "./lib/button";
 import { Input } from "./lib/input";
 import { Link } from "./lib/link";
 import { Section } from "./lib/section";
-import { Spinner } from "./lib/spinner";
 
 export function CookieForm({
-  onUpdate,
+  onSetSuccess,
   onCancel,
   showCancel = true,
-}: Readonly<{ onUpdate: () => void; onCancel: () => void; showCancel?: boolean }>) {
-  const [formCookie, setFormCookie] = useState("");
+  ref,
+}: Readonly<{
+  onSetSuccess: () => void;
+  onCancel: () => void;
+  showCancel?: boolean;
+  ref?: Ref<HTMLElement>;
+}>) {
+  const [cookie, setCookie] = useState("");
   const cookieInputId = useId();
-  const { addError, clearErrors } = useErrors();
-  const queryClient = useQueryClient();
+  const { mutate, isPending } = useCookie({ onSetSuccess });
 
-  const { mutate, isPending } = useMutation({
-    // PUT /cookie sets the credential and contacts MAM in one shot, returning the
-    // resulting state — so the status (incl. a bad-cookie rejection) shows at once.
-    mutationFn: async (cookie: string) => {
-      const response = await fetch("/cookie", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value: cookie }),
-      });
-      if (!response.ok) {
-        const body = (await response.json().catch(() => undefined)) as
-          | { message?: string }
-          | undefined;
-        throw new Error(body?.message ?? "Failed to save cookie.");
-      }
-      return (await response.json()) as PublicState;
-    },
-    onSuccess: (data) => {
-      clearErrors();
-      queryClient.setQueryData(stateQueryKey, data);
-      onUpdate();
-    },
-    onError: (error: Error) => addError(error.message),
-  });
+  const isCookieValid = cookie !== "";
 
   function submitForm(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (formCookie !== "") mutate(formCookie);
+    mutate(cookie);
   }
 
   return (
-    <Section className="space-y-2">
+    <Section ref={ref} className="space-y-2">
       <h2 className="sr-only">Cookie</h2>
       <form onSubmit={submitForm} className="flex items-center gap-4 w-full">
         <label htmlFor={cookieInputId}>Cookie</label>
         <Input
           type="text"
           id={cookieInputId}
-          value={formCookie}
-          onChange={(event) => setFormCookie(event.target.value)}
+          value={cookie}
+          onChange={(event) => setCookie(event.target.value)}
           placeholder="Enter cookie"
           className="font-mono"
-          aria-invalid={formCookie === "" ? "true" : "false"}
+          aria-invalid={!isCookieValid}
           spellCheck="false"
           autoComplete="off"
           required
         />
-        <Button type="submit" aria-invalid={isPending || formCookie === ""}>
-          {isPending ? <Spinner /> : "Set"}
+        <Button type="submit" disabled={!isCookieValid} loading={isPending}>
+          Set
         </Button>
         {showCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>

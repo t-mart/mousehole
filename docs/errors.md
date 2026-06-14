@@ -2,8 +2,9 @@
 
 Mousehole communicates with MyAnonamouse's
 [Dynamic Seedbox IP API endpoint](https://www.myanonamouse.net/api/endpoint.php/3/json/dynamicSeedbox.php).
-If you see an error in Mousehole, it's just a relay of an error response from
-MAM. This page will help you understand what the error means and how to fix it.
+If you see a status error in Mousehole, it's a relay of an error response from
+MAM. This page will help you understand what those errors mean and how to fix
+them.
 
 ## Table of Contents
 
@@ -39,8 +40,8 @@ error, usually returned when a more specific error could not be identified.
 Mousehole is not running from that IP. This happens when the session was created
 with "IP locked".
 
-**🔧 How to fix**: [Create a new session](/docs/getting-your-cookie.md) with **ASN**
-selected for "IP vs ASN locked session".
+**🔧 How to fix**: [Create a new session](/docs/getting-your-cookie.md) with
+**ASN** selected for "IP vs ASN locked session".
 
 ## 403 Invalid Session - ASN Mismatch
 
@@ -83,9 +84,9 @@ Mousehole's IP is not in the list of allowed ASNs for the session.
 possibly a typo or a copy of the wrong value.
 
 **🔧 How to fix**: Get a new cookie value following the steps in
-[Getting Your Cookie Value](/docs/getting-your-cookie.md). When pasting the cookie
-value into Mousehole, ensure there are no extra spaces at the beginning or end
-of the value.
+[Getting Your Cookie Value](/docs/getting-your-cookie.md). When pasting the
+cookie value into Mousehole, ensure there are no extra spaces at the beginning
+or end of the value.
 
 ## 403 Incorrect Session Type - Not Allowed This Function
 
@@ -94,8 +95,8 @@ created with permission to set the Dynamic Seedbox IP. This means "Allow Session
 to set Dynamic Seedbox" was set to "No" when the session was created.
 
 **🔧 How to fix**: Get a new cookie value following the steps in
-[Getting Your Cookie Value](/docs/getting-your-cookie.md), ensuring to select "Yes"
-for "Allow Session to set Dynamic Seedbox" when creating the session.
+[Getting Your Cookie Value](/docs/getting-your-cookie.md), ensuring to select
+"Yes" for "Allow Session to set Dynamic Seedbox" when creating the session.
 
 ## 403 Incorrect Session Type - Non-API Session
 
