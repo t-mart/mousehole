@@ -43,26 +43,22 @@ function colorEnabled(stream: { isTTY?: boolean }): boolean {
 
 function emit(level: LogLevelName, args: unknown[]): void {
   if (LEVELS[level] < LEVELS[threshold]) return;
-  // Only `error` goes to stderr, so failures can be split off at the stream
-  // level; the other levels share stdout, preserving their relative ordering.
-  // Color follows the destination stream so redirecting one stream to a file
-  // doesn't capture ANSI codes meant for the other.
-  const write = level === "error" ? console.error : console.log;
-  const useColor = colorEnabled(
-    level === "error" ? process.stderr : process.stdout,
-  );
+  // Per the Twelve-Factor App (https://12factor.net/logs), every level writes
+  // its event stream to stdout; routing and storage are the environment's job.
+  // Color follows stdout's TTY-ness.
+  const useColor = colorEnabled(process.stdout);
   const label = level.toUpperCase();
   const prefix = useColor ? `${COLORS[level]}[${label}]${RESET}` : `[${label}]`;
-  
+
   // When an Error is logged its multi-line rendering reads better on its own
   // line, so emit the prefix separately rather than prepending it.
   if (args.some((argument) => argument instanceof Error)) {
-    write(prefix);
+    console.log(prefix);
     // In production, render Errors via util.inspect (stack + cause chain, no
     // Bun source-code frame). In dev, pass the Error through so Bun prints its
     // rich code frame.
     if (isProduction) {
-      write(
+      console.log(
         ...args.map((argument) =>
           argument instanceof Error
             ? inspect(argument, { colors: useColor })
@@ -70,11 +66,11 @@ function emit(level: LogLevelName, args: unknown[]): void {
         ),
       );
     } else {
-      write(...args);
+      console.log(...args);
     }
     return;
   }
-  write(prefix, ...args);
+  console.log(prefix, ...args);
 }
 
 export const logger = {

@@ -17,13 +17,13 @@ describe("logger", () => {
     setLogLevel(DEFAULT_LOG_LEVEL);
   });
 
-  it("routes error to stderr only", () => {
+  it("routes error to stdout, never stderr", () => {
     logger.error("boom");
-    expect(stderrSpy).toHaveBeenCalledWith(
+    expect(stdoutSpy).toHaveBeenCalledWith(
       expect.stringContaining("[ERROR]"),
       "boom",
     );
-    expect(stdoutSpy).not.toHaveBeenCalled();
+    expect(stderrSpy).not.toHaveBeenCalled();
   });
 
   it("routes info and warn to stdout only", () => {
@@ -40,17 +40,16 @@ describe("logger", () => {
     expect(stderrSpy).not.toHaveBeenCalled();
   });
 
-  it("keeps both lines of an Error rendering on stderr", () => {
+  it("keeps both lines of an Error rendering on stdout", () => {
     const failure = new Error("kaboom");
     logger.error(failure);
-    // The prefix and the Error are emitted as separate writes; both must land
-    // on the same stream or they can be torn apart by redirection.
-    expect(stderrSpy).toHaveBeenCalledTimes(2);
-    expect(stderrSpy).toHaveBeenNthCalledWith(
+    // The prefix and the Error are emitted as separate writes, both to stdout.
+    expect(stdoutSpy).toHaveBeenCalledTimes(2);
+    expect(stdoutSpy).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining("[ERROR]"),
     );
-    expect(stdoutSpy).not.toHaveBeenCalled();
+    expect(stderrSpy).not.toHaveBeenCalled();
   });
 
   it("suppresses levels below the threshold", () => {
@@ -65,12 +64,16 @@ describe("logger", () => {
     );
   });
 
-  it("suppresses stdout levels when threshold is error", () => {
+  it("emits only error when the threshold is error", () => {
     setLogLevel("error");
     logger.info("invisible");
     logger.warn("invisible");
     logger.error("visible");
-    expect(stdoutSpy).not.toHaveBeenCalled();
-    expect(stderrSpy).toHaveBeenCalledTimes(1);
+    expect(stdoutSpy).toHaveBeenCalledTimes(1);
+    expect(stdoutSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[ERROR]"),
+      "visible",
+    );
+    expect(stderrSpy).not.toHaveBeenCalled();
   });
 });

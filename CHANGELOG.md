@@ -67,6 +67,10 @@ automatically (your cookie is preserved).
   `MOUSEHOLE_ALLOWED_ORIGINS` is set to `*`, since allowing all hosts/origins is
   less safe and almost always avoidable. Closes
   [#132](https://github.com/t-mart/mousehole/issues/132).
+- **Changed**: All logs are written to `stdout`, following the
+  [Twelve-Factor App](https://12factor.net/logs). Previously error-level logs
+  went to `stderr`. Closes
+  [#135](https://github.com/t-mart/mousehole/issues/135).
 - **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
   call MAM, so a network blip can't fail or hang them, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).
