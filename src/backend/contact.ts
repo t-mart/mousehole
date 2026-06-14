@@ -3,7 +3,7 @@ import type { Temporal } from "temporal-polyfill";
 import { getNowZdt } from "#shared/time.ts";
 
 import type { FetchLike } from "./external-api/fetch.ts";
-import type { StateFileStore } from "./state/store.ts";
+import type { StateStore } from "./state/store.ts";
 
 import { toErrorResponseArgs } from "./error.ts";
 import { getHostInfo, type HostInfo } from "./external-api/host-info.ts";
@@ -22,10 +22,10 @@ export type ContactSchedulerOptions = {
   intervalSeconds: number;
   userAgent: string;
   mamRequestTimeoutSeconds: number;
-  stateFile: StateFileStore;
+  stateFile: StateStore;
   /** Called after every persisted contact so dashboards re-pull GET /state. */
   notifyClients: () => void;
-  /** The fetch used for MAM calls; tests inject a fake (see tests/fake-mam.ts). */
+  /** The fetch used for MAM calls; tests inject a MAM test server (see tests/mam-test-server.ts). */
   fetchImpl?: FetchLike;
 };
 

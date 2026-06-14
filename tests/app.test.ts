@@ -1,33 +1,41 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { rmSync } from "node:fs";
-import path from "node:path";
 
 import type { AppContext } from "../src/backend/context.ts";
 import type { FetchLike } from "../src/backend/external-api/fetch.ts";
+import type { State } from "../src/backend/state/serde.ts";
+import type { StateStore } from "../src/backend/state/store.ts";
 
 import { createApp } from "../src/backend/app.ts";
 import { buildConfig } from "../src/backend/config.ts";
 import { createAppContext } from "../src/backend/context.ts";
 import { DEFAULT_LOG_LEVEL, setLogLevel } from "../src/backend/logger.ts";
 import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
-import { createFakeMam } from "./fake-mam.ts";
+import { createMamTestServer } from "./mam-test-server.ts";
 
 // The mocked contact flows log at info; keep test output quiet.
 setLogLevel("error");
 
-// Each context gets its own state directory so tests never share files.
-const temporaryStateRoot = path.join(import.meta.dir, ".tmp-state");
-let stateDirectoryCounter = 0;
-
 afterAll(() => {
   setLogLevel(DEFAULT_LOG_LEVEL);
-  rmSync(temporaryStateRoot, { recursive: true, force: true });
 });
 
 // Tests must never touch the real network; contexts built without an explicit
 // fetchImpl fail loudly if anything tries.
 const rejectExternalFetch: FetchLike = () =>
   Promise.reject(new Error("unexpected external fetch in test"));
+
+// An in-memory StateStore for tests: no disk, so contexts stay hermetic and
+// isolated. The real on-disk StateFileStore is exercised in store.test.ts.
+function createInMemoryStateStore(initial?: State): StateStore {
+  let state = initial;
+  return {
+    readIfExists: () => Promise.resolve(state),
+    write: (next) => {
+      state = next;
+      return Promise.resolve();
+    },
+  };
+}
 
 function makeTestContext(
   options: { env?: NodeJS.ProcessEnv; fetchImpl?: FetchLike } = {},
@@ -37,15 +45,12 @@ function makeTestContext(
 } {
   const config = buildConfig({
     MOUSEHOLE_AUTH_PASSWORD: "s3cr3t",
-    MOUSEHOLE_STATE_DIR_PATH: path.join(
-      temporaryStateRoot,
-      `${process.pid}-${stateDirectoryCounter++}`,
-    ),
     MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "3600",
     ...options.env,
   });
   const ctx = createAppContext(config, {
     fetchImpl: options.fetchImpl ?? rejectExternalFetch,
+    stateFile: createInMemoryStateStore(),
   });
   return { ctx, app: createApp(ctx) };
 }
@@ -256,10 +261,10 @@ describe("route protection matrix", () => {
   // requests prove a fully valid request reaches each handler (MAM-contacting
   // handlers hit the fake, never the network); each violation perturbs
   // exactly one protection and expects its rejection.
-  const fakeMam = createFakeMam();
+  const mamServer = createMamTestServer();
   const { app } = makeTestContext({
     env: { MOUSEHOLE_AUTH_TOKEN: "api-token" },
-    fetchImpl: fakeMam.fetchImpl,
+    fetchImpl: mamServer.fetchImpl,
   });
   let sessionCookie = "";
 
@@ -523,8 +528,8 @@ describe("PUT /cookie validation", () => {
 
 describe("contact flows (simulated MAM)", () => {
   test("PUT /cookie runs an update, persists, and flips /health to healthy", async () => {
-    const fakeMam = createFakeMam();
-    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const mamServer = createMamTestServer();
+    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
     const cookie = await login(app);
 
     const putResponse = await putMamCookie(app, cookie);
@@ -547,7 +552,7 @@ describe("contact flows (simulated MAM)", () => {
     });
 
     // MAM saw our credentials: the mam_id cookie and Mousehole's user agent.
-    const seen = fakeMam.received.at(-1);
+    const seen = mamServer.received.at(-1);
     expect(seen?.path).toBe("/json/dynamicSeedbox.php");
     expect(seen?.mamId).toBe("mam-session-cookie");
     expect(seen?.userAgent).toStartWith("mousehole-by-timtimtim/");
@@ -569,8 +574,8 @@ describe("contact flows (simulated MAM)", () => {
   });
 
   test("a throttled update (429) is persisted and surfaces via /health", async () => {
-    const fakeMam = createFakeMam({ outcome: "lastChangeTooRecent" });
-    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const mamServer = createMamTestServer({ outcome: "lastChangeTooRecent" });
+    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
     const cookie = await login(app);
 
     const putResponse = await putMamCookie(app, cookie);
@@ -596,8 +601,8 @@ describe("contact flows (simulated MAM)", () => {
   });
 
   test("a rejected session (403) is persisted and surfaces via /health", async () => {
-    const fakeMam = createFakeMam({ outcome: "ipMismatch" });
-    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const mamServer = createMamTestServer({ outcome: "ipMismatch" });
+    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
     const cookie = await login(app);
 
     const putResponse = await putMamCookie(app, cookie);
@@ -614,12 +619,12 @@ describe("contact flows (simulated MAM)", () => {
   });
 
   test("a rotated mam_id (Set-Cookie) is persisted and presented on the next contact", async () => {
-    const fakeMam = createFakeMam({ rotateCookieTo: "rotated-mam-id" });
-    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const mamServer = createMamTestServer({ rotateCookieTo: "rotated-mam-id" });
+    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
     const cookie = await login(app);
 
     await putMamCookie(app, cookie, "original-mam-id");
-    expect(fakeMam.received.at(-1)?.mamId).toBe("original-mam-id");
+    expect(mamServer.received.at(-1)?.mamId).toBe("original-mam-id");
 
     // POST /updates contacts again with whatever cookie is on disk — which
     // must now be the rotated one.
@@ -628,12 +633,12 @@ describe("contact flows (simulated MAM)", () => {
       headers: { Cookie: cookie },
     });
     expect(updatesResponse.status).toBe(200);
-    expect(fakeMam.received.at(-1)?.mamId).toBe("rotated-mam-id");
+    expect(mamServer.received.at(-1)?.mamId).toBe("rotated-mam-id");
   });
 
   test("without a MAM cookie, an update is just an IP lookup via jsonIp.php", async () => {
-    const fakeMam = createFakeMam();
-    const { app } = makeTestContext({ fetchImpl: fakeMam.fetchImpl });
+    const mamServer = createMamTestServer();
+    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
     const cookie = await login(app);
 
     const updatesResponse = await app.request("/updates", {
@@ -649,7 +654,7 @@ describe("contact flows (simulated MAM)", () => {
     expect(state.lastMamContact.reached).toBe(true);
     expect(state.lastMamContact.ip).toBe("203.0.113.7");
     expect(state.lastMamContact.ipUpdate).toBeUndefined();
-    expect(fakeMam.received.at(-1)?.path).toBe("/json/jsonIp.php");
+    expect(mamServer.received.at(-1)?.path).toBe("/json/jsonIp.php");
 
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);

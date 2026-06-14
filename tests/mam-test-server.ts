@@ -61,7 +61,7 @@ export const mamUpdateOutcomes = {
 
 export type MamUpdateOutcome = keyof typeof mamUpdateOutcomes;
 
-export type FakeMamOptions = {
+export type MamTestServerOptions = {
   /** Host info reported on every response. */
   ip?: string;
   asn?: number;
@@ -79,7 +79,7 @@ export type ReceivedRequest = {
   userAgent: string | undefined;
 };
 
-export function createFakeMam(options: FakeMamOptions = {}) {
+export function createMamTestServer(options: MamTestServerOptions = {}) {
   const ip = options.ip ?? "203.0.113.7";
   const asn = options.asn ?? 64_496;
   const as = options.as ?? "TEST-AS (RFC 5737)";

@@ -4,7 +4,7 @@ import type { FetchLike } from "./external-api/fetch.ts";
 import { createContactScheduler, type ContactScheduler } from "./contact.ts";
 import { createSessionStore, type SessionStore } from "./session.ts";
 import { createSseRegistry, type SseRegistry } from "./sse.ts";
-import { StateFileStore } from "./state/store.ts";
+import { StateFileStore, type StateStore } from "./state/store.ts";
 
 /**
  * Everything stateful or configured, built once per process (or per test).
@@ -13,7 +13,7 @@ import { StateFileStore } from "./state/store.ts";
  */
 export type AppContext = {
   config: Config;
-  stateFile: StateFileStore;
+  stateFile: StateStore;
   sessions: SessionStore;
   sse: SseRegistry;
   contacts: ContactScheduler;
@@ -21,15 +21,18 @@ export type AppContext = {
 
 /** Test seams that aren't part of `Config`. */
 export type AppContextOverrides = {
-  /** The fetch used for MAM calls; tests inject the fake MAM app's fetch. */
+  /** The fetch used for MAM calls; tests inject the MAM test server's fetch. */
   fetchImpl?: FetchLike;
+  /** Where state is persisted; tests inject an in-memory store. */
+  stateFile?: StateStore;
 };
 
 export function createAppContext(
   config: Config,
   overrides: AppContextOverrides = {},
 ): AppContext {
-  const stateFile = new StateFileStore(config.stateDirPath);
+  const stateFile =
+    overrides.stateFile ?? new StateFileStore(config.stateDirPath);
   const sse = createSseRegistry();
   const sessions = createSessionStore({
     durationSeconds: config.sessionDurationSeconds,

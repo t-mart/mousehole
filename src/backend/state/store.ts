@@ -11,7 +11,17 @@ import {
 import { migrateToCurrent } from "./migrate";
 import { deserializeState, serializeState, type State } from "./serde";
 
-export class StateFileStore {
+/**
+ * The persistence seam: read the current state (`undefined` for a fresh
+ * install) and write it. `StateFileStore` is the production implementation;
+ * tests inject an in-memory one (see tests/in-memory-state-store.ts).
+ */
+export type StateStore = {
+  readIfExists(): Promise<State | undefined>;
+  write(state: State): Promise<void>;
+};
+
+export class StateFileStore implements StateStore {
   private readonly stateDirectoryPath: string;
   private readonly statePath: string;
 
