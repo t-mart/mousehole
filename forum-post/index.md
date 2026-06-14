@@ -59,13 +59,14 @@ is not stable.
    :::important
 
    Most users will need more configuration than this, especially if you want to
-   use a VPN!
-   [The GitHub Readme has better examples](https://github.com/t-mart/mousehole?tab=readme-ov-file#docker-compose-recommended).
+   use a VPN! The
+   [GitHub Readme](https://github.com/t-mart/mousehole?tab=readme-ov-file#docker-compose-recommended)
+   has better examples.
 
    :::
-   
-2. Access the web interface at 
-   [http://localhost:5010](http://localhost:5010) and set your MAM cookie.
+
+2. Access the web interface at [http://localhost:5010](http://localhost:5010)
+   and set your MAM cookie.
 3. Get on with your life and let Mousehole keep your seedbox IP updated!
 
 :::center
