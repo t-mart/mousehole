@@ -1,4 +1,9 @@
-import { buildConfig, type AuthConfig } from "#backend/config.ts";
+import {
+  buildConfig,
+  type AllowedHostsConfig,
+  type AllowedOriginsConfig,
+  type AuthConfig,
+} from "#backend/config.ts";
 import { createAppContext } from "#backend/context.ts";
 import { logger, setLogLevel } from "#backend/logger.ts";
 import { gitHash } from "#shared/git-hash.ts";
@@ -39,7 +44,11 @@ export function startServer(env: NodeJS.ProcessEnv = process.env) {
   });
 
   logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
-  validateRuntimeSecurityConfig(config.auth);
+  validateRuntimeSecurityConfig(
+    config.auth,
+    config.allowedHosts,
+    config.allowedOrigins,
+  );
 
   ctx.contacts.start();
 
@@ -53,9 +62,25 @@ export function startServer(env: NodeJS.ProcessEnv = process.env) {
   };
 }
 
-// Startup-time validation of the resolved auth config: refuse to run without
-// credentials unless explicitly opted out, and warn about partial setups.
-function validateRuntimeSecurityConfig(auth: AuthConfig): void {
+// Startup-time validation of the resolved security config: warn about overly
+// permissive host/origin allowlists, refuse to run without credentials unless
+// explicitly opted out, and warn about partial setups.
+function validateRuntimeSecurityConfig(
+  auth: AuthConfig,
+  allowedHosts: AllowedHostsConfig,
+  allowedOrigins: AllowedOriginsConfig,
+): void {
+  if (allowedHosts.type === "all") {
+    logger.warn(
+      "MOUSEHOLE_ALLOWED_HOSTS allows any Host header. This is less secure and almost always avoidable. Set it to your specific host(s) or IP(s).",
+    );
+  }
+  if (allowedOrigins.type === "all") {
+    logger.warn(
+      "MOUSEHOLE_ALLOWED_ORIGINS allows any Origin Header for cross-origin requests. This is less secure and almost always avoidable. Set it to your specific allowed origins.",
+    );
+  }
+
   if (auth.type === "configured" && !auth.password) {
     logger.warn(
       "Browser login will be unavailable. Set MOUSEHOLE_AUTH_PASSWORD to enable it.",

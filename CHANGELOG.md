@@ -63,6 +63,10 @@ automatically (your cookie is preserved).
 - **Breaking**: Removed the `MOUSEHOLE_USER_AGENT` environment variable. The user
   agent Mousehole sends to MAM is now fixed; if you set this variable, it is
   ignored. Closes [#128](https://github.com/t-mart/mousehole/issues/128).
+- **Changed**: Mousehole now warns at startup when `MOUSEHOLE_ALLOWED_HOSTS` or
+  `MOUSEHOLE_ALLOWED_ORIGINS` is set to `*`, since allowing all hosts/origins is
+  less safe and almost always avoidable. Closes
+  [#132](https://github.com/t-mart/mousehole/issues/132).
 - **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
   call MAM, so a network blip can't fail or hang them, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).
