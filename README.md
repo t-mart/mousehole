@@ -58,13 +58,17 @@ Navigate to the Mousehole web UI at <http://localhost:5010> and paste in your
 MAM cookie. See [Getting Your Cookie Value](/docs/getting-your-cookie.md) for a
 full walkthrough of how to obtain the cookie from MAM.
 
-## Handling Errors
+## Handling Problems
 
-Even with Mousehole up and running, things can still go wrong that Mousehole
-cannot fix automatically. Check out the [MAM error documentation](/docs/mam-errors.md)
-for help with troubleshooting.
+Despite following the above steps, things can still go wrong that cannot be
+fixed automatically.
 
-If Mousehole isn't even up and running, check the [network troubleshooting guide](/docs/network-troubleshooting.md).
+- For MAM-specific errors (`ASN mismatch` or `Last Change Too Recent`), see the
+  [MAM error documentation](/docs/mam-errors.md).
+- For network errors, see the
+  [network troubleshooting guide](/docs/network-troubleshooting.md).
+- For errors related to `Host` and `Origin` headers, see the
+  [security guide](/docs/security-guide.md).
 
 ## Security
 
