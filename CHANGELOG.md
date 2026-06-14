@@ -56,10 +56,9 @@ automatically (your cookie is preserved).
   precedence over the plain variable in
   [#130](https://github.com/t-mart/mousehole/discussions/130).
 - **Changed**: The VPN Docker Compose examples no longer publish qBittorrent's
-  torrent port on the host — behind a VPN, inbound peers arrive through the
-  tunnel, so the host binding is unnecessary. The Gluetun example also waits for
-  Gluetun to be healthy (`depends_on` with `condition: service_healthy`) before
-  starting qBittorrent and Mousehole. Closes
+  torrent port on the host. The Gluetun example also waits for Gluetun to be
+  healthy (`depends_on` with `condition: service_healthy`) before starting
+  qBittorrent and Mousehole. Closes
   [#127](https://github.com/t-mart/mousehole/issues/127).
 - **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
   call MAM, so a network blip can't fail or hang them, in
