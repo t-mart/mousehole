@@ -63,12 +63,7 @@ references:
 - [Docker Compose file reference](https://docs.docker.com/reference/compose-file/),
   especially the
   [services section reference](https://docs.docker.com/reference/compose-file/services/).
-- Your VPN client container's documentation, such as
-  [Gluetun's readme](https://github.com/passteque/gluetun) and
-  [Gluetun's wiki](https://github.com/qdm12/gluetun-wiki#table-of-contents) or
-  the
-  [linuxserver/wireguard documentation](https://docs.linuxserver.io/images/docker-wireguard/).
-  Find the official page for your container and read it thoroughly.
+- All the documentation for the Docker images you are using.
 
 ## Getting More Help
 

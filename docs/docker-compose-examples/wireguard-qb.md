@@ -26,8 +26,6 @@ services:
     ports:
       - "5010:5010" # Mousehole port
       - "8080:8080" # qBittorrent Web UI port
-      - "6881:6881/tcp" # qBittorrent TCP torrent port
-      - "6881:6881/udp" # qBittorrent UDP torrent port
     # more is needed here -- see linuxserver/wireguard documentation
     restart: unless-stopped
 
