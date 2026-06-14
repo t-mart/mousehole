@@ -71,6 +71,9 @@ automatically (your cookie is preserved).
   [Twelve-Factor App](https://12factor.net/logs). Previously error-level logs
   went to `stderr`. Closes
   [#135](https://github.com/t-mart/mousehole/issues/135).
+- **Fixed**: Dashboard sections now enter and exit smoothly — the header and
+  footer no longer jump abruptly when a section appears or disappears. Closes
+  [#129](https://github.com/t-mart/mousehole/issues/129).
 - **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
   call MAM, so a network blip can't fail or hang them, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).

@@ -31,7 +31,6 @@ export type PublicState = {
   hasCookie: boolean;
   hasAuth: boolean;
   nextContactAt?: string;
-  // identical to the on-disk MamContact — it carries no secret to strip
   lastMamContact?: SerializedMamContact;
 };
 

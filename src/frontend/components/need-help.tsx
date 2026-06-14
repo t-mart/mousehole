@@ -1,11 +1,13 @@
+import type { Ref } from "react";
+
 import { docsBaseUrl } from "#shared/docs-base-url.ts";
 
 import { Link } from "./lib/link";
 import { Section } from "./lib/section";
 
-export function NeedHelp() {
+export function NeedHelp({ ref }: Readonly<{ ref?: Ref<HTMLElement> }>) {
   return (
-    <Section className="flex-col">
+    <Section ref={ref} className="flex-col">
       <h2 className="sr-only">Need Help?</h2>
 
       <p className="text-center w-full">

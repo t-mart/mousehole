@@ -1,47 +1,84 @@
 import { Check, Copy } from "lucide-react";
-import { type ComponentPropsWithRef, useState } from "react";
+import { type ComponentPropsWithRef, type Ref, useState } from "react";
+import { Temporal } from "temporal-polyfill";
 
 import { cn } from "#frontend/lib/cn.ts";
-import { classify, type PublicState } from "#shared/public-state.ts";
+import {
+  classify,
+  type ContactStatus,
+  type PublicState,
+} from "#shared/public-state.ts";
 
 import { Section } from "./lib/section";
+import { NextUpdate } from "./next-update";
 
-export function MamResponse({ data }: Readonly<{ data: PublicState }>) {
-  const inDemoMode = process.env.PUBLIC_DEMO_MODE === "true";
-  const contact = data.lastMamContact;
-  // The IP/AS rows show only when we actually reached MAM — there's no cached
-  // value, and a stale IP wouldn't help a user whose network is down.
-  const host = inDemoMode
-    ? { ip: "123.123.123.123", asn: 12_345, as: "MegaCorp Networks" }
-    : contact?.reached
-      ? { ip: contact.ip, asn: contact.asn, as: contact.as }
+function getHostInfo(state: PublicState) {
+  if (process.env.PUBLIC_DEMO_MODE === "true") {
+    return { ip: "123.123.123.123", asn: 12_345, as: "MegaCorp Networks" };
+  }
+  const contact = state.lastMamContact;
+  return contact?.reached
+    ? { ip: contact.ip, asn: contact.asn, as: contact.as }
+    : undefined;
+}
+
+export function MamResponse({
+  state,
+  ref,
+}: Readonly<{
+  state: PublicState;
+  ref?: Ref<HTMLElement>;
+}>) {
+  const hostInfo = getHostInfo(state);
+
+  // The countdown rides along only when the dashboard is in its running state
+  // and we have both endpoints of the wait: the last contact (`at`) and the
+  // scheduled next one. Outside that (cookie setup, first-ever contact) there's
+  // nothing to count toward.
+  const nextUpdate =
+    state.nextContactAt && state.lastMamContact?.at
+      ? {
+          at: Temporal.ZonedDateTime.from(state.lastMamContact.at),
+          nextContactAt: Temporal.ZonedDateTime.from(state.nextContactAt),
+        }
       : undefined;
 
   return (
-    <Section className="space-y-2">
+    <Section ref={ref} className="space-y-2">
       <h2 className="sr-only">Status</h2>
       <dl className="w-full space-y-2">
-        <DLRow>
-          <DT>Status</DT>
-          <DD>
-            <StatusContent data={data} />
-          </DD>
-        </DLRow>
-        {host && (
+        <DescListGroup>
+          <DescListKey>Status</DescListKey>
+          <DescListValue>
+            <StatusLine data={state} />
+          </DescListValue>
+        </DescListGroup>
+        {hostInfo && (
           <>
-            <DLRow>
-              <DT>Host IP</DT>
-              <DD>
-                <CopyableIP ip={host.ip} />
-              </DD>
-            </DLRow>
-            <DLRow>
-              <DT>Host AS</DT>
-              <DD>
-                <span className="font-mono">{host.asn}</span>, {host.as}
-              </DD>
-            </DLRow>
+            <DescListGroup>
+              <DescListKey>Host IP</DescListKey>
+              <DescListValue>
+                <CopyableIP ip={hostInfo.ip} />
+              </DescListValue>
+            </DescListGroup>
+            <DescListGroup>
+              <DescListKey>Host AS</DescListKey>
+              <DescListValue>
+                <span className="font-mono">{hostInfo.asn}</span>, {hostInfo.as}
+              </DescListValue>
+            </DescListGroup>
           </>
+        )}
+        {nextUpdate && (
+          <DescListGroup>
+            <DescListKey>Next update</DescListKey>
+            <DescListValue>
+              <NextUpdate
+                at={nextUpdate.at}
+                nextContactAt={nextUpdate.nextContactAt}
+              />
+            </DescListValue>
+          </DescListGroup>
         )}
       </dl>
     </Section>
@@ -78,75 +115,62 @@ function CopyableIP({ ip }: Readonly<{ ip: string }>) {
   );
 }
 
-function DLRow({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
+function DescListGroup({ ...props }: Readonly<ComponentPropsWithRef<"div">>) {
   return <div className="flex gap-4 items-center" {...props} />;
 }
 
-function DT({ ...props }: Readonly<ComponentPropsWithRef<"dt">>) {
+function DescListKey({ ...props }: Readonly<ComponentPropsWithRef<"dt">>) {
   return <dt className="mr-auto" {...props} />;
 }
 
-function DD({ ...props }: Readonly<ComponentPropsWithRef<"dd">>) {
+function DescListValue({ ...props }: Readonly<ComponentPropsWithRef<"dd">>) {
   return <dd className="ml-auto font-bold text-right" {...props} />;
 }
 
-// MAM's `msg` when we reached it (display only, never branched on for logic).
 function mamMessage(
   contact: PublicState["lastMamContact"],
 ): string | undefined {
   return contact?.reached ? contact.ipUpdate?.msg : undefined;
 }
 
-function StatusContent({ data }: Readonly<{ data: PublicState }>) {
-  if (!data.hasCookie) {
-    return <StatusLine state="warn" text="No cookie set" />;
-  }
+type Tone = "ok" | "warn" | "error";
 
+const toneClass: Record<Tone, string> = {
+  ok: "text-success",
+  warn: "text-warn",
+  error: "text-destructive",
+};
+
+// How each contact status paints and reads. `fallback` is shown when MAM left
+// no message of its own (mamMessage). Exhaustive over ContactStatus, so adding
+// a status to `classify` is a compile error until it's handled here.
+const contactStatusTone: Record<
+  ContactStatus,
+  { tone: Tone; fallback: string }
+> = {
+  ok: { tone: "ok", fallback: "OK" },
+  throttled: { tone: "warn", fallback: "Change pending" },
+  rejected: { tone: "error", fallback: "Session rejected" },
+  unreachable: { tone: "error", fallback: "Couldn't reach MAM" },
+  // "no-cookie"/"pending" here mean a pre-cookie lookup is still the latest
+  // contact — the brief window after setting a cookie. Treat it as pending.
+  "no-cookie": { tone: "warn", fallback: "Awaiting first update" },
+  pending: { tone: "warn", fallback: "Awaiting first update" },
+};
+
+function describeStatus(data: PublicState): { tone: Tone; text: string } {
+  if (!data.hasCookie) return { tone: "warn", text: "No cookie set" };
   const contact = data.lastMamContact;
-  switch (classify(contact)) {
-    case "ok": {
-      return <StatusLine state="ok" text={mamMessage(contact) ?? "OK"} />;
-    }
-    case "throttled": {
-      return (
-        <StatusLine
-          state="warn"
-          text={mamMessage(contact) ?? "Change pending"}
-        />
-      );
-    }
-    case "rejected": {
-      return (
-        <StatusLine
-          state="error"
-          text={mamMessage(contact) ?? "Session rejected"}
-        />
-      );
-    }
-    case "unreachable": {
-      return <StatusLine state="error" text="Couldn't reach MAM" />;
-    }
-    // "no-cookie" here means a pre-cookie lookup is still the latest contact — a
-    // brief window after setting a cookie. Treat it as pending.
-    default: {
-      return <StatusLine state="warn" text="Awaiting first update" />;
-    }
-  }
+  const { tone, fallback } = contactStatusTone[classify(contact)];
+  return { tone, text: mamMessage(contact) ?? fallback };
 }
 
-type State = "ok" | "error" | "warn";
-
-function StatusLine({ state, text }: Readonly<{ state: State; text: string }>) {
-  const styleClass =
-    state === "ok"
-      ? "text-success"
-      : state === "error"
-        ? "text-destructive"
-        : "text-warn";
+function StatusLine({ data }: Readonly<{ data: PublicState }>) {
+  const { tone, text } = describeStatus(data);
   return (
     <div className="flex items-center gap-x-2">
-      <span className={cn(styleClass)}>{text}</span>
-      <svg className={cn("size-5 rounded-full shrink-0", styleClass)}>
+      <span className={toneClass[tone]}>{text}</span>
+      <svg className={cn("size-5 rounded-full shrink-0", toneClass[tone])}>
         <circle cx="50%" cy="50%" r="50%" fill="currentColor" />
       </svg>
     </div>

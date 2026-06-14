@@ -1,3 +1,5 @@
+import { motion } from "motion/react";
+
 import { gitHash } from "#shared/git-hash.ts";
 
 import { version } from "../../../package.json";
@@ -5,7 +7,9 @@ import { Link } from "./lib/link";
 
 export function Footer() {
   return (
-    <footer className="@container space-y-2">
+    // `layout` so the footer glides as content above it changes height (the page
+    // stays vertically centered — see motion memory).
+    <motion.footer layout className="@container space-y-2">
       <ol className="flex justify-between flex-col @xs:flex-row flex-wrap gap-2">
         <li>
           <Link
@@ -36,7 +40,7 @@ export function Footer() {
           timtimtim
         </Link>
       </div>
-    </footer>
+    </motion.footer>
   );
 }
 
