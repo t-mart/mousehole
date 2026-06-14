@@ -60,6 +60,9 @@ automatically (your cookie is preserved).
   healthy (`depends_on` with `condition: service_healthy`) before starting
   qBittorrent and Mousehole. Closes
   [#127](https://github.com/t-mart/mousehole/issues/127).
+- **Breaking**: Removed the `MOUSEHOLE_USER_AGENT` environment variable. The user
+  agent Mousehole sends to MAM is now fixed; if you set this variable, it is
+  ignored. Closes [#128](https://github.com/t-mart/mousehole/issues/128).
 - **Changed**: `GET /state`, `/ok`, and `/health` are pure reads. They never
   call MAM, so a network blip can't fail or hang them, in
   [b244901](https://github.com/t-mart/mousehole/commit/b244901).

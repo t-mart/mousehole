@@ -20,7 +20,6 @@ type BackgroundTask = {
 export type ContactSchedulerOptions = {
   /** Seconds between automatic contacts with MAM. */
   intervalSeconds: number;
-  userAgent: string;
   mamRequestTimeoutSeconds: number;
   stateFile: StateStore;
   /** Called after every persisted contact so dashboards re-pull GET /state. */
@@ -44,7 +43,6 @@ function handleBackgroundContactError(error: unknown) {
 export function createContactScheduler(options: ContactSchedulerOptions) {
   const { stateFile, notifyClients } = options;
   const fetchOptions = {
-    userAgent: options.userAgent,
     timeoutSeconds: options.mamRequestTimeoutSeconds,
     fetchImpl: options.fetchImpl,
   };

@@ -5,8 +5,13 @@ import {
   toError,
 } from "#backend/error.ts";
 
+import { version } from "../../../package.json";
+
+// How Mousehole identifies itself to MAM.
+const USER_AGENT = `mousehole-by-timtimtim/${version}`;
+
 /**
- * The shape of fetch we rely on. Tests inject a fake (the fake MAM app's
+ * The shape of fetch we rely on. Tests inject a fake (the MAM test server's
  * fetch); production uses the global.
  */
 export type FetchLike = (
@@ -16,7 +21,6 @@ export type FetchLike = (
 
 /** Request behavior threaded from config (see context.ts / contact.ts). */
 export type ExternalFetchOptions = {
-  userAgent: string;
   timeoutSeconds: number;
   /** Defaults to the global fetch. */
   fetchImpl?: FetchLike;
@@ -34,7 +38,7 @@ export async function fetchExternal(
   try {
     const response = await fetchImpl(url, {
       headers: {
-        "User-Agent": options.userAgent,
+        "User-Agent": USER_AGENT,
         ...extraHeaders,
       },
       redirect: "manual",
