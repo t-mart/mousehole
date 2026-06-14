@@ -7,8 +7,6 @@ import type { LogLevelName } from "#backend/logger.ts";
 
 import { DEFAULT_LOG_LEVEL, LOG_LEVEL_NAMES } from "#backend/logger.ts";
 
-import { version } from "../../package.json";
-
 export type AuthConfig =
   // exclude "configured" type from having neither of password or token
   | RequireAtLeastOne<
@@ -191,15 +189,6 @@ export function buildConfig(
      * Controlled by MOUSEHOLE_LOG_LEVEL. Valid values: error, warn, info (default), debug.
      */
     logLevel: resolveLogLevel(env),
-
-    /**
-     * The user agent string to use for HTTP requests.
-     *
-     * Defaults to "mousehole-by-timtimtim/<version>".
-     */
-    userAgent:
-      getEnv(env, "MOUSEHOLE_USER_AGENT") ??
-      `mousehole-by-timtimtim/${version}`,
 
     /**
      * The directory path where Mousehole stores its state.

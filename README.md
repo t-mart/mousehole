@@ -172,8 +172,6 @@ You can trigger an immediate update from the web UI with **Update Now**.
 
 - `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH`: Set to `true` to turn off all
   authentication. Do not use in mixed-trust environments.
-- `MOUSEHOLE_USER_AGENT`: _(Default `mousehole-by-timtimtim/<version>`)_ The
-  user agent to use for requests to MAM.
 
 ### Docker Secrets
 

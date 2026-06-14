@@ -43,7 +43,6 @@ export function createAppContext(
   });
   const contacts = createContactScheduler({
     intervalSeconds: config.updateIntervalSeconds,
-    userAgent: config.userAgent,
     mamRequestTimeoutSeconds: config.mamRequestTimeoutSeconds,
     stateFile,
     notifyClients: () => sse.notify(),
