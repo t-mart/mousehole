@@ -7,7 +7,7 @@ import type { StateStore } from "./state/store.ts";
 
 import { toErrorResponseArgs } from "./error.ts";
 import { getHostInfo, type HostInfo } from "./external-api/host-info.ts";
-import { updateMamIp } from "./external-api/mam.ts";
+import { updateMamIp, type MamUpdateResult } from "./external-api/mam.ts";
 import { logger } from "./logger.ts";
 import { Mutex } from "./mutex.ts";
 import { type MamContact, type State } from "./state/serde.ts";
@@ -36,6 +36,32 @@ function handleBackgroundContactError(error: unknown) {
   logger.error(error);
 }
 
+function logIPASNChange(
+  prevState: State | undefined,
+  mamUpdateResult: MamUpdateResult,
+) {
+  const prevIp = prevState?.lastMamContact?.reached
+    ? prevState.lastMamContact.ip
+    : undefined;
+  const newIp = mamUpdateResult.ip;
+
+  const prevAsn = prevState?.lastMamContact?.reached
+    ? prevState.lastMamContact.asn
+    : undefined;
+  const newAsn = mamUpdateResult.asn;
+
+  const ipChanged = prevIp !== undefined && prevIp !== newIp;
+  const asnChanged = prevAsn !== undefined && prevAsn !== newAsn;
+  if (!ipChanged && !asnChanged) return;
+
+  const changes = [
+    ipChanged ? `IP ${prevIp} -> ${newIp}` : undefined,
+    asnChanged ? `ASN ${prevAsn} -> ${newAsn}` : undefined,
+  ].filter((change) => change !== undefined);
+
+  logger.info(`Network change: ${changes.join(", ")}`);
+}
+
 /**
  * Owns the contact loop: talking to MAM, persisting the result, and the
  * interval timer. One scheduler per app instance (see context.ts).
@@ -55,8 +81,9 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
   // via dynamicSeedbox (which also reports the host IP); without one it just looks
   // up the IP via jsonIp so a not-yet-configured user can still see it. Transport
   // failures are recorded as an unreachable contact, not thrown.
-  async function contactMam(prior: State | undefined): Promise<State> {
-    const cookie = prior?.cookie;
+  async function contactMam(prevState: State | undefined): Promise<State> {
+    const cookie = prevState?.cookie;
+
     const at = getNowZdt();
 
     try {
@@ -75,6 +102,7 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
       }
 
       const result = await updateMamIp(cookie, fetchOptions);
+      logIPASNChange(prevState, result);
       if (result.success) {
         logger.info(`MAM update: ${result.msg}`);
       } else {
