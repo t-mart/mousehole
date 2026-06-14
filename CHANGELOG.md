@@ -114,6 +114,9 @@ automatically (your cookie is preserved).
 - **Changed**: Error banners clear when a later action succeeds, repeats
   coalesce into one banner with a count, and new banners are announced to screen
   readers, in [505e992](https://github.com/t-mart/mousehole/commit/505e992).
+- **Added**: When the reported IP or ASN changes from the last successful MAM
+  contact, a message is logged in the server logs. Fixes
+  [#142](https://github.com/t-mart/mousehole/issues/142)
 
 ## [v0.4.0](https://github.com/t-mart/mousehole/releases/tag/v0.4.0) - 2026-06-04
 
