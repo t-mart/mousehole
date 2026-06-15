@@ -149,12 +149,12 @@ const contactStatusTone: Record<
   { tone: Tone; fallback: string }
 > = {
   ok: { tone: "ok", fallback: "OK" },
-  throttled: { tone: "warn", fallback: "Change pending" },
-  rejected: { tone: "error", fallback: "Session rejected" },
+  throttled: { tone: "warn", fallback: "Throttled" },
+  rejected: { tone: "error", fallback: "Cookie rejected" },
   unreachable: { tone: "error", fallback: "Couldn't reach MAM" },
   // "no-cookie"/"pending" here mean a pre-cookie lookup is still the latest
   // contact — the brief window after setting a cookie. Treat it as pending.
-  "no-cookie": { tone: "warn", fallback: "Awaiting first update" },
+  "no-cookie": { tone: "warn", fallback: "No cookie" },
   pending: { tone: "warn", fallback: "Awaiting first update" },
 };
 
