@@ -1,6 +1,60 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Commissioner";
+  src: url("./assets/fonts/Commissioner.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./assets/fonts/IBM_Plex_Mono/IBMPlexMono-Regular.woff2")
+    format("woff2");
+  font-weight: 100 599;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./assets/fonts/IBM_Plex_Mono/IBMPlexMono-Italic.woff2")
+    format("woff2");
+  font-weight: 100 599;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./assets/fonts/IBM_Plex_Mono/IBMPlexMono-Bold.woff2")
+    format("woff2");
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./assets/fonts/IBM_Plex_Mono/IBMPlexMono-BoldItalic.woff2")
+    format("woff2");
+  font-weight: 600 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 @theme inline {
+  --font-sans:
+    "Commissioner", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --font-display:
+    "Commissioner", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display--font-variation-settings: "FLAR" 50, "VOLM" 50;
+
+  --font-mono:
+    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
   --color-background-dark: var(--color-stone-900);
   --color-background: var(--color-stone-800);
   --color-background-light: var(--color-stone-700);
@@ -29,19 +83,35 @@
 }
 
 :root {
+  @apply font-sans;
   background-color: var(--color-background-dark);
   color: var(--color-text);
   scrollbar-gutter: stable;
 }
 
 @keyframes disco-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @utility disco-text-hover {
   &:hover {
-    background: linear-gradient(90deg, #f59e0b, #ef4444, #ec4899, #8b5cf6, #3b82f6, #06b6d4, #10b981, #f59e0b);
+    background: linear-gradient(
+      90deg,
+      #f59e0b,
+      #ef4444,
+      #ec4899,
+      #8b5cf6,
+      #3b82f6,
+      #06b6d4,
+      #10b981,
+      #f59e0b
+    );
     background-size: 300%;
     -webkit-background-clip: text;
     background-clip: text;
@@ -54,15 +124,33 @@
    The element sets `--donut-circ` inline and drives duration/negative-delay so
    one continuous animation covers the whole wait. See next-update.tsx. */
 @keyframes donut-deplete {
-  from { stroke-dashoffset: 0; }
-  to   { stroke-dashoffset: var(--donut-circ); }
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: var(--donut-circ);
+  }
 }
 
-@keyframes sp-rotate { 100% { transform: rotate(360deg); } }
+@keyframes sp-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
 @keyframes sp-dash {
-  0%        { stroke-dasharray: 0 150;  stroke-dashoffset: 0;   }
-  47.5%     { stroke-dasharray: 42 150; stroke-dashoffset: -16; }
-  95%, 100% { stroke-dasharray: 42 150; stroke-dashoffset: -59; }
+  0% {
+    stroke-dasharray: 0 150;
+    stroke-dashoffset: 0;
+  }
+  47.5% {
+    stroke-dasharray: 42 150;
+    stroke-dashoffset: -16;
+  }
+  95%,
+  100% {
+    stroke-dasharray: 42 150;
+    stroke-dashoffset: -59;
+  }
 }
 
 @utility spinner-group {
@@ -104,7 +192,7 @@ body {
   --logo-rotation: -12deg;
   --logo-speed: 30s; /** lower = faster */
   --logo-opacity: 0.15;
-  --logo-dx: var(--logo-tile-width);  /* negative = move left */
+  --logo-dx: var(--logo-tile-width); /* negative = move left */
   --logo-dy: var(--logo-tile-height); /* negative = move up */
 }
 

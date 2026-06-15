@@ -239,8 +239,15 @@ work, maintained on a best-effort basis.
 
 ## Attribution
 
-Mouse Hole by Sergey Demushkin from
-[Noun Project](https://thenounproject.com/term/mouse-hole/) (CC BY 3.0)
+- [Commissioner](https://github.com/kosbarts/Commissioner), Copyright 2019 The
+  Commissioner Project Authors, licensed under
+  [OFL-1.1](https://openfontlicense.org/open-font-license-official-text/)
+- [IBM Plex Mono](https://github.com/IBM/plex), Copyright © 2017 IBM Corp. with
+  Reserved Font Name "Plex", licensed under
+  [OFL-1.1](https://openfontlicense.org/open-font-license-official-text/)
+- Mouse Hole by Sergey Demushkin from
+  [Noun Project](https://thenounproject.com/term/mouse-hole/), licensed under
+  [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
 
 ## Donate
 
