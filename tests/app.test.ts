@@ -1,5 +1,3 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-
 import type { AppContext } from "../src/backend/context.ts";
 import type { FetchLike } from "../src/backend/external-api/fetch.ts";
 import type { State } from "../src/backend/state/serde.ts";
@@ -8,16 +6,8 @@ import type { StateStore } from "../src/backend/state/store.ts";
 import { createApp } from "../src/backend/app.ts";
 import { buildConfig } from "../src/backend/config.ts";
 import { createAppContext } from "../src/backend/context.ts";
-import { DEFAULT_LOG_LEVEL, setLogLevel } from "../src/backend/logger.ts";
 import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
 import { createMamTestServer } from "./mam-test-server.ts";
-
-// The mocked contact flows log at info; keep test output quiet.
-setLogLevel("error");
-
-afterAll(() => {
-  setLogLevel(DEFAULT_LOG_LEVEL);
-});
 
 // Tests must never touch the real network; contexts built without an explicit
 // fetchImpl fail loudly if anything tries.
@@ -555,7 +545,7 @@ describe("contact flows (simulated MAM)", () => {
     const seen = mamServer.received.at(-1);
     expect(seen?.path).toBe("/json/dynamicSeedbox.php");
     expect(seen?.mamId).toBe("mam-session-cookie");
-    expect(seen?.userAgent).toStartWith("mousehole-by-timtimtim/");
+    expect(seen?.userAgent).toMatch(/^mousehole-by-timtimtim\//);
 
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);

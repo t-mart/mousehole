@@ -1,5 +1,3 @@
-import { describe, expect, test } from "bun:test";
-
 import { buildConfig } from "../src/backend/config.ts";
 
 // buildConfig accepts a plain object so tests never touch process.env

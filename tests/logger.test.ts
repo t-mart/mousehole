@@ -1,19 +1,18 @@
-import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
+import type { Mock } from "vitest";
 
 import { DEFAULT_LOG_LEVEL, logger, setLogLevel } from "#backend/logger.ts";
 
 describe("logger", () => {
-  let stdoutSpy: ReturnType<typeof spyOn<Console, "log">>;
-  let stderrSpy: ReturnType<typeof spyOn<Console, "error">>;
+  let stdoutSpy: Mock<typeof console.log>;
+  let stderrSpy: Mock<typeof console.error>;
 
   beforeEach(() => {
-    stdoutSpy = spyOn(console, "log").mockImplementation(() => {});
-    stderrSpy = spyOn(console, "error").mockImplementation(() => {});
+    stdoutSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    stderrSpy = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
+  // restoreMocks (vitest.config.ts) puts console.* back after each test.
   afterEach(() => {
-    stdoutSpy.mockRestore();
-    stderrSpy.mockRestore();
     setLogLevel(DEFAULT_LOG_LEVEL);
   });
 

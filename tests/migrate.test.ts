@@ -1,4 +1,3 @@
-import { afterAll, describe, expect, test } from "bun:test";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -100,7 +99,7 @@ describe("migrateToCurrent", () => {
   });
 
   describe("a v1 state file on disk", () => {
-    const temporaryRoot = path.join(import.meta.dir, ".tmp-migrate");
+    const temporaryRoot = path.join(import.meta.dirname, ".tmp-migrate");
 
     afterAll(() => {
       rmSync(temporaryRoot, { recursive: true, force: true });

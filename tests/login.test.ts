@@ -1,5 +1,3 @@
-import { describe, expect, test } from "bun:test";
-
 import type { AuthConfig } from "../src/backend/config.ts";
 
 import { handlePostLogin } from "../src/backend/handlers/login.ts";

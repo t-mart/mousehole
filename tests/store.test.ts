@@ -1,4 +1,3 @@
-import { afterAll, describe, expect, test } from "bun:test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { Temporal } from "temporal-polyfill";
@@ -12,7 +11,7 @@ import { type State } from "../src/backend/state/serde.ts";
 import { StateFileStore } from "../src/backend/state/store.ts";
 
 // Each store gets its own directory so tests never share files.
-const temporaryRoot = path.join(import.meta.dir, ".tmp-store");
+const temporaryRoot = path.join(import.meta.dirname, ".tmp-store");
 let directoryCounter = 0;
 
 afterAll(() => {
@@ -59,10 +58,6 @@ describe("StateFileStore", () => {
     // contact write a cookieless state over whatever is really there.
     mkdirSync(path.join(directory, "state.json"), { recursive: true });
 
-    // bun-types declare async matchers as void, but `.rejects` returns a
-    // real promise (vitest semantics) that must be awaited
-    //
-    // eslint-disable-next-line @typescript-eslint/await-thenable
     await expect(store.readIfExists()).rejects.toThrow(FileReadError);
   });
 
@@ -71,9 +66,6 @@ describe("StateFileStore", () => {
     mkdirSync(directory, { recursive: true });
     writeFileSync(path.join(directory, "state.json"), "{not json");
 
-    // ditto
-    //
-    // eslint-disable-next-line @typescript-eslint/await-thenable
     await expect(store.readIfExists()).rejects.toThrow(JSONParseError);
   });
 
@@ -85,9 +77,6 @@ describe("StateFileStore", () => {
       JSON.stringify({ version: 2, lastMamContact: { reached: true } }),
     );
 
-    // ditto
-    //
-    // eslint-disable-next-line @typescript-eslint/await-thenable
     await expect(store.readIfExists()).rejects.toThrow(SchemaError);
   });
 });

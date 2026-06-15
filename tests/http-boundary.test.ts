@@ -1,6 +1,5 @@
 import type { MiddlewareHandler } from "hono";
 
-import { describe, expect, test } from "bun:test";
 import { Hono } from "hono";
 
 import type { SessionAuthValidator } from "../src/backend/http-boundary.ts";
