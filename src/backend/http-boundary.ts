@@ -120,7 +120,7 @@ function checkHost(
     return {
       status: 403,
       type: "host-not-allowed",
-      message: "Request Host header is required."
+      message: "Request Host header is required.",
     };
   }
 
@@ -130,7 +130,7 @@ function checkHost(
     return {
       status: 403,
       type: "host-not-allowed",
-      message: `Request Host "${host}" is invalid.`
+      message: `Request Host "${host}" is invalid.`,
     };
   }
 
@@ -210,23 +210,26 @@ function checkOrigin(
   request: Request,
   allowedOrigins: AllowedOriginsConfig,
 ): BoundaryFailure | undefined {
-  const origin = request.headers.get("origin");
-
-  if (!origin) {
+  if (allowedOrigins.type === "all") {
     return undefined;
   }
 
-  const normalizedOrigin = normalizeOrigin(origin);
-  let isAllowed: boolean;
-  if (allowedOrigins.type === "all") {
-    isAllowed = true;
-  } else if (allowedOrigins.type === "same-origin") {
-    isAllowed = normalizedOrigin === new URL(request.url).origin;
-  } else {
-    isAllowed = allowedOrigins.origins
-      .map((o) => normalizeOrigin(o))
-      .includes(normalizedOrigin);
+  const requestOrigin = normalizeOrigin(request.headers.get("origin"));
+  if (!requestOrigin) {
+    return undefined;
   }
+
+  // request.url is a derived property on requests. Its synthesized on the
+  // server by context clues: server configuration (scheme) + host (Host header)
+  // + path.
+  const requestHostBasedOrigin = new URL(request.url).origin;
+
+  const isAllowed =
+    allowedOrigins.type === "same-origin"
+      ? requestOrigin === requestHostBasedOrigin
+      : allowedOrigins.origins
+          .map((o) => normalizeOrigin(o))
+          .includes(requestOrigin);
 
   if (isAllowed) {
     return undefined;
@@ -235,7 +238,7 @@ function checkOrigin(
   return {
     status: 403,
     type: "origin-not-allowed",
-    message: `Origin "${origin}" is not allowed.`,
+    message: `Origin "${requestOrigin}" is not allowed.`,
   };
 }
 
@@ -299,7 +302,8 @@ function hostMatchesRule(requestHost: HostAndPort, rule: HostAndPort): boolean {
   );
 }
 
-function normalizeOrigin(origin: string): string {
+function normalizeOrigin(origin: string | null): string | undefined {
+  if (!origin) return undefined;
   try {
     return new URL(origin).origin;
   } catch {
