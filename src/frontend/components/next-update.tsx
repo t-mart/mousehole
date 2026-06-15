@@ -89,8 +89,8 @@ export function NextUpdate({
 
   return (
     <span className="inline-flex items-center gap-2">
-      <Donut atMs={atMs} nextMs={nextMs} />
       <Countdown atMs={atMs} nextMs={nextMs} />
+      <Donut atMs={atMs} nextMs={nextMs} />
     </span>
   );
 }

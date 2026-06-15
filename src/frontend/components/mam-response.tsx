@@ -96,7 +96,7 @@ function CopyableIP({ ip }: Readonly<{ ip: string }>) {
   }
 
   return (
-    <span className="inline-flex items-center gap-1">
+    <span className="inline-flex items-center gap-2">
       <span className="font-mono">{ip}</span>
       <button
         type="button"
