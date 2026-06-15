@@ -27,7 +27,7 @@ in which you should use them.
 ### Localhost Only
 
 If you access Mousehole only from the machine it runs on
-(`http://localhost:5010`), set a password and you're done:
+(`http://localhost:5010`), set a password and you're done.
 
 ```yaml
 # mousehole service definition in compose.yml
@@ -37,10 +37,10 @@ environment:
 
 ### Reverse Proxy Access
 
-If you access Mousehole through a reverse proxy (Caddy, Traefik, Nginx, other
-NAS software), add that hostname to the host and origin allowlists. For example,
-if you want access Mousehole at `https://mousehole.myhomelab.lan` and
-`http://localhost:5010`:
+If you access Mousehole through a reverse proxy (Caddy, Traefik, Unraid, etc.),
+add that hostname to the host and origin allowlists. For example, if you want
+access Mousehole at `https://mousehole.myhomelab.lan` and
+`http://localhost:5010`.
 
 ```yaml
 # mousehole service definition in compose.yml
@@ -55,8 +55,8 @@ environment:
 Before v0.4.0, Mousehole had no authentication or host/origin checks. To restore
 that behavior, disable authentication and allow all hosts and origins.
 
-<!-- prettier-ignore -->
 > [!WARNING]
+>
 > Only use this on a private, trusted network.
 
 ```yaml
@@ -112,10 +112,18 @@ independently or together.
 UI. Sessions persist for one week by default (see
 [Session Duration](#session-duration)).
 
+```
+MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
+```
+
 **API token** (`MOUSEHOLE_AUTH_TOKEN`): Enables Bearer token authentication for
 API clients. Clients send `Authorization: Bearer <token>` with each request.
 Useful for scripts or tools that access the [API](/docs/API.md) without a
 browser session.
+
+```
+MOUSEHOLE_AUTH_TOKEN: "replace-with-a-long-random-token"
+```
 
 Both credentials support a `_FILE` form that reads the value from a file (for
 example a Docker secret under `/run/secrets/`) instead of an environment
@@ -138,13 +146,13 @@ The default is `localhost,127.0.0.1,[::1]`.
 
 **When to configure this:** any time you access Mousehole at a hostname or IP
 address other than `localhost` or `127.0.0.1`, such as a NAS hostname, a LAN IP,
-or a reverse proxy domain. Set it to the exact values you use in the browser:
+or a reverse proxy domain. Set it to the exact values you use in the browser.
 
 ```
 MOUSEHOLE_ALLOWED_HOSTS: mousehole.myhomelab.lan,192.168.1.10
 ```
 
-To allow any host (opt-out):
+You can also opt-out and allow any host.
 
 ```
 MOUSEHOLE_ALLOWED_HOSTS: "*"
@@ -152,25 +160,30 @@ MOUSEHOLE_ALLOWED_HOSTS: "*"
 
 ## Origin Allowlist
 
-`MOUSEHOLE_ALLOWED_ORIGINS` controls which web origins can make
-[cross-origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) requests
-to Mousehole's API and live-update (SSE) endpoint. Tightening this down prevents
+`MOUSEHOLE_ALLOWED_ORIGINS` controls which web
+[origins](https://developer.mozilla.org/en-US/docs/Glossary/Origin) can make
+requests to Mousehole. This header comes from browsers when the request is
+mutating (e.g., `POST /login`). Tightening this down prevents
 [Cross-Origin Request Forgery (CSRF)](https://portswigger.net/web-security/csrf).
 
-The default is same-origin only, which only allows the origin that matches the
-host of the request. **Most users never need to change this.** Configure it only
-if a separate web application (not Mousehole's frontend) needs to make browser
-requests to Mousehole's API.
+The default policy is
+[same-origin](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Same-origin_policy):
+the browser's origin (as seen in the address bar) must match the origin that the
+Mousehole server is on.
+
+However, if you use a reverse proxy (Caddy, Traefik, Unraid, etc.), you will
+likely need to change this; these can rewrite the scheme, host, and port of the
+request.
 
 Values are full
 [origins](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Origin)
-— scheme, host, and optional port, no path:
+: scheme, host, and optional port, no path.
 
 ```
 MOUSEHOLE_ALLOWED_ORIGINS: https://mousehole.myhomelab.lan,http://localhost:5010
 ```
 
-To allow any origin (opt-out):
+You can also opt-out and allow any origin.
 
 ```
 MOUSEHOLE_ALLOWED_ORIGINS: "*"
@@ -186,11 +199,15 @@ Enable this when Mousehole is behind an HTTPS reverse proxy. Do not enable it
 for plain HTTP setups, or else the browser will refuse to send the cookie and
 logins will break.
 
+```
+MOUSEHOLE_HTTPS_ONLY_COOKIES: "true"
+```
+
 ## Session Duration
 
 `MOUSEHOLE_SESSION_DURATION_SECONDS` (default `604800`, one week) sets how long
 a browser login session stays valid before requiring re-authentication. Shorten
-it on shared or less-trusted devices:
+it on shared or less-trusted devices.
 
 ```
 MOUSEHOLE_SESSION_DURATION_SECONDS: "86400"  # one day

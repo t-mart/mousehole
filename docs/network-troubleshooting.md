@@ -6,7 +6,8 @@ where the problem actually is before filing an issue.
 
 - [Failed Network Requests](#failed-network-requests)
 - [Failed Network Requests at Startup](#failed-network-requests-at-startup)
-- [Cannot reach the Mousehole web UI](#cannot-reach-the-mousehole-web-ui)
+- [Cannot Reach the Web UI](#cannot-reach-the-web-ui)
+- [Cannot Reach the Web UI from Other Devices on Network](#cannot-reach-the-web-ui-from-other-devices-on-network)
 
 > [!NOTE]
 >
@@ -21,8 +22,8 @@ server logs.
 
 **Cause**: The VPN tunnel is down, blocked, or misconfigured.
 
-**Fix**: You first need to determine if the problem is with Mousehole or with
-the VPN tunnel.
+**How to fix**: You first need to determine if the problem is with Mousehole or
+with the VPN tunnel.
 
 One way to do this is to add a test container to your stack that loops requests
 through the same VPN network Mousehole uses.
@@ -43,13 +44,13 @@ Start it and watch the logs with `docker compose logs -f netcheck`.
 
 Interpret the output:
 
-| Output                                 | Meaning                   | How to fix                                                                    |
-| -------------------------------------- | ------------------------- | ----------------------------------------------------------------------------- |
-| Steady stream of IP addresses          | Tunnel is healthy         | Network is configured properly.                                               |
-| The IP shown is your home/ISP IP       | VPN is leaking            | Fix the VPN configuration. See your VPN container docs.                       |
-| `request FAILED` lines                 | Tunnel is down or blocked | Fix the VPN configuration. See your VPN container docs.                       |
-| `request FAILED` lines only at startup | Tunnel is initializing    | See [Failed Network Requests at Startup](#failed-network-requests-at-startup) |
-| IP keeps changing                      | Tunnel is reconnecting    | Unstable VPN. Expect MAM `429` errors from frequent IP changes.               |
+| Output                                 | Meaning                    | How to fix                                                                    |
+| -------------------------------------- | -------------------------- | ----------------------------------------------------------------------------- |
+| Steady stream of IP addresses          | Tunnel is healthy          | Network is configured properly. If you still have problems, open an issue.    |
+| The IP shown is your home/ISP IP       | Tunnel is leaking          | Fix the VPN configuration. See your VPN container docs.                       |
+| `request FAILED` lines                 | Tunnel is down or blocked  | Fix the VPN configuration. See your VPN container docs.                       |
+| `request FAILED` lines only at startup | Tunnel is initializing     | See [Failed Network Requests at Startup](#failed-network-requests-at-startup) |
+| IP keeps changing                      | Tunnel is changing network | Unstable VPN. Expect MAM `429` errors from frequent IP changes.               |
 
 ## Failed Network Requests at Startup
 
@@ -64,17 +65,18 @@ attributes. The
 [gluetun-qbittorrent example](/docs/docker-compose-examples/gluetun-qb.md)
 demonstrates this.
 
-## Cannot reach the Mousehole web UI
+## Cannot Reach the Web UI
 
 **Symptom**: The container is running but the browser will not load the web UI.
 
 **Cause**: In a sidecar setup the port must be published on the VPN container,
-not on Mousehole.
+not on Mousehole. (Or, URL is wrong.)
 
 **How to fix**: Map `5010` on the VPN service. See
 [Mousehole as a VPN Sidecar](/docs/compose-setups.md#mousehole-as-a-vpn-sidecar).
+Ensure correct URL.
 
-## Cannot Reach the Web UI from Other Devices on the Network
+## Cannot Reach the Web UI from Other Devices on Network
 
 **Symptom**: The web UI loads on the host where the container is running, but
 not on other devices.
