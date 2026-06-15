@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+/* ---------- Fonts ---------- */
+
 @font-face {
   font-family: "Commissioner";
   src: url("./assets/fonts/Commissioner.woff2") format("woff2");
@@ -41,14 +43,14 @@
   font-display: swap;
 }
 
-@theme inline {
+/* ---------- Theme tokens ---------- */
+
+@theme {
   --font-sans:
     "Commissioner", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
-  --font-display:
-    "Commissioner", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display: var(--font-sans);
   --font-display--font-variation-settings: "FLAR" 50, "VOLM" 50;
 
   --font-mono:
@@ -61,8 +63,8 @@
 
   --color-text: var(--color-stone-100);
 
-  --color-primary-background-dark: var(--color-amber-100);
-  --color-primary-background-bright: var(--color-amber-300);
+  --color-primary-background-bright: var(--color-amber-100);
+  --color-primary-background-dark: var(--color-amber-300);
   --color-primary-text: var(--color-background-dark);
 
   --color-muted-background: var(--color-stone-600);
@@ -70,7 +72,7 @@
 
   --color-border: var(--color-stone-200);
   --color-input: var(--color-stone-300);
-  --color-ring: var(--color-primary-background-bright);
+  --color-ring: var(--color-primary-background-dark);
 
   --color-success: var(--color-green-600);
   --color-warn: var(--color-yellow-600);
@@ -82,45 +84,70 @@
   --radius-xl: calc(var(--radius-lg) + 4px);
 }
 
-:root {
-  @apply font-sans;
-  background-color: var(--color-background-dark);
-  color: var(--color-text);
-  scrollbar-gutter: stable;
+/* ---------- Base ---------- */
+
+@layer base {
+  :root {
+    font-family: var(--font-sans);
+    background-color: var(--color-background-dark);
+    color: var(--color-text);
+    scrollbar-gutter: stable;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  *::selection {
+    @apply bg-primary-background-dark text-primary-text;
+  }
+
+  body {
+    @apply flex items-center justify-around min-h-screen relative;
+
+    --logo-tile-width: 256px;
+    --logo-aspect-ratio: calc(70 / 80); /* viewBox height / width */
+    --logo-tile-height: calc(var(--logo-tile-width) * var(--logo-aspect-ratio));
+    --logo-rotation: -12deg;
+    --logo-speed: 30s; /** lower = faster */
+    --logo-opacity: 0.15;
+    --logo-dx: var(--logo-tile-width); /* negative = move left */
+    --logo-dy: var(--logo-tile-height); /* negative = move up */
+  }
+
+  body::before {
+    /* logo stuff */
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: var(--logo-opacity);
+    background: url("./logo.svg");
+    background-size: var(--logo-tile-width);
+    transform: rotate(var(--logo-rotation)) scale(1.35);
+    animation: logo-slide var(--logo-speed) linear infinite;
+    pointer-events: none;
+  }
+
+  #root {
+    @apply w-full;
+  }
 }
+
+/* ---------- Keyframes ---------- */
 
 @keyframes disco-shift {
-  0%,
-  100% {
+  from {
     background-position: 0% 50%;
   }
-  50% {
-    background-position: 100% 50%;
+  to {
+    /* Advance exactly one gradient tile (matches background-size) so the loop
+       is seamless and the colors stream through in one direction. */
+    background-position: 200% 50%;
   }
 }
 
-@utility disco-text-hover {
-  &:hover {
-    background: linear-gradient(
-      90deg,
-      #f59e0b,
-      #ef4444,
-      #ec4899,
-      #8b5cf6,
-      #3b82f6,
-      #06b6d4,
-      #10b981,
-      #f59e0b
-    );
-    background-size: 300%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: disco-shift 3s linear infinite;
-  }
-}
-
-/* Countdown ring depletion: stroke-dashoffset 0 (full) → circumference (empty).
+/* Countdown ring depletion: stroke-dashoffset 0 (full) to circumference (empty).
    The element sets `--donut-circ` inline and drives duration/negative-delay so
    one continuous animation covers the whole wait. See next-update.tsx. */
 @keyframes donut-deplete {
@@ -132,12 +159,12 @@
   }
 }
 
-@keyframes sp-rotate {
+@keyframes spinner-rotate {
   100% {
     transform: rotate(360deg);
   }
 }
-@keyframes sp-dash {
+@keyframes spinner-dash {
   0% {
     stroke-dasharray: 0 150;
     stroke-dashoffset: 0;
@@ -153,69 +180,47 @@
   }
 }
 
-@utility spinner-group {
-  transform-origin: center;
-  animation: sp-rotate 2s linear infinite;
-}
-
-@utility spinner-circle {
-  stroke-linecap: round;
-  animation: sp-dash 1.5s ease-in-out infinite;
-}
-
-@utility focus-ring {
-  @apply rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:ring-offset-4 focus-visible:ring-offset-background transition-[color,box-shadow];
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  *::selection {
-    @apply bg-primary-background-bright text-primary-text;
-  }
-}
-
-body {
-  @apply flex items-center justify-around min-h-screen relative;
-}
-
-#root {
-  @apply w-full;
-}
-
-body {
-  --logo-tile-width: 256px;
-  --logo-aspect-ratio: calc(70 / 80); /* viewBox height / width */
-  --logo-tile-height: calc(var(--logo-tile-width) * var(--logo-aspect-ratio));
-  --logo-rotation: -12deg;
-  --logo-speed: 30s; /** lower = faster */
-  --logo-opacity: 0.15;
-  --logo-dx: var(--logo-tile-width); /* negative = move left */
-  --logo-dy: var(--logo-tile-height); /* negative = move up */
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  opacity: var(--logo-opacity);
-
-  background: url("./logo.svg");
-
-  background-size: var(--logo-tile-width);
-  transform: rotate(var(--logo-rotation)) scale(1.35);
-  animation: slide var(--logo-speed) linear infinite;
-  pointer-events: none;
-}
-
-@keyframes slide {
+@keyframes logo-slide {
   from {
     background-position: 0 0;
   }
   to {
     background-position: var(--logo-dx) var(--logo-dy);
   }
+}
+
+/* ---------- Utilities ---------- */
+
+@utility disco-text-hover {
+  &:hover {
+    background: linear-gradient(
+      90deg,
+      var(--color-amber-500),
+      var(--color-red-500),
+      var(--color-pink-500),
+      var(--color-violet-500),
+      var(--color-blue-500),
+      var(--color-cyan-500),
+      var(--color-emerald-500),
+      var(--color-amber-500)
+    );
+    background-size: 200%;
+    background-clip: text;
+    color: transparent;
+    animation: disco-shift 3s linear infinite;
+  }
+}
+
+@utility spinner-group {
+  transform-origin: center;
+  animation: spinner-rotate 2s linear infinite;
+}
+
+@utility spinner-circle {
+  stroke-linecap: round;
+  animation: spinner-dash 1.5s ease-in-out infinite;
+}
+
+@utility focus-ring {
+  @apply rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:ring-offset-4 focus-visible:ring-offset-background transition-[color,box-shadow];
 }

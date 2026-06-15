@@ -106,7 +106,7 @@ function CopyableIP({ ip }: Readonly<{ ip: string }>) {
           "cursor-pointer focus-ring",
           copied
             ? "text-success"
-            : "text-muted-text hover:text-primary-background-bright",
+            : "text-muted-text hover:text-primary-background-dark",
         )}
       >
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}

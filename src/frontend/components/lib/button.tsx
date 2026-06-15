@@ -12,7 +12,7 @@ const button = cva(
     variants: {
       variant: {
         default:
-          "bg-primary-background-dark text-primary-text aria-invalid:bg-muted-background",
+          "bg-primary-background-bright text-primary-text aria-invalid:bg-muted-background",
         ghost:
           "text-muted-text hover:bg-background-light hover:text-text aria-invalid:opacity-50",
       },
