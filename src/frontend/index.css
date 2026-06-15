@@ -77,6 +77,7 @@
   --color-success: var(--color-green-600);
   --color-warn: var(--color-yellow-600);
   --color-destructive: var(--color-rose-500);
+  --color-destructive-dark: var(--color-rose-700);
 
   --radius-lg: 0.625rem;
   --radius-sm: calc(var(--radius-lg) - 4px);

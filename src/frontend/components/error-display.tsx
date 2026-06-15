@@ -2,6 +2,8 @@ import { X } from "lucide-react";
 
 import { useErrors } from "#frontend/contexts/error.tsx";
 
+import { Button } from "./lib/button";
+
 export function ErrorDisplay() {
   const { errors, dismissError } = useErrors();
 
@@ -22,13 +24,16 @@ export function ErrorDisplay() {
                 <span className="text-destructive/60"> (×{error.count})</span>
               )}
             </p>
-            <button
+            <Button
+              type="button"
+              variant="ghost-destructive"
+              size="icon"
               onClick={() => dismissError(error.id)}
               aria-label="Dismiss error"
-              className="text-destructive/60 hover:text-destructive transition-colors shrink-0 cursor-pointer"
+              className="shrink-0"
             >
-              <X className="size-4" />
-            </button>
+              <X className="size-4 stroke-4" />
+            </Button>
           </li>
         ))}
       </ol>

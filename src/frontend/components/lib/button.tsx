@@ -7,7 +7,7 @@ import { cn } from "#frontend/lib/cn.ts";
 import { Spinner } from "./spinner";
 
 const button = cva(
-  "flex items-center justify-center rounded-md py-2 px-4 font-bold transition-[transform,color,box-shadow] hover:scale-95 aria-invalid:hover:scale-none cursor-pointer aria-invalid:cursor-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-none outline-none focus-visible:ring-ring/50 focus-visible:ring-3",
+  "flex items-center justify-center rounded-md font-bold transition-[transform,color,box-shadow] hover:scale-95 aria-invalid:hover:scale-none cursor-pointer aria-invalid:cursor-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-none outline-none focus-visible:ring-ring/50 focus-visible:ring-3",
   {
     variants: {
       variant: {
@@ -15,9 +15,15 @@ const button = cva(
           "bg-primary-background-bright text-primary-text aria-invalid:bg-muted-background",
         ghost:
           "text-muted-text hover:bg-background-light hover:text-text aria-invalid:opacity-50",
+        "ghost-destructive":
+          "text-destructive-dark hover:bg-destructive/30 hover:text-destructive aria-invalid:opacity-50",
+      },
+      size: {
+        default: "py-2 px-4",
+        icon: "p-2",
       },
     },
-    defaultVariants: { variant: "default" },
+    defaultVariants: { variant: "default", size: "default" },
   },
 );
 
@@ -25,6 +31,7 @@ export function Button({
   className,
   type,
   variant,
+  size,
   loading = false,
   disabled,
   children,
@@ -34,7 +41,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={cn(button({ variant }), className)}
+      className={cn(button({ variant, size }), className)}
       // Loading forces disabled (no double-submit) and marks the control busy.
       disabled={disabled || loading}
       aria-busy={loading || undefined}
