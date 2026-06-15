@@ -1,3 +1,5 @@
+import { serve } from "@hono/node-server";
+
 import {
   buildConfig,
   type AllowedHostsConfig,
@@ -14,7 +16,7 @@ import { createApp, type WebMount } from "./app.ts";
 /**
  * Composition root: resolve config from the environment, build the app
  * context, bind the listener, and start background work. Everything
- * Bun-server-specific lives in this one call.
+ * HTTP-server-specific lives in this one call.
  *
  * @returns the server URL and an async `stop` that unwinds it all.
  */
@@ -33,17 +35,13 @@ export function startServer(env: NodeJS.ProcessEnv = process.env) {
 
   const app = createApp(ctx, webMount);
 
-  const server = Bun.serve({
+  const server = serve({
+    fetch: app.fetch,
     port: config.port,
-
-    // Bun closes idle connections after 10s by default, and a quiet SSE stream
-    // counts as idle — disable the timeout.
-    idleTimeout: 0,
-
-    fetch: (request) => app.fetch(request),
   });
 
-  logger.info(`Mousehole v${version} (${gitHash}) running at ${server.url}`);
+  const url = `http://localhost:${config.port}`;
+  logger.info(`Mousehole v${version} (${gitHash}) running at ${url}`);
   validateRuntimeSecurityConfig(
     config.auth,
     config.allowedHosts,
@@ -53,11 +51,14 @@ export function startServer(env: NodeJS.ProcessEnv = process.env) {
   ctx.contacts.start();
 
   return {
-    url: server.url,
+    url,
     stop: async () => {
       logger.info("Shutting down...");
       await ctx.contacts.stop();
-      await server.stop(true);
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+        if ("closeAllConnections" in server) server.closeAllConnections();
+      });
     },
   };
 }

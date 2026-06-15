@@ -40,7 +40,7 @@ export class StateFileStore implements StateStore {
     const { statePath } = this;
     let contents;
     try {
-      contents = await Bun.file(statePath).text();
+      contents = await fs.readFile(statePath, "utf8");
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
         return undefined;
@@ -73,7 +73,7 @@ export class StateFileStore implements StateStore {
     // broken writes; unlikely, but why not be safe?
     const temporaryPath = `${statePath}.tmp`;
     try {
-      await Bun.write(temporaryPath, contents);
+      await fs.writeFile(temporaryPath, contents);
       await fs.rename(temporaryPath, statePath);
     } catch (error) {
       throw new FileWriteError(statePath, { cause: toError(error) });

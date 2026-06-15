@@ -23,7 +23,7 @@ import type { Root as MdastRoot } from "mdast";
 
 import matter from "gray-matter";
 import { watch } from "node:fs";
-import { mkdir, readdir } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import rehypeRaw from "rehype-raw";
 import rehypeStringify from "rehype-stringify";
@@ -321,14 +321,14 @@ export const render = async (markdown: string): Promise<string> => {
 // Build
 // ---------------------------------------------------------------------------
 
-const SRC_DIR = import.meta.dir;
+const SRC_DIR = import.meta.dirname;
 const OUT_DIR = path.join(SRC_DIR, "dist");
 
 const buildFile = async (name: string): Promise<string> => {
-  const markdown = await Bun.file(path.join(SRC_DIR, name)).text();
+  const markdown = await readFile(path.join(SRC_DIR, name), "utf8");
   const html = await render(markdown);
   const out = path.join(OUT_DIR, `${path.basename(name, path.extname(name))}.html`);
-  await Bun.write(out, `${html}\n`);
+  await writeFile(out, `${html}\n`);
   return out;
 };
 

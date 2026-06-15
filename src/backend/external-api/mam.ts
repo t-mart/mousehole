@@ -1,3 +1,4 @@
+import { parseSetCookie } from "set-cookie-parser";
 import * as z from "zod";
 
 import { SchemaError } from "#backend/error.ts";
@@ -66,11 +67,7 @@ export async function updateMamIp(
 }
 
 function getResponseCookieValue(response: Response): string | undefined {
-  for (const headerValue of response.headers.getSetCookie()) {
-    const cookie = new Bun.Cookie(headerValue);
-    if (cookie.name === cookieKey) {
-      return cookie.value;
-    }
-  }
-  return undefined;
+  return parseSetCookie(response.headers.getSetCookie()).find(
+    (cookie) => cookie.name === cookieKey,
+  )?.value;
 }
