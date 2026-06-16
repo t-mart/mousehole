@@ -1,8 +1,8 @@
 # Running Mousehole on Unraid
 
-The Unraid template at [`my-mousehole.xml`](/contrib/unraid/my-mousehole.xml) can be placed on
-your Unraid server to pre-fill Mousehole's settings in the **Add Container**
-screen. Install it manually with the steps below.
+The Unraid template at [`my-mousehole.xml`](/contrib/unraid/my-mousehole.xml)
+can be placed on your Unraid server to pre-fill Mousehole's settings in the
+**Add Container** screen. Install it manually with the steps below.
 
 ## Prerequisites
 
@@ -58,24 +58,8 @@ Mousehole's port on that VPN container.
    configuration.
 6. Reach Mousehole at `http://<your-unraid-ip>:5010`.
 
-### Hotio-Specific Note
+## Network Troubleshooting with Appdata.Backup plugin
 
-If you are using the hotio/qBittorrent container, set the
-`VPN_EXPOSE_PORTS_ON_LAN` environment variable on that container to `5010/tcp`
-to allow Mousehole's port to be accessible on your LAN. This is in addition to
-the port mapping you set up.
-
-## Container Lifecycles
-
-**This is SUPER important**: If you restart or recreate the VPN container, you
-must also restart the Mousehole container AFTERWARDS. If you don't, Mousehole
-will still be running, but it won't be able to access the internet.
-
-This is one of the most common support issues, so keep it in mind when managing
-your containers.
-
-**This especially applies to users that use the Appdata.Backup plugin**, which
-recreates containers when restoring. See the
-[plugin's support thread](https://forums.unraid.net/topic/137710-plugin-appdatabackup/#:~:text=The%20plugin%20sent%20me%20here%20for%20help%20with%20the%20grouping%20function)
-for an automated way of doing this safely under the heading "The plugin sent me
-here for help with the grouping function".
+If Mousehole encounters network issues after the Appdata.Backup plugin runs, you
+may have a container lifecycle issue. See
+[Failed Network Requests after Restarting VPN Container](/docs/network-troubleshooting.md#failed-network-requests-after-restarting-vpn-container)

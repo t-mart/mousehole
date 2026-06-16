@@ -6,6 +6,7 @@ where the problem actually is before filing an issue.
 
 - [Failed Network Requests](#failed-network-requests)
 - [Failed Network Requests at Startup](#failed-network-requests-at-startup)
+- [Failed Network Requests after Restarting VPN Container](#failed-network-requests-after-restarting-vpn-container)
 - [Cannot Reach the Web UI](#cannot-reach-the-web-ui)
 - [Cannot Reach the Web UI from Other Devices on Network](#cannot-reach-the-web-ui-from-other-devices-on-network)
 
@@ -40,17 +41,19 @@ netcheck:
   restart: unless-stopped
 ```
 
-Start it and watch the logs with `docker compose logs -f netcheck`.
+Start it and watch the logs with `docker compose logs -f netcheck`. (Don't
+forget to remove it after testing!)
 
-Interpret the output:
+Then, interpret the output:
 
-| Output                                 | Meaning                    | How to fix                                                                    |
-| -------------------------------------- | -------------------------- | ----------------------------------------------------------------------------- |
-| Steady stream of IP addresses          | Tunnel is healthy          | Network is configured properly. If you still have problems, open an issue.    |
-| The IP shown is your home/ISP IP       | Tunnel is leaking          | Fix the VPN configuration. See your VPN container docs.                       |
-| `request FAILED` lines                 | Tunnel is down or blocked  | Fix the VPN configuration. See your VPN container docs.                       |
-| `request FAILED` lines only at startup | Tunnel is initializing     | See [Failed Network Requests at Startup](#failed-network-requests-at-startup) |
-| IP keeps changing                      | Tunnel is changing network | Unstable VPN. Expect MAM `429` errors from frequent IP changes.               |
+| Output                                                     | Meaning                    | How to fix                                                                                                                                                                    |
+| ---------------------------------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Steady stream of IP addresses                              | Tunnel is healthy          | Network is configured properly. If you still have problems, open an issue.                                                                                                    |
+| The IP shown is your home/ISP IP                           | Tunnel is leaking          | Fix VPN configuration. See your VPN container docs. Ensure Mousehole is [running as a sidecar](/docs/compose-setups.md#mousehole-as-a-vpn-sidecar).                           |
+| `request FAILED` lines                                     | Tunnel is down or blocked  | Fix the VPN configuration. See your VPN container docs. Also check if a [container lifecycle issue](#failed-network-requests-after-restarting-vpn-container) may be at fault. |
+| `request FAILED` lines only at startup                     | Tunnel is initializing     | See [Failed Network Requests at Startup](#failed-network-requests-at-startup)                                                                                                 |
+| `request FAILED` lines only after restarting VPN container | Tunnel is gone             | See [Failed Network Requests after Restarting VPN Container](#failed-network-requests-after-restarting-vpn-container)                                                         |
+| IP keeps changing                                          | Tunnel is changing network | Unstable VPN. Expect MAM `429` errors from frequent IP changes.                                                                                                               |
 
 ## Failed Network Requests at Startup
 
@@ -64,6 +67,22 @@ smoother controlling the order of startup with Compose's
 attributes. The
 [gluetun-qbittorrent example](/docs/docker-compose-examples/gluetun-qb.md)
 demonstrates this.
+
+## Failed Network Requests after Restarting VPN Container
+
+**Symptom**: After restarting the VPN container, Mousehole has network errors.
+
+**Cause**: The network that Mousehole is attached to no longer has a VPN tunnel.
+
+**How to fix**: Restart the Mousehole container. In a sidecar setup, if the
+"main" container (VPN) restarts, the sidecar (Mousehole) must be restarted too
+to re-attach to the network with the tunnel.
+
+This especially applies to **Unraid** users that use the **Appdata.Backup
+plugin**, which recreates containers when restoring. See the
+[plugin's support thread](https://forums.unraid.net/topic/137710-plugin-appdatabackup/#:~:text=The%20plugin%20sent%20me%20here%20for%20help%20with%20the%20grouping%20function)
+for an automated way of doing this safely under the heading "The plugin sent me
+here for help with the grouping function".
 
 ## Cannot Reach the Web UI
 

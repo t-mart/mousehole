@@ -6,7 +6,7 @@ in which you should use them.
 
 - [Quick Start](#quick-start)
   - [Localhost Only](#localhost-only)
-  - [LAN or Reverse Proxy Access](#lan-or-reverse-proxy-access)
+  - [LAN or Reverse Proxy Access](#reverse-proxy-access)
   - [Backwards Compatibility Mode](#backwards-compatibility-mode)
 - [Cookie Storage](#cookie-storage)
 - [Port Binding](#port-binding)
