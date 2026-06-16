@@ -146,7 +146,7 @@ function checkHost(
   return {
     status: 403,
     type: "host-not-allowed",
-    message: `Host "${host}" not allowed. (Set MOUSEHOLE_ALLOWED_HOSTS to permit it)`,
+    message: `Host "${host}" not allowed. (Add to MOUSEHOLE_ALLOWED_HOSTS to permit it.)`,
   };
 }
 
@@ -238,7 +238,7 @@ function checkOrigin(
   return {
     status: 403,
     type: "origin-not-allowed",
-    message: `Origin "${requestOrigin}" is not allowed.`,
+    message: `Origin "${requestOrigin}" is not allowed. (Add to MOUSEHOLE_ALLOWED_ORIGINS to permit it.)`,
   };
 }
 
