@@ -51,7 +51,8 @@
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
   --font-display: var(--font-sans);
-  --font-display--font-variation-settings: "FLAR" 50, "VOLM" 50;
+  /* axes documented at https://github.com/kosbarts/Commissioner */
+  --font-display--font-variation-settings: "FLAR" 100, "VOLM" 100, "slnt" -5;
 
   --font-mono:
     "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
