@@ -94,18 +94,6 @@
     background-color: var(--color-background-dark);
     color: var(--color-text);
     scrollbar-gutter: stable;
-  }
-
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  *::selection {
-    @apply bg-primary-background-dark text-primary-text;
-  }
-
-  body {
-    @apply flex items-center justify-around min-h-screen relative;
 
     --logo-tile-width: 256px;
     --logo-aspect-ratio: calc(70 / 80); /* viewBox height / width */
@@ -117,8 +105,20 @@
     --logo-dy: var(--logo-tile-height); /* negative = move up */
   }
 
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  *::selection {
+    @apply bg-primary-background-dark text-primary-text;
+  }
+
+  body {
+    @apply relative;
+  }
+
   body::before {
-    /* logo stuff */
+    /* background logo stuff */
     content: "";
     position: fixed;
     inset: 0;
@@ -132,7 +132,7 @@
   }
 
   #root {
-    @apply w-full;
+    @apply flex items-center justify-around min-h-screen w-full;
   }
 }
 
