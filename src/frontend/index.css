@@ -52,7 +52,7 @@
 
   --font-display: var(--font-sans);
   /* axes documented at https://github.com/kosbarts/Commissioner */
-  --font-display--font-variation-settings: "FLAR" 100, "VOLM" 100, "slnt" -5;
+  --font-display--font-variation-settings: "FLAR" 100, "VOLM" 100;
 
   --font-mono:
     "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
