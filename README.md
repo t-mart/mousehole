@@ -106,11 +106,11 @@ environment variable, make sure to override the
 
 ## How It Works
 
-On a schedule, Mousehole contacts MAM. If you've set a cookie, it sends MAM your
-current IP through their
-[dynamic-seedbox API](https://www.myanonamouse.net/api/endpoint.php/3/json/dynamicSeedbox.php).
-Otherwise, the request just looks up your public IP so you can see it during
-setup.
+On a schedule, Mousehole contacts MAM. If Mousehole has your cookie, it makes a
+request to the
+[dynamic-seedbox API](https://www.myanonamouse.net/api/endpoint.php/3/json/dynamicSeedbox.php)
+to update your IP with MAM. If without your cookie, Mousehole gets your current
+IP for reference while you [get your cookie](/docs/getting-your-cookie.md).
 
 You can trigger an immediate update from the web UI with **Update Now**.
 
