@@ -35,9 +35,28 @@ export const fixtures: Fixture[] = [
   },
   {
     name: "ip-mismatch",
-    description: "Fresh install; MAM rejects the cookie with an IP mismatch.",
+    description: "MAM rejects the cookie with an IP mismatch.",
     password: "password",
     mam: { outcome: "ipMismatch", ...HOST },
+  },
+  {
+    name: "invalid-session-invalid-cookie",
+    description: "MAM rejects the cookie with an invalid session or cookie.",
+    password: "password",
+    mam: { outcome: "invalidSession", ...HOST },
+  },
+  {
+    name: "last-change-too-recent",
+    description:
+      "MAM rejects the cookie because the last change was too recent.",
+    password: "password",
+    mam: { outcome: "lastChangeTooRecent", ...HOST },
+  },
+  {
+    name: "asn-mismatch",
+    description: "MAM rejects the cookie with an ASN mismatch.",
+    password: "password",
+    mam: { outcome: "asnMismatch", ...HOST },
   },
   {
     name: "running",
