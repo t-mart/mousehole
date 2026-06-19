@@ -1,3 +1,5 @@
+import { parseSetCookie } from "set-cookie-parser";
+
 import type { AppContext } from "../src/backend/context.ts";
 import type { FetchLike } from "../src/backend/external-api/fetch.ts";
 import type { State } from "../src/backend/state/serde.ts";
@@ -57,10 +59,11 @@ async function login(
   if (response.status !== 200) {
     throw new Error(`Login failed with ${response.status}`);
   }
-  const setCookie = response.headers.get("set-cookie") ?? "";
-  const match = new RegExp(`${SESSION_COOKIE_NAME}=([^;]+)`).exec(setCookie);
-  if (!match?.[1]) throw new Error(`No session cookie in: "${setCookie}"`);
-  return `${SESSION_COOKIE_NAME}=${match[1]}`;
+  const cookieValue = parseSetCookie(response.headers.getSetCookie()).find(
+    (cookie) => cookie.name === SESSION_COOKIE_NAME,
+  )?.value;
+  if (!cookieValue) throw new Error("Login response missing session cookie");
+  return `${SESSION_COOKIE_NAME}=${cookieValue}`;
 }
 
 describe("GET / content negotiation", () => {
