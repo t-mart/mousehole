@@ -51,4 +51,4 @@ to get yours.
    anything else! You can close the page.
 
    If you do not see an OK status, check out the
-   [error documentation](/docs/errors.md) for help with troubleshooting.
+   [error documentation](/docs/mam-errors.md) for help with troubleshooting.

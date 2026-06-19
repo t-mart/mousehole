@@ -1,5 +1,10 @@
 # MAM Errors
 
+<figure align="center">
+  <img src="/docs/images/last-change-too-recent.png" alt="Last change too recent error on Mousehole dashboard" width="600">
+  <figcaption><em>Example MAM error</em></figcaption>
+</figure>
+
 Mousehole communicates with MyAnonamouse's
 [Dynamic Seedbox IP API endpoint](https://www.myanonamouse.net/api/endpoint.php/3/json/dynamicSeedbox.php).
 If you see a status error in Mousehole, it's a relay of an error response from
