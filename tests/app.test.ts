@@ -1,3 +1,5 @@
+import type { MockInstance } from "vitest";
+
 import { parseSetCookie } from "set-cookie-parser";
 
 import type { AppContext } from "../src/backend/context.ts";
@@ -34,17 +36,23 @@ function makeTestContext(
 ): {
   ctx: AppContext;
   app: ReturnType<typeof createApp>;
+  store: StateStore;
+  writeSpy: MockInstance<StateStore["write"]>;
 } {
   const config = buildConfig({
     MOUSEHOLE_AUTH_PASSWORD: "s3cr3t",
     MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "3600",
     ...options.env,
   });
+  const store = createInMemoryStateStore();
+  // Spy on write so tests can assert what got persisted. restoreMocks
+  // (vitest.config.ts) puts it back after each test.
+  const writeSpy = vi.spyOn(store, "write");
   const ctx = createAppContext(config, {
     fetchImpl: options.fetchImpl ?? rejectExternalFetch,
-    stateFile: createInMemoryStateStore(),
+    stateFile: store,
   });
-  return { ctx, app: createApp(ctx) };
+  return { ctx, app: createApp(ctx), store, writeSpy };
 }
 
 async function login(
@@ -433,7 +441,7 @@ describe("public probes", () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      sync: { ok: false, reason: "pending" },
+      lastMamContactResult: "pending",
     });
   });
 });
@@ -550,7 +558,9 @@ describe("PUT /cookie validation", () => {
 describe("contact flows (simulated MAM)", () => {
   test("PUT /cookie runs an update, persists, and flips /health to healthy", async () => {
     const mamServer = createMamTestServer();
-    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
+    const { app, writeSpy } = makeTestContext({
+      fetchImpl: mamServer.fetchImpl,
+    });
     const cookie = await login(app);
 
     const putResponse = await putMamCookie(app, cookie);
@@ -564,6 +574,10 @@ describe("contact flows (simulated MAM)", () => {
       };
     };
     expect(putState.hasCookie).toBe(true);
+    // The submitted cookie is persisted, not just echoed in the response.
+    expect(writeSpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({ cookie: "mam-session-cookie" }),
+    );
     expect(putState.lastMamContact.reached).toBe(true);
     expect(putState.lastMamContact.ip).toBe("203.0.113.7");
     expect(putState.lastMamContact.ipUpdate).toEqual({
@@ -581,7 +595,7 @@ describe("contact flows (simulated MAM)", () => {
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      sync: { ok: true, reason: "ok" },
+      lastMamContactResult: "ok",
     });
 
     // GET /state serves the same persisted contact.
@@ -596,7 +610,9 @@ describe("contact flows (simulated MAM)", () => {
 
   test("a throttled update (429) is persisted and surfaces via /health", async () => {
     const mamServer = createMamTestServer({ outcome: "lastChangeTooRecent" });
-    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
+    const { app, writeSpy } = makeTestContext({
+      fetchImpl: mamServer.fetchImpl,
+    });
     const cookie = await login(app);
 
     const putResponse = await putMamCookie(app, cookie);
@@ -608,6 +624,9 @@ describe("contact flows (simulated MAM)", () => {
       };
     };
     expect(putState.hasCookie).toBe(true);
+    expect(writeSpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({ cookie: "mam-session-cookie" }),
+    );
     expect(putState.lastMamContact.ipUpdate).toEqual({
       success: false,
       msg: "Last change too recent",
@@ -617,26 +636,60 @@ describe("contact flows (simulated MAM)", () => {
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      sync: { ok: false, reason: "throttled" },
+      lastMamContactResult: "throttled",
     });
   });
 
   test("a rejected session (403) is persisted and surfaces via /health", async () => {
     const mamServer = createMamTestServer({ outcome: "ipMismatch" });
-    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
+    const { app, writeSpy } = makeTestContext({
+      fetchImpl: mamServer.fetchImpl,
+    });
     const cookie = await login(app);
 
     const putResponse = await putMamCookie(app, cookie);
     expect(putResponse.status).toBe(200);
 
+    // Even a cookie MAM rejects (403) is saved: the contract is to persist what
+    // the user gave us; the dashboard then prompts them to re-enter it.
+    expect(writeSpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({ cookie: "mam-session-cookie" }),
+    );
+
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      sync: {
-        ok: false,
-        reason: "rejected",
-      },
+      lastMamContactResult: "rejected",
     });
+  });
+
+  test("PUT /cookie persists the cookie even when MAM is unreachable", async () => {
+    // Default context: rejectExternalFetch makes the MAM contact fail, so the
+    // update never happens. The cookie must still be saved (the IP update is a
+    // side effect, not a precondition for persisting the credential).
+    const { app, writeSpy } = makeTestContext();
+    const cookie = await login(app);
+
+    const putResponse = await putMamCookie(app, cookie, "persist-me");
+    expect(putResponse.status).toBe(200);
+    const putState = (await putResponse.json()) as {
+      hasCookie: boolean;
+      lastMamContact: { reached: boolean };
+    };
+    expect(putState.hasCookie).toBe(true);
+    expect(putState.lastMamContact.reached).toBe(false);
+
+    // The failed contact didn't stop the cookie from being persisted.
+    expect(writeSpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({ cookie: "persist-me" }),
+    );
+
+    // And it survives a re-read from the store.
+    const stateResponse = await app.request("/state", {
+      headers: { Cookie: cookie },
+    });
+    const state = (await stateResponse.json()) as { hasCookie: boolean };
+    expect(state.hasCookie).toBe(true);
   });
 
   test("a rotated mam_id (Set-Cookie) is persisted and presented on the next contact", async () => {
@@ -680,7 +733,7 @@ describe("contact flows (simulated MAM)", () => {
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      sync: { ok: false, reason: "no-cookie" },
+      lastMamContactResult: "no-cookie",
     });
   });
 
@@ -704,7 +757,7 @@ describe("contact flows (simulated MAM)", () => {
     const healthResponse = await app.request("/health");
     expect(healthResponse.status).toBe(200);
     expect(await healthResponse.json()).toEqual({
-      sync: { ok: false, reason: "unreachable" },
+      lastMamContactResult: "unreachable",
     });
   });
 
