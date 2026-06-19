@@ -76,4 +76,4 @@ is not stable.
 :::
 
 - [GitHub Repository](https://github.com/t-mart/mousehole)
-- [Donate](https://github.com/t-mart/mousehole#donate)
+- [Support the Project](https://github.com/t-mart/mousehole#support-the-project)

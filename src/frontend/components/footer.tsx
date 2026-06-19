@@ -10,7 +10,7 @@ export function Footer() {
     // `layout` so the footer glides as content above it changes height (the page
     // stays vertically centered — see motion memory).
     <motion.footer layout className="@container space-y-2">
-      <ol className="flex justify-between flex-col @xs:flex-row flex-wrap gap-2">
+      <ol className="flex justify-center flex-col @xs:flex-row flex-wrap gap-x-8 gap-y-2">
         <li>
           <Link
             href="https://www.myanonamouse.net/f/t/84712/p/p1013257"
@@ -26,11 +26,11 @@ export function Footer() {
         </li>
         <li>
           <Link
-            href="https://github.com/t-mart/mousehole#donate"
+            href="https://github.com/t-mart/mousehole#support-the-project"
             target="_blank"
             variant="disco"
           >
-            Donate
+            Support the Project
           </Link>
         </li>
       </ol>

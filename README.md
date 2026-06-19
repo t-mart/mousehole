@@ -249,9 +249,9 @@ work, maintained on a best-effort basis.
   [Noun Project](https://thenounproject.com/term/mouse-hole/), licensed under
   [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
 
-## Donate
+## Support the Project
 
-If my project has helped you out, consider supporting me:
+If my project has helped you out, you can ensure it stays maintained.
 
 - Sponsor me on [GitHub](https://github.com/sponsors/t-mart)
-- Donate BTC to `3NbDsq9mhLAf7mRQ5UqnC5z1UXS8YGJBok`.
+- Send BTC to `3NbDsq9mhLAf7mRQ5UqnC5z1UXS8YGJBok`.
