@@ -27,7 +27,7 @@ export async function handlePostLogin(
       ok: false,
       status: 500,
       message:
-        "Browser login is unavailable: MOUSEHOLE_AUTH_PASSWORD is not set.",
+        "Browser login is unavailable: MOUSEHOLE_AUTH_PASSWORD is not set",
     };
   }
 
@@ -35,16 +35,16 @@ export async function handlePostLogin(
   try {
     raw = await request.json();
   } catch {
-    return { ok: false, status: 400 };
+    return { ok: false, status: 400, message: "Malformed JSON in request body" };
   }
 
   const parsed = loginBodySchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, status: 400 };
+    return { ok: false, status: 400, message: "Request body must match expected schema" };
   }
 
   if (!safeEqual(parsed.data.password, authConfig.password)) {
-    return { ok: false, status: 401 };
+    return { ok: false, status: 401, message: "Incorrect password" };
   }
 
   return { ok: true, sessionId: sessions.create() };
