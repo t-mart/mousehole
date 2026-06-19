@@ -18,6 +18,9 @@ Example with curl:
 curl -H "Authorization: Bearer mytoken" http://localhost:5010/state
 ```
 
+A request with a missing or invalid credential is rejected with `401` and a
+`WWW-Authenticate` header (see [Errors](#errors)).
+
 ## State shape
 
 `GET /state`, `PUT /cookie`, and `POST /updates` all return the same public
@@ -30,7 +33,10 @@ the contact performs an IP **update** (the `ipUpdate` field below).
 {
   "hasCookie": true, // is a MAM cookie configured?
   "hasAuth": true, // is the web UI password-protected? (frontend concern)
-  "nextContactAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]", // RFC 9557
+  // When the next automatic contact is scheduled (RFC 9557). Omitted until the
+  // scheduler has armed the first interval, e.g. before the initial contact
+  // completes (and after shutdown).
+  "nextContactAt": "2025-06-21T14:27:28.113-05:00[America/Chicago]",
   // The most recent contact with MAM. Absent until the first check runs.
   "lastMamContact": {
     "at": "2025-06-21T14:22:28.111-05:00[America/Chicago]",
@@ -63,21 +69,63 @@ the contact performs an IP **update** (the `ipUpdate` field below).
   }
   ```
 
+## Errors
+
+HTTP boundary rejections, invalid requests, and server-side disk faults return a
+non-2xx status with this envelope:
+
+```jsonc
+{
+  "type": "json-parse-error", // stable, machine-readable tag
+  "message": "...", // human-readable, written to be actionable
+  // Only on a schema-error: the field-level validation problems.
+  "issues": [{ "path": "value", "message": "..." }],
+  // Present when this error wraps a lower-level one.
+  "cause": { "type": "...", "message": "..." },
+}
+```
+
+| `type`                    | Status | When                                                            |
+| ------------------------- | ------ | --------------------------------------------------------------- |
+| `host-not-allowed`        | 403    | `Host` header missing or not in `MOUSEHOLE_ALLOWED_HOSTS`       |
+| `authentication-required` | 401    | missing or invalid token/session                                |
+| `auth-not-configured`     | 500    | no `MOUSEHOLE_AUTH_*` credential is set                         |
+| `origin-not-allowed`      | 403    | disallowed cross-origin browser request (waived for token auth) |
+| `unsupported-media-type`  | 415    | request body without `Content-Type: application/json`           |
+| `payload-too-large`       | 413    | request body over 8 KiB                                         |
+| `schema-error`            | 400    | request body fails schema validation (carries `issues`)         |
+| `json-parse-error`        | 400    | request body given by client is invalid JSON                    |
+| `json-parse-error`        | 500    | MAM response or state file is invalid JSON (see message)        |
+| `file-read-error`         | 500    | the state file exists but cannot be read (e.g. permissions)     |
+| `file-write-error`        | 500    | the state file cannot be written                                |
+| `directory-create-error`  | 500    | the state directory cannot be created                           |
+| `not-found`               | 404    | no matching route                                               |
+| `unhandled-error`         | 500    | any otherwise-unclassified server error                         |
+
+Boundary failures (`401`, `403`) can occur on any endpoint marked _Requires
+Auth_. The state-file `500`s can occur on any endpoint that reads or writes
+state (`GET /state`, `PUT /cookie`, `POST /updates`, `GET /health`).
+
 ## `GET /state`
 
 Requires Auth?: Yes
 
-A pure read of the current state — it does **not** contact MAM, so it always
-responds quickly and can't fail on a network blip. Returns the
-[state shape](#state-shape).
+A pure read of the current state. Returns the [state shape](#state-shape).
+
+**Failure modes:**
+
+- `401`/`403` if the request isn't authorized
+- `500` (`file-read-error` or `json-parse-error`) if the persisted state cannot
+  be read
 
 ## `PUT /cookie`
 
 Requires Auth?: Yes
 
 Set the MAM session cookie. This stores the credential **and** immediately
-contacts MAM with it, so the response reflects whether the cookie works (e.g. a
-`403` rejection shows up right away). Returns the [state shape](#state-shape).
+contacts MAM with it, so the response body reflects whether the cookie works
+(e.g. a `403` rejection shows up right away). Returns the
+[state shape](#state-shape).
 
 Example request body:
 
@@ -85,7 +133,19 @@ Example request body:
 { "value": "<your-mam_id-cookie-value>" }
 ```
 
-`value` must be a non-empty string; an empty value is rejected with a `400`.
+`value` must be a non-empty string. The cookie is persisted regardless of the
+MAM outcome: a rejection (`403`), a throttle (`429`), or an unreachable MAM is
+recorded in the returned `lastMamContact`, and the response is still `200`. The
+HTTP status reflects request handling and persistence only, never what MAM said.
+
+**Failure modes:**
+
+- `415` if the body isn't `application/json`
+- `413` if it exceeds 8 KiB
+- `400` for malformed JSON (`json-parse-error`) or a missing/empty `value`
+  (`schema-error`, with `issues`)
+- `401`/`403` if unauthorized
+- `500` if state cannot be read or written
 
 ## `POST /updates`
 
@@ -94,23 +154,46 @@ Requires Auth?: Yes
 Run an update now: contact MAM and persist the result. Takes no body. Returns
 the [state shape](#state-shape).
 
+Like `PUT /cookie`, a failed MAM contact is recorded, not raised: the response
+is `200` with the outcome in `lastMamContact`.
+
+**Failure modes:**
+
+- `401`/`403` if unauthorized
+- `500` if state cannot be read or written
+
 ## `GET /health`
 
 Requires Auth?: No
 
-Answers **`200` whenever the server is up and serving**. The `ok`/`reason` body
-reports the MAM sync state for humans and monitors, but **never** changes the
-status code. So the container stays healthy even when your IP needs re-syncing —
-that's a job for you on the dashboard, not a reason to restart the container or
-pull it from rotation.
+Answers with `200` if the server is up and able to read its persisted state.
+Therefore, you can infer _liveness_ from the status code. This may be suitable
+for container orchestrators looking to know if the container should be
+restarted.
+
+To facilitate monitoring, the body reports a state-like response, but it is
+reduced because this endpoint does not require authorization.
 
 ```jsonc
-{ "sync": { "ok": true,  "reason": "ok" }}       // synced
-{ "sync": { "ok": false, "reason": "rejected" }} // needs attention — still HTTP 200
+{ "lastMamContactResult": "ok" }       // synced
+{ "lastMamContactResult": "rejected" } // needs attention
+{ "lastMamContactResult": "unreachable" } // MAM is down or network is down
 ```
 
-`reason` is one of: `ok`, `throttled` (429), `rejected` (403), `unreachable`,
-`no-cookie` (set one up), `pending` (no check has run yet).
+Those are a few illustrative values; the table below lists the complete set.
+
+| `lastMamContactResult` | Contact Attempted? | Contact Success? | IP Update Attempted? | IP Update Success? | Notes                                      |
+| ---------------------- | ------------------ | ---------------- | -------------------- | ------------------ | ------------------------------------------ |
+| `pending`              | ❌ No              | N/A              | N/A                  | N/A                | No contact attempt has run yet.            |
+| `unreachable`          | ✅ Yes             | ❌ No            | N/A                  | N/A                | Unable to contact MAM                      |
+| `no-cookie`            | ✅ Yes             | ✅ Yes           | ❌ No                | N/A                | User has not yet set a cookie.             |
+| `rejected`             | ✅ Yes             | ✅ Yes           | ✅ Yes               | ❌ No              | Cookie refused by MAM; update not applied. |
+| `throttled`            | ✅ Yes             | ✅ Yes           | ✅ Yes               | ❌ No              | Update refused: last change too recent.    |
+| `ok`                   | ✅ Yes             | ✅ Yes           | ✅ Yes               | ✅ Yes             | IP update succeeded.                       |
+
+**Failure modes:**
+
+- `500` if state cannot be read
 
 ## `GET /events`
 
@@ -121,3 +204,7 @@ A
 stream the web UI subscribes to. The events have no content; they just signal
 "something has changed, re-pull `GET /state`". Used by the dashboard to update
 live without polling. Not generally useful to API clients.
+
+**Failure modes:**
+
+- `401`/`403` if the request isn't authorized
