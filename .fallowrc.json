@@ -4,7 +4,8 @@
     "src/index.tsx",
     "src/frontend/root.tsx",
     "tests/**/*.{ts,tsx}",
-    "forum-post/gen-html.ts"
+    "forum-post/gen-html.ts",
+    "demo/record.ts"
   ],
   "duplicates": {
     // Hide pair-only clones; focus on widespread copy-paste

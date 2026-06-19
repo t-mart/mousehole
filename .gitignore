@@ -6,6 +6,10 @@ out
 dist
 *.tgz
 
+# demo capture output
+demo/out
+demo/videos
+
 # code coverage
 coverage
 *.lcov

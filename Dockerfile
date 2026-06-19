@@ -26,7 +26,6 @@ RUN bun install --frozen-lockfile
 ARG GIT_HASH
 # inlined into the bundle at build time (see vite.config.ts `define`)
 ENV PUBLIC_GIT_HASH=${GIT_HASH}
-ENV PUBLIC_DEMO_MODE=false
 COPY vite.config.ts ./
 COPY src ./src
 RUN bun run build

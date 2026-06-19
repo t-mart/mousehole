@@ -13,9 +13,6 @@ import { Section } from "./lib/section";
 import { NextUpdate } from "./next-update";
 
 function getHostInfo(state: PublicState) {
-  if (process.env.PUBLIC_DEMO_MODE === "true") {
-    return { ip: "123.123.123.123", asn: 12_345, as: "MegaCorp Networks" };
-  }
   const contact = state.lastMamContact;
   return contact?.reached
     ? { ip: contact.ip, asn: contact.asn, as: contact.as }

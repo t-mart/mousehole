@@ -4,7 +4,7 @@ import {
   type AllowedOriginsConfig,
   type AuthConfig,
 } from "#backend/config.ts";
-import { createAppContext } from "#backend/context.ts";
+import { createAppContext, type AppContextOverrides } from "#backend/context.ts";
 import { logger, setLogLevel } from "#backend/logger.ts";
 import { gitHash } from "#shared/git-hash.ts";
 
@@ -16,13 +16,19 @@ import { createApp, type WebMount } from "./app.ts";
  * context, bind the listener, and start background work. Everything
  * Bun-server-specific lives in this one call.
  *
+ * @param overrides - injectable seams (e.g. a fake `fetchImpl` for MAM). Only
+ *   reachable by an in-process caller (tests, the demo server) — never by an
+ *   end user; the shipped entry point (`src/index.ts`) passes none.
  * @returns the server URL and an async `stop` that unwinds it all.
  */
-export function startServer(env: NodeJS.ProcessEnv = process.env) {
+export function startServer(
+  env: NodeJS.ProcessEnv = process.env,
+  overrides: AppContextOverrides = {},
+) {
   const config = buildConfig(env);
   setLogLevel(config.logLevel);
 
-  const ctx = createAppContext(config);
+  const ctx = createAppContext(config, overrides);
 
   // Dev serves the web UI by reverse-proxying to the Vite dev server (run both
   // with `bun dev`); prod serves the `vite build` output from dist/.
