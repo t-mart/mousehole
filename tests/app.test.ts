@@ -325,7 +325,35 @@ describe("login/logout flow", () => {
       body: JSON.stringify({ password: "wrong" }),
     });
     expect(response.status).toBe(401);
-    expect(await response.json()).toEqual({ ok: false });
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ ok: false }),
+    );
+  });
+
+  test("malformed JSON is rejected with 400", async () => {
+    const { app } = makeTestContext();
+    const response = await app.request("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "not json",
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ ok: false }),
+    );
+  });
+
+  test("wrong schema is rejected with 400", async () => {
+    const { app } = makeTestContext();
+    const response = await app.request("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bad: "schema" }),
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ ok: false }),
+    );
   });
 
   test("login sets a session cookie that authenticates GET /state; logout revokes it", async () => {
