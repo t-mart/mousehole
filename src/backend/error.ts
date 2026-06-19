@@ -29,7 +29,7 @@ export function toError(value: unknown): Error {
 export class FileReadError extends MouseholeError {
   constructor(path: string, { cause }: { cause: Error }) {
     super(
-      `Error reading file: ${path}. Check that it exists, is readable, and is not a directory.`,
+      `Error reading file: ${path}. Check that it is readable and is not a directory.`,
       { cause, httpStatus: 500 }
     );
     this.name = "FileReadError";
