@@ -446,6 +446,21 @@ describe("public probes", () => {
   });
 });
 
+// A stream chunk arrives as a Uint8Array (or, in some runtimes, an already
+// decoded string); normalize either to text.
+function decodeFrame(value: string | Uint8Array | undefined): string {
+  if (typeof value === "string") return value;
+  return value ? new TextDecoder().decode(value) : "";
+}
+
+// Read one frame off an SSE stream as { done, text }.
+async function readFrame(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+): Promise<{ done: boolean; text: string }> {
+  const { done, value } = await reader.read();
+  return { done, text: decodeFrame(value) };
+}
+
 describe("session lifecycle", () => {
   test("an expired session stops authenticating without any intervening request", async () => {
     const { ctx, app } = makeTestContext();
@@ -468,8 +483,7 @@ describe("session lifecycle", () => {
 
     // When the 75ms session expires, its stream is closed and the read resolves
     // done — the browser would then re-pull, get a 401, and show the login form.
-    const reader = response.body!.getReader();
-    const { done } = await reader.read();
+    const { done } = await readFrame(response.body!.getReader());
     expect(done).toBe(true);
   });
 
@@ -494,18 +508,13 @@ describe("server-sent events", () => {
 
     const reader = response.body!.getReader();
     ctx.sse.notify();
-    const first = await reader.read();
-    const frame: unknown = first.value;
-    const text =
-      typeof frame === "string"
-        ? frame
-        : new TextDecoder().decode(frame as Uint8Array);
-    expect(text).toContain("data: changed");
+    const first = await readFrame(reader);
+    expect(first.text).toContain("data: changed");
 
     // Logout closes the session's streams (the dashboard then re-pulls, gets a
     // 401, and shows the login screen).
     await logout(app, cookie);
-    const afterLogout = await reader.read();
+    const afterLogout = await readFrame(reader);
     expect(afterLogout.done).toBe(true);
   });
 });
