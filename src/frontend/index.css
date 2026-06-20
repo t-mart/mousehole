@@ -91,6 +91,7 @@
 @layer base {
   :root {
     font-family: var(--font-sans);
+    word-spacing: 0.075em; /* Commissioner is a little tight */
     background-color: var(--color-background-dark);
     color: var(--color-text);
     scrollbar-gutter: stable;
@@ -103,6 +104,11 @@
     --logo-opacity: 0.15;
     --logo-dx: var(--logo-tile-width); /* negative = move left */
     --logo-dy: var(--logo-tile-height); /* negative = move up */
+  }
+
+  /* When not using Commissioner, reset word-spacing */
+  .font-mono, .font-serif {
+    word-spacing: normal;
   }
 
   * {
