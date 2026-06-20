@@ -9,7 +9,7 @@ class MouseholeError extends Error {
 
   constructor(
     message: string,
-    { cause, httpStatus }: { cause?: Error; httpStatus: ContentfulStatusCode }
+    { cause, httpStatus }: { cause?: Error; httpStatus: ContentfulStatusCode },
   ) {
     super(message, { cause });
     this.name = "MouseholeError";
@@ -30,7 +30,7 @@ export class FileReadError extends MouseholeError {
   constructor(path: string, { cause }: { cause: Error }) {
     super(
       `Error reading file: ${path}. Check that it is readable and is not a directory.`,
-      { cause, httpStatus: 500 }
+      { cause, httpStatus: 500 },
     );
     this.name = "FileReadError";
     this.errorType = "file-read-error";
@@ -41,7 +41,7 @@ export class FileWriteError extends MouseholeError {
   constructor(path: string, { cause }: { cause: Error }) {
     super(
       `Error writing file: ${path}. Check that the parent directory exists and is writable.`,
-      { cause, httpStatus: 500 }
+      { cause, httpStatus: 500 },
     );
     this.name = "FileWriteError";
     this.errorType = "file-write-error";
@@ -52,7 +52,7 @@ export class DirectoryCreateError extends MouseholeError {
   constructor(path: string, { cause }: { cause: Error }) {
     super(
       `Error creating directory: ${path}. Check that the parent directory exists and you have write permissions.`,
-      { cause, httpStatus: 500 }
+      { cause, httpStatus: 500 },
     );
     this.name = "DirectoryCreateError";
     this.errorType = "directory-create-error";
@@ -62,7 +62,7 @@ export class DirectoryCreateError extends MouseholeError {
 export class JSONParseError extends MouseholeError {
   private constructor(
     message: string,
-    { cause, httpStatus }: { cause: Error; httpStatus: ContentfulStatusCode }
+    { cause, httpStatus }: { cause: Error; httpStatus: ContentfulStatusCode },
   ) {
     super(message, { cause, httpStatus });
     this.name = "JSONParseError";
@@ -79,14 +79,14 @@ export class JSONParseError extends MouseholeError {
   static fromRequest(request: Request, { cause }: { cause: Error }) {
     return new JSONParseError(
       `Error parsing JSON from request with method ${request.method} and URL ${request.url}`,
-      { cause, httpStatus: 400 }
+      { cause, httpStatus: 400 },
     );
   }
 
   static fromResponse(response: Response, { cause }: { cause: Error }) {
     return new JSONParseError(
       `Error parsing JSON from response with status ${response.status} and URL ${response.url}`,
-      { cause, httpStatus: 500 }
+      { cause, httpStatus: 500 },
     );
   }
 }
@@ -107,7 +107,10 @@ export class SchemaError extends MouseholeError {
 
   private constructor(
     sourceName: string,
-    { cause, httpStatus }: { cause: ZodError; httpStatus: ContentfulStatusCode }
+    {
+      cause,
+      httpStatus,
+    }: { cause: ZodError; httpStatus: ContentfulStatusCode },
   ) {
     // The message carries only the first issue as a human-sized summary; the
     // full set rides as structured `issues` (ZodError.message is a wall of
@@ -132,7 +135,7 @@ export class SchemaError extends MouseholeError {
 
   static fromExternalSource(
     sourceName: string,
-    { cause }: { cause: ZodError }
+    { cause }: { cause: ZodError },
   ) {
     return new SchemaError(sourceName, { cause, httpStatus: 500 });
   }
@@ -153,14 +156,14 @@ export class TimeoutError extends MouseholeError {
   constructor(
     url: string,
     timeoutSeconds: number,
-    { cause }: { cause?: unknown } = {}
+    { cause }: { cause?: unknown } = {},
   ) {
     super(
       `Request to ${url} timed out after ${timeoutSeconds}s. Is the network up?`,
       {
         cause: cause instanceof Error ? cause : undefined,
         httpStatus: 504,
-      }
+      },
     );
     this.name = "TimeoutError";
     this.errorType = "timeout-error";
@@ -178,7 +181,9 @@ export function toErrorResponseArgs(error: unknown): ErrorResponseArgs {
   // (error.getResponse() / error.status) instead of letting it fall through
   // to a 500 unhandled-error. Nothing in the app throws it today.
   const message =
-    error instanceof Error ? error.message : `Unhandled error: ${String(error)}`;
+    error instanceof Error
+      ? error.message
+      : `Unhandled error: ${String(error)}`;
   const errorType =
     error instanceof MouseholeError ? error.errorType : "unhandled-error";
   // A SchemaError's ZodError cause is already represented by `issues`;

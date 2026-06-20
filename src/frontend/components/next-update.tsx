@@ -61,7 +61,10 @@ function Donut({ atMs, nextMs }: Readonly<{ atMs: number; nextMs: number }>) {
 // CSS-animated ring isn't re-rendered every second (which would restart it).
 // The full wait (`nextMs - atMs`) caps which units the duration shows, so the
 // width stays stable as it counts down (e.g. a 5-minute wait stays MM:SS).
-function Countdown({ atMs, nextMs }: Readonly<{ atMs: number; nextMs: number }>) {
+function Countdown({
+  atMs,
+  nextMs,
+}: Readonly<{ atMs: number; nextMs: number }>) {
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {

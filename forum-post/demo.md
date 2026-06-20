@@ -1,13 +1,13 @@
 :::center
+
 # Construct Demo
 
-A kitchen-sink document for `gen-html.ts`
-:::
+A kitchen-sink document for `gen-html.ts` :::
 
 This top paragraph proves the leading top-margin is zeroed so the document
-doesn't open with an awkward gap. It also shows **bold**, *italic*,
-`inline code`, and a [plain link](https://example.com) that inherits the
-site's own link colour.
+doesn't open with an awkward gap. It also shows **bold**, _italic_,
+`inline code`, and a [plain link](https://example.com) that inherits the site's
+own link colour.
 
 ## Headings
 
@@ -21,13 +21,13 @@ site's own link colour.
 
 ## Lists
 
-A *tight* unordered list (no blank lines between items, so no `<p>` wrappers):
+A _tight_ unordered list (no blank lines between items, so no `<p>` wrappers):
 
 - First point
 - Second point
 - Third point
 
-A *loose* unordered list (blank lines, so each item gets a `<p>`):
+A _loose_ unordered list (blank lines, so each item gets a `<p>`):
 
 - First point, with room to breathe.
 
@@ -59,27 +59,18 @@ services:
 
 ## Callouts
 
-:::note
-The default heading comes from the directive name.
+:::note The default heading comes from the directive name. :::
+
+:::tip You can write multiple paragraphs in a callout.
+
+Like this one. :::
+
+:::important[Read this part] Pass a label in brackets to override the heading.
 :::
 
-:::tip
-You can write multiple paragraphs in a callout.
+:::warning Something deserves attention here. :::
 
-Like this one.
-:::
-
-:::important[Read this part]
-Pass a label in brackets to override the heading.
-:::
-
-:::warning
-Something deserves attention here.
-:::
-
-:::caution
-And this is the scariest one.
-:::
+:::caution And this is the scariest one. :::
 
 ## Quotes and rules
 
@@ -103,8 +94,8 @@ When a construct doesn't exist, drop in raw HTML. Anything already carrying a
   <p style="margin-block: 0.5em 0;">Markdown has no &lt;details&gt; element, so we reach for HTML.</p>
 </details>
 
-A raw table (its cells get the default table styling, since they carry no
-inline <code>style</code> of their own):
+A raw table (its cells get the default table styling, since they carry no inline
+<code>style</code> of their own):
 
 <table>
   <thead>

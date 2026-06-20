@@ -26,7 +26,9 @@ describe("login handler", () => {
       sessions,
     );
 
-    expect(result).toEqual(expect.objectContaining({ ok: true, sessionId: "test-session-id" }));
+    expect(result).toEqual(
+      expect.objectContaining({ ok: true, sessionId: "test-session-id" }),
+    );
   });
 
   test("wrong password returns not-ok with 401 status", async () => {

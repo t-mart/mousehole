@@ -375,7 +375,11 @@ describe("login/logout flow", () => {
       body: { password: "wrong" },
       status: 401,
     },
-    { name: "malformed JSON is rejected with 400", body: "not json", status: 400 },
+    {
+      name: "malformed JSON is rejected with 400",
+      body: "not json",
+      status: 400,
+    },
     {
       name: "wrong schema is rejected with 400",
       body: { bad: "schema" },
@@ -561,7 +565,9 @@ type UnreachedContact = Extract<SerializedMamContact, { reached: false }>;
 function reachedContact(state: PublicState): ReachedContact {
   const contact = state.lastMamContact;
   if (contact?.reached !== true) {
-    throw new Error(`expected a reached contact, got ${JSON.stringify(contact)}`);
+    throw new Error(
+      `expected a reached contact, got ${JSON.stringify(contact)}`,
+    );
   }
   return contact;
 }
@@ -644,7 +650,11 @@ describe("contact flows (simulated MAM)", () => {
       name: "a throttled update (429) is persisted and surfaces via /health",
       outcome: "lastChangeTooRecent",
       healthResult: "throttled",
-      ipUpdate: { success: false, msg: "Last change too recent", httpStatus: 429 },
+      ipUpdate: {
+        success: false,
+        msg: "Last change too recent",
+        httpStatus: 429,
+      },
     },
     {
       name: "a rejected session (403) is persisted and surfaces via /health",

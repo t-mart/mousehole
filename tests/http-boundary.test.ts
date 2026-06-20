@@ -53,9 +53,11 @@ describe("hostAllowed", () => {
     );
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "host-not-allowed",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "host-not-allowed",
+      }),
+    );
   });
 
   test("type: all accepts any host", async () => {
@@ -93,9 +95,11 @@ describe("requireAuth", () => {
     expect(response.headers.get("www-authenticate")).toBe(
       'Bearer realm="Mousehole"',
     );
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "authentication-required",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "authentication-required",
+      }),
+    );
   });
 
   test("ignores a Bearer token when no token is configured", async () => {
@@ -139,9 +143,11 @@ describe("requireAuth", () => {
     );
 
     expect(response.status).toBe(401);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "authentication-required",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "authentication-required",
+      }),
+    );
   });
 
   test("session and token are independent paths when both are configured", async () => {
@@ -173,9 +179,11 @@ describe("requireAuth", () => {
     ).request("http://localhost/probe");
 
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "auth-not-configured",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "auth-not-configured",
+      }),
+    );
   });
 
   test("passes everything through under the explicit insecure opt-out", async () => {
@@ -197,9 +205,8 @@ describe("originAllowed", () => {
     const oneTwoSevenResponse = await probeApp(sameOrigin).request(
       "http://127.0.0.1/probe",
     );
-    const ipv6Response = await probeApp(sameOrigin).request(
-      "http://[::1]/probe",
-     );
+    const ipv6Response =
+      await probeApp(sameOrigin).request("http://[::1]/probe");
 
     expect(localhostResponse.status).toBe(200);
     expect(oneTwoSevenResponse.status).toBe(200);
@@ -222,9 +229,11 @@ describe("originAllowed", () => {
     );
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "origin-not-allowed",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "origin-not-allowed",
+      }),
+    );
   });
 
   test("type: all accepts requests from any cross-origin", async () => {
@@ -262,9 +271,11 @@ describe("originAllowed", () => {
     );
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "origin-not-allowed",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "origin-not-allowed",
+      }),
+    );
   });
 });
 
@@ -306,9 +317,11 @@ describe("requireJsonBody", () => {
     );
 
     expect(response.status).toBe(415);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "unsupported-media-type",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "unsupported-media-type",
+      }),
+    );
   });
 
   test("rejects a missing Content-Type with 415", async () => {
@@ -338,9 +351,11 @@ describe("multi-middleware compositions", () => {
     );
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "host-not-allowed",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "host-not-allowed",
+      }),
+    );
   });
 
   test("a token-authenticated request bypasses the origin check", async () => {
@@ -379,9 +394,11 @@ describe("multi-middleware compositions", () => {
     );
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "origin-not-allowed",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "origin-not-allowed",
+      }),
+    );
   });
 
   test("a valid session with a garbage Bearer tag-along keeps origin enforced", async () => {
@@ -405,9 +422,11 @@ describe("multi-middleware compositions", () => {
     );
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "origin-not-allowed",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "origin-not-allowed",
+      }),
+    );
   });
 
   test("the insecure no-auth opt-out keeps origin enforced", async () => {
@@ -460,8 +479,10 @@ describe("multi-middleware compositions", () => {
     });
 
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual(expect.objectContaining({
-      type: "origin-not-allowed",
-    }));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        type: "origin-not-allowed",
+      }),
+    );
   });
 });

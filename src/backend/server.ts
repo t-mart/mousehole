@@ -4,7 +4,10 @@ import {
   type AllowedOriginsConfig,
   type AuthConfig,
 } from "#backend/config.ts";
-import { createAppContext, type AppContextOverrides } from "#backend/context.ts";
+import {
+  createAppContext,
+  type AppContextOverrides,
+} from "#backend/context.ts";
 import { logger, setLogLevel } from "#backend/logger.ts";
 import { gitHash } from "#shared/git-hash.ts";
 

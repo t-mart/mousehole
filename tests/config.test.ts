@@ -173,7 +173,9 @@ describe("MOUSEHOLE_PORT", () => {
   });
 
   test("throws on 0", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "0" })).toThrow("MOUSEHOLE_PORT");
+    expect(() => buildConfig({ MOUSEHOLE_PORT: "0" })).toThrow(
+      "MOUSEHOLE_PORT",
+    );
   });
 
   test("throws on 65536", () => {
@@ -183,7 +185,9 @@ describe("MOUSEHOLE_PORT", () => {
   });
 
   test("throws on negative", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "-1" })).toThrow("MOUSEHOLE_PORT");
+    expect(() => buildConfig({ MOUSEHOLE_PORT: "-1" })).toThrow(
+      "MOUSEHOLE_PORT",
+    );
   });
 
   test("throws on non-numeric", () => {
@@ -193,11 +197,15 @@ describe("MOUSEHOLE_PORT", () => {
   });
 
   test("throws on partial parse (5abc)", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "5abc" })).toThrow("MOUSEHOLE_PORT");
+    expect(() => buildConfig({ MOUSEHOLE_PORT: "5abc" })).toThrow(
+      "MOUSEHOLE_PORT",
+    );
   });
 
   test("throws on float", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "80.5" })).toThrow("MOUSEHOLE_PORT");
+    expect(() => buildConfig({ MOUSEHOLE_PORT: "80.5" })).toThrow(
+      "MOUSEHOLE_PORT",
+    );
   });
 });
 
@@ -318,9 +326,9 @@ describe("boolean flags (MOUSEHOLE_HTTPS_ONLY_COOKIES, MOUSEHOLE_INSECURE_ALLOW_
   });
 
   test("MOUSEHOLE_HTTPS_ONLY_COOKIES throws on invalid value", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_HTTPS_ONLY_COOKIES: "yes" }),
-    ).toThrow("MOUSEHOLE_HTTPS_ONLY_COOKIES");
+    expect(() => buildConfig({ MOUSEHOLE_HTTPS_ONLY_COOKIES: "yes" })).toThrow(
+      "MOUSEHOLE_HTTPS_ONLY_COOKIES",
+    );
   });
 
   test("MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true sets insecureAllowNoAuth", () => {
@@ -338,7 +346,11 @@ describe("boolean flags (MOUSEHOLE_HTTPS_ONLY_COOKIES, MOUSEHOLE_INSECURE_ALLOW_
 describe("MOUSEHOLE_AUTH_PASSWORD / MOUSEHOLE_AUTH_TOKEN", () => {
   test("password-only yields configured auth with password", () => {
     const { auth } = buildConfig({ MOUSEHOLE_AUTH_PASSWORD: "s3cr3t" });
-    expect(auth).toEqual({ type: "configured", password: "s3cr3t", token: undefined });
+    expect(auth).toEqual({
+      type: "configured",
+      password: "s3cr3t",
+      token: undefined,
+    });
   });
 
   test("token-only yields configured auth with token", () => {
@@ -351,7 +363,11 @@ describe("MOUSEHOLE_AUTH_PASSWORD / MOUSEHOLE_AUTH_TOKEN", () => {
       MOUSEHOLE_AUTH_PASSWORD: "s3cr3t",
       MOUSEHOLE_AUTH_TOKEN: "tok",
     });
-    expect(auth).toEqual({ type: "configured", password: "s3cr3t", token: "tok" });
+    expect(auth).toEqual({
+      type: "configured",
+      password: "s3cr3t",
+      token: "tok",
+    });
   });
 
   test("neither yields auth type none", () => {
@@ -387,9 +403,9 @@ describe("MOUSEHOLE_ALLOWED_HOSTS", () => {
   });
 
   test("throws on empty value (all-whitespace entries)", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_ALLOWED_HOSTS: "  ,  ,  " }),
-    ).toThrow("MOUSEHOLE_ALLOWED_HOSTS");
+    expect(() => buildConfig({ MOUSEHOLE_ALLOWED_HOSTS: "  ,  ,  " })).toThrow(
+      "MOUSEHOLE_ALLOWED_HOSTS",
+    );
   });
 });
 
@@ -412,9 +428,9 @@ describe("MOUSEHOLE_ALLOWED_ORIGINS", () => {
   });
 
   test("throws on empty value", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_ALLOWED_ORIGINS: "  ,  " }),
-    ).toThrow("MOUSEHOLE_ALLOWED_ORIGINS");
+    expect(() => buildConfig({ MOUSEHOLE_ALLOWED_ORIGINS: "  ,  " })).toThrow(
+      "MOUSEHOLE_ALLOWED_ORIGINS",
+    );
   });
 });
 

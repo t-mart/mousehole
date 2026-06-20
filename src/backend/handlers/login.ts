@@ -35,12 +35,20 @@ export async function handlePostLogin(
   try {
     raw = await request.json();
   } catch {
-    return { ok: false, status: 400, message: "Malformed JSON in request body" };
+    return {
+      ok: false,
+      status: 400,
+      message: "Malformed JSON in request body",
+    };
   }
 
   const parsed = loginBodySchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, status: 400, message: "Request body must match expected schema" };
+    return {
+      ok: false,
+      status: 400,
+      message: "Request body must match expected schema",
+    };
   }
 
   if (!safeEqual(parsed.data.password, authConfig.password)) {

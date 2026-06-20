@@ -10,7 +10,13 @@ export function Spinner({ className }: { className?: string }) {
       fill="none"
     >
       <g className="spinner-group">
-        <circle cx="12" cy="12" r="9.5" strokeWidth="3" className="spinner-circle" />
+        <circle
+          cx="12"
+          cy="12"
+          r="9.5"
+          strokeWidth="3"
+          className="spinner-circle"
+        />
       </g>
     </svg>
   );

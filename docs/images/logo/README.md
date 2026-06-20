@@ -2,7 +2,8 @@
 
 ## Logo
 
-The master logo is `logo.svg`. Other formats are generated from this with imagemagick:
+The master logo is `logo.svg`. Other formats are generated from this with
+imagemagick:
 
 ```
 magick \

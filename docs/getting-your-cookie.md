@@ -23,12 +23,12 @@ to get yours.
 
    ![Create Session Form](/docs/images/mam-session-form.png)
 
-   | Field                                | What to Enter                                                                                                                        |
-   | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+   | Field                                | What to Enter                                                                                                                   |
+   | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
    | IP                                   | The IP address of the machine running Mousehole (**not** your browser's IP). Mousehole shows you the correct value on its page. |
-   | IP vs ASN locked session             | Select **ASN**. This allows your IP to change.                                                                                       |
-   | Allow Session to set Dynamic Seedbox | Select **Yes**. This allows the service to update your IP through MAM's API.                                                         |
-   | Session Label/note                   | Text by which you can remember the session, such as "mousehole".                                                                     |
+   | IP vs ASN locked session             | Select **ASN**. This allows your IP to change.                                                                                  |
+   | Allow Session to set Dynamic Seedbox | Select **Yes**. This allows the service to update your IP through MAM's API.                                                    |
+   | Session Label/note                   | Text by which you can remember the session, such as "mousehole".                                                                |
 
    Then press the "Submit Changes!" button.
 

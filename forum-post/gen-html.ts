@@ -276,7 +276,10 @@ const transformInlineStyles = (tree: HastRoot): void => {
     }
 
     // A nested list (parent is <li>) gets a tighter top margin than a top-level one.
-    if ((node.tagName === "ul" || node.tagName === "ol") && parentTag === "li") {
+    if (
+      (node.tagName === "ul" || node.tagName === "ol") &&
+      parentTag === "li"
+    ) {
       node.properties = { ...node.properties, style: NESTED_LIST_STYLE };
       return;
     }
@@ -327,7 +330,10 @@ const OUT_DIR = path.join(SRC_DIR, "dist");
 const buildFile = async (name: string): Promise<string> => {
   const markdown = await readFile(path.join(SRC_DIR, name), "utf8");
   const html = await render(markdown);
-  const out = path.join(OUT_DIR, `${path.basename(name, path.extname(name))}.html`);
+  const out = path.join(
+    OUT_DIR,
+    `${path.basename(name, path.extname(name))}.html`,
+  );
   await writeFile(out, `${html}\n`);
   return out;
 };

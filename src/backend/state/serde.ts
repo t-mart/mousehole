@@ -108,14 +108,17 @@ export function serializeState(state: State): SerializedState {
   return {
     version: STATE_VERSION,
     cookie: state.cookie,
-    lastMamContact: state.lastMamContact && serializeMamContact(state.lastMamContact),
+    lastMamContact:
+      state.lastMamContact && serializeMamContact(state.lastMamContact),
   };
 }
 
 export function deserializeState(serialized: SerializedState): State {
   return {
     cookie: serialized.cookie,
-    lastMamContact: serialized.lastMamContact && deserializeMamContact(serialized.lastMamContact),
+    lastMamContact:
+      serialized.lastMamContact &&
+      deserializeMamContact(serialized.lastMamContact),
   };
 }
 
@@ -127,6 +130,7 @@ export function toPublicState(
     hasCookie: Boolean(state?.cookie),
     hasAuth: derived.hasAuth,
     nextContactAt: derived.nextContactAt,
-    lastMamContact: state?.lastMamContact && serializeMamContact(state.lastMamContact),
+    lastMamContact:
+      state?.lastMamContact && serializeMamContact(state.lastMamContact),
   };
 }
