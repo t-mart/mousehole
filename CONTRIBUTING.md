@@ -90,6 +90,9 @@ workflow.
 Note that there is no automation for posting to the forum; you must copy-paste
 the built HTML into the forum's rich text editor.
 
+Images in forum posts may need to be cache-busted with an arbitrary query
+parameter.
+
 ## Releasing
 
 New versions are tagged, released, and pushed to Docker Hub by bumping the
