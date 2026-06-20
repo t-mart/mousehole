@@ -107,7 +107,8 @@
   }
 
   /* When not using Commissioner, reset word-spacing */
-  .font-mono, .font-serif {
+  .font-mono,
+  .font-serif {
     word-spacing: normal;
   }
 
