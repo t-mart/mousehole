@@ -12,6 +12,7 @@ import {
   requireJsonBody,
 } from "../src/backend/http-boundary.ts";
 import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
+import { json } from "./lib/helpers.ts";
 
 // The boundary consults the session store only through this function, so the
 // suite is tested against its verdict; real store behavior is covered by the
@@ -20,10 +21,6 @@ const sessionAccepted: SessionAuthValidator = () => true;
 const sessionRejected: SessionAuthValidator = () => false;
 
 const okBody = { ok: true } as const;
-
-async function json<T>(response: Response): Promise<T> {
-  return (await response.json()) as T;
-}
 
 // A 200 carrying the probe's { ok: true } body: every check passed and the
 // handler ran.

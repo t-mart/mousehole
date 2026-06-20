@@ -13,13 +13,14 @@ import type {
   PublicState,
   SerializedMamContact,
 } from "../src/shared/public-state.ts";
-import type { MamUpdateOutcome } from "./mam-test-server.ts";
+import type { MamUpdateOutcome } from "./lib/mam-test-server.ts";
 
 import { createApp } from "../src/backend/app.ts";
 import { buildConfig } from "../src/backend/config.ts";
 import { createAppContext } from "../src/backend/context.ts";
 import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
-import { createMamTestServer } from "./mam-test-server.ts";
+import { json } from "./lib/helpers.ts";
+import { createMamTestServer } from "./lib/mam-test-server.ts";
 
 type TestApp = ReturnType<typeof createApp>;
 
@@ -63,10 +64,6 @@ function makeTestContext(
     stateFile: store,
   });
   return { ctx, app: createApp(ctx), store, writeSpy };
-}
-
-async function json<T>(response: Response): Promise<T> {
-  return (await response.json()) as T;
 }
 
 async function postLogin(

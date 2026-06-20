@@ -24,7 +24,7 @@ export type ContactSchedulerOptions = {
   stateFile: StateStore;
   /** Called after every persisted contact so dashboards re-pull GET /state. */
   notifyClients: () => void;
-  /** The fetch used for MAM calls; tests inject a MAM test server (see tests/mam-test-server.ts). */
+  /** The fetch used for MAM calls; tests inject a MAM test server (see tests/lib/mam-test-server.ts). */
   fetchImpl?: FetchLike;
 };
 

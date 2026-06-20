@@ -9,7 +9,7 @@ import { startServer } from "#backend/server.ts";
 import {
   createMamTestServer,
   type MamTestServerOptions,
-} from "../tests/mam-test-server.ts";
+} from "../tests/lib/mam-test-server.ts";
 
 export interface DemoServerConfig {
   // App auth password. Omit to run with auth disabled.

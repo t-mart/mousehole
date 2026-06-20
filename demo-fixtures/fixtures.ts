@@ -1,13 +1,13 @@
 // A fixture is a named definition of how the app's MAM dependency behaves, plus
 // optional seed state, for a hand-driven demo or manual test. `bun demo <name>`
 // boots the server in this state (see run.ts). Adding one is a single object;
-// `mamUpdateOutcomes` in ../tests/mam-test-server.ts enumerates the outcomes.
+// `mamUpdateOutcomes` in ../tests/lib/mam-test-server.ts enumerates the outcomes.
 
 import { Temporal } from "temporal-polyfill";
 
 import type { State } from "#backend/state/serde.ts";
 
-import type { MamTestServerOptions } from "../tests/mam-test-server.ts";
+import type { MamTestServerOptions } from "../tests/lib/mam-test-server.ts";
 
 export interface Fixture {
   // CLI selector and state-dir name.

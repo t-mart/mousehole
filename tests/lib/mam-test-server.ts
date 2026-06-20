@@ -8,7 +8,7 @@
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 
-import type { FetchLike } from "../src/backend/external-api/fetch.ts";
+import type { FetchLike } from "../../src/backend/external-api/fetch.ts";
 
 const MAM_COOKIE_KEY = "mam_id";
 
