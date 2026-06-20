@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [v0.5.0](https://github.com/t-mart/mousehole/releases/tag/v0.5.0) - 2026-06-20
+
 This release reworks how Mousehole talks to MAM and how the web UI stays in
 sync, and flattens the state model. Existing `state.json` files are migrated
 automatically (your cookie is preserved).
