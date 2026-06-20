@@ -31,7 +31,6 @@ export function LoginForm({ ref }: Readonly<{ ref?: Ref<HTMLElement> }>) {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Enter password"
-          aria-invalid={!isPasswordValid}
           autoComplete="current-password"
           required
         />

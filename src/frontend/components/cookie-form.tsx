@@ -42,7 +42,6 @@ export function CookieForm({
           onChange={(event) => setCookie(event.target.value)}
           placeholder="Enter cookie"
           className="font-mono"
-          aria-invalid={!isCookieValid}
           spellCheck="false"
           autoComplete="off"
           required
