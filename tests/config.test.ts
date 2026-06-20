@@ -160,156 +160,89 @@ describe("MOUSEHOLE_LOG_LEVEL", () => {
 });
 
 describe("MOUSEHOLE_PORT", () => {
-  test("accepts valid port", () => {
-    expect(buildConfig({ MOUSEHOLE_PORT: "8080" }).port).toBe(8080);
+  test.each<[string, number]>([
+    ["8080", 8080],
+    ["1", 1],
+    ["65535", 65_535],
+  ])("accepts %s -> %i", (value, expected) => {
+    expect(buildConfig({ MOUSEHOLE_PORT: value }).port).toBe(expected);
   });
 
-  test("accepts min port 1", () => {
-    expect(buildConfig({ MOUSEHOLE_PORT: "1" }).port).toBe(1);
-  });
-
-  test("accepts max port 65535", () => {
-    expect(buildConfig({ MOUSEHOLE_PORT: "65535" }).port).toBe(65_535);
-  });
-
-  test("throws on 0", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "0" })).toThrow(
-      "MOUSEHOLE_PORT",
-    );
-  });
-
-  test("throws on 65536", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "65536" })).toThrow(
-      "MOUSEHOLE_PORT",
-    );
-  });
-
-  test("throws on negative", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "-1" })).toThrow(
-      "MOUSEHOLE_PORT",
-    );
-  });
-
-  test("throws on non-numeric", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "banana" })).toThrow(
-      "MOUSEHOLE_PORT",
-    );
-  });
-
-  test("throws on partial parse (5abc)", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "5abc" })).toThrow(
-      "MOUSEHOLE_PORT",
-    );
-  });
-
-  test("throws on float", () => {
-    expect(() => buildConfig({ MOUSEHOLE_PORT: "80.5" })).toThrow(
-      "MOUSEHOLE_PORT",
-    );
-  });
+  test.each(["0", "65536", "-1", "banana", "5abc", "80.5"])(
+    "rejects %s, naming the variable",
+    (value) => {
+      expect(() => buildConfig({ MOUSEHOLE_PORT: value })).toThrow(
+        "MOUSEHOLE_PORT",
+      );
+    },
+  );
 });
 
-describe("MOUSEHOLE_UPDATE_INTERVAL_SECONDS", () => {
-  test("accepts positive integer", () => {
-    expect(
-      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "60" })
-        .updateIntervalSeconds,
-    ).toBe(60);
-  });
+// MOUSEHOLE_UPDATE_INTERVAL_SECONDS and MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS
+// are the same "positive number" validator: any finite value above zero
+// (fractions allowed) is accepted, anything else throws naming the variable.
+function describePositiveNumberVariable(
+  variableName: string,
+  read: (config: ReturnType<typeof buildConfig>) => number,
+  extra?: () => void,
+): void {
+  describe(variableName, () => {
+    test.each<[string, number]>([
+      ["30", 30],
+      ["2.5", 2.5],
+    ])("accepts %s -> %d", (value, expected) => {
+      expect(read(buildConfig({ [variableName]: value }))).toBe(expected);
+    });
 
-  test("accepts positive float", () => {
-    expect(
-      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "0.5" })
-        .updateIntervalSeconds,
-    ).toBe(0.5);
-  });
+    test.each(["0", "-1", "not-a-number"])(
+      "rejects %s, naming the variable",
+      (value) => {
+        expect(() => buildConfig({ [variableName]: value })).toThrow(
+          variableName,
+        );
+      },
+    );
 
-  test("throws on zero", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "0" }),
-    ).toThrow("MOUSEHOLE_UPDATE_INTERVAL_SECONDS");
+    extra?.();
   });
+}
 
-  test("throws on negative", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "-1" }),
-    ).toThrow("MOUSEHOLE_UPDATE_INTERVAL_SECONDS");
-  });
+describePositiveNumberVariable(
+  "MOUSEHOLE_UPDATE_INTERVAL_SECONDS",
+  (config) => config.updateIntervalSeconds,
+  () => {
+    test("the retired MOUSEHOLE_CHECK_INTERVAL_SECONDS name is ignored", () => {
+      // Hard rename, no alias: the old name falls back to the default.
+      expect(
+        buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "60" })
+          .updateIntervalSeconds,
+      ).toBe(300);
+    });
+  },
+);
 
-  test("throws on non-numeric", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "never" }),
-    ).toThrow("MOUSEHOLE_UPDATE_INTERVAL_SECONDS");
-  });
-
-  test("the retired MOUSEHOLE_CHECK_INTERVAL_SECONDS name is ignored", () => {
-    // Hard rename, no alias: the old name falls back to the default.
-    expect(
-      buildConfig({ MOUSEHOLE_CHECK_INTERVAL_SECONDS: "60" })
-        .updateIntervalSeconds,
-    ).toBe(300);
-  });
-});
-
-describe("MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS", () => {
-  test("accepts positive value", () => {
-    expect(
-      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "30" })
-        .mamRequestTimeoutSeconds,
-    ).toBe(30);
-  });
-
-  test("accepts fractional value", () => {
-    expect(
-      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "2.5" })
-        .mamRequestTimeoutSeconds,
-    ).toBe(2.5);
-  });
-
-  test("throws on zero", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "0" }),
-    ).toThrow("MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS");
-  });
-
-  test("throws on negative", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "-1" }),
-    ).toThrow("MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS");
-  });
-
-  test("throws on non-numeric", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS: "soon" }),
-    ).toThrow("MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS");
-  });
-});
+describePositiveNumberVariable(
+  "MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS",
+  (config) => config.mamRequestTimeoutSeconds,
+);
 
 describe("MOUSEHOLE_SESSION_DURATION_SECONDS", () => {
-  test("accepts positive integer", () => {
+  test("accepts a positive integer", () => {
     expect(
       buildConfig({ MOUSEHOLE_SESSION_DURATION_SECONDS: "3600" })
         .sessionDurationSeconds,
     ).toBe(3600);
   });
 
-  test("throws on float", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_SESSION_DURATION_SECONDS: "3600.5" }),
-    ).toThrow("MOUSEHOLE_SESSION_DURATION_SECONDS");
-  });
-
-  test("throws on zero", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_SESSION_DURATION_SECONDS: "0" }),
-    ).toThrow("MOUSEHOLE_SESSION_DURATION_SECONDS");
-  });
-
-  test("throws on non-numeric", () => {
-    expect(() =>
-      buildConfig({ MOUSEHOLE_SESSION_DURATION_SECONDS: "one-week" }),
-    ).toThrow("MOUSEHOLE_SESSION_DURATION_SECONDS");
-  });
+  // A duration must be a whole number of seconds, so a float is rejected too.
+  test.each(["3600.5", "0", "one-week"])(
+    "rejects %s, naming the variable",
+    (value) => {
+      expect(() =>
+        buildConfig({ MOUSEHOLE_SESSION_DURATION_SECONDS: value }),
+      ).toThrow("MOUSEHOLE_SESSION_DURATION_SECONDS");
+    },
+  );
 });
 
 describe("boolean flags (MOUSEHOLE_HTTPS_ONLY_COOKIES, MOUSEHOLE_INSECURE_ALLOW_NO_AUTH)", () => {
