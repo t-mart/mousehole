@@ -1,0 +1,14 @@
+# Build output
+dist
+out
+forum-post/dist
+
+# Generated and runtime state
+coverage
+*.lcov
+.state
+.fallow
+*.tsbuildinfo
+
+# Lockfiles
+bun.lock

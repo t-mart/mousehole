@@ -43,11 +43,22 @@ and set your custom values there. This file is ignored by git.
 
 ### Quality checks
 
+- `bun run check:fmt` checks formatting with Prettier.
 - `bun run check:lint` lints `src` and `tests` with ESLint.
 - `bun run check:types` type-checks with `tsc`.
 - `bun run check:test` runs the Vitest suite.
 
-Run all three at once with `bun run --sequential "check:*"`.
+Run them all at once with `bun run --sequential "check:*"`.
+
+### Formatting
+
+Formatting is handled by Prettier across every file type it supports.
+Configuration lives in [`.prettierrc.json`](/.prettierrc.json), and exclusions
+are listed in [`.prettierignore`](/.prettierignore).
+
+- `bun run check:fmt` reports any files that are not formatted (this is the
+  check that runs in CI).
+- `bun run fmt` rewrites those files in place to fix the formatting.
 
 ### Code health
 
