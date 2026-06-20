@@ -14,7 +14,7 @@
     "preview": "bun run build && bun run start",
     "demo": "bun run demo-fixtures/run.ts",
     "check:fmt": "bunx --bun prettier --check .",
-    "check:lint": "bunx --bun eslint src tests demo-fixtures forum-post",
+    "check:lint": "bunx --bun eslint .",
     "check:types": "tsc --noEmit",
     "check:test": "bunx --bun vitest run",
     "fmt": "bunx --bun prettier --write .",
