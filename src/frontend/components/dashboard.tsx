@@ -72,7 +72,7 @@ export function Dashboard({ state }: { state: PublicState }) {
         )}
         {state.hasAuth && (
           <ControlsButton onClick={() => logout()} loading={isLogoutPending}>
-            Log out
+            Log Out
           </ControlsButton>
         )}
       </motion.div>
