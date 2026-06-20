@@ -43,13 +43,14 @@ See the [Unraid Installation Guide](/contrib/unraid/README.md) for instructions.
 
 #### From Source
 
-Build the web UI, then run the server:
+Mousehole runs on [Bun](https://bun.sh/). After installing `bun` and cloning the
+repository, run:
 
 ```bash
 cd /path/to/mousehole
 bun install
 bun run build
-bun run start
+bun run start  # See environment variables section below
 ```
 
 ### Step 2: Set Your MAM Cookie
@@ -205,7 +206,8 @@ secrets:
 
 ## Contributing
 
-Want to contribute? Check out the [contribution guidelines](/CONTRIBUTING.md).
+Want to contribute, or run Mousehole locally for development? Check out the
+[contribution guidelines](/CONTRIBUTING.md).
 
 There is also a [`contrib`](/contrib/) directory with community-contributed
 work, maintained on a best-effort basis.
@@ -215,27 +217,6 @@ work, maintained on a best-effort basis.
 - [Repository](https://github.com/t-mart/mousehole)
 - [Docker Hub image](https://hub.docker.com/r/tmmrtn/mousehole)
 - [Forum post](https://www.myanonamouse.net/f/t/84712/p/p1013257)
-
-## Development
-
-- Start development with:
-
-  ```bash
-  bun dev
-  ```
-
-  This runs two processes via `concurrently`: the backend (`bun dev:server`,
-  restarts on change) and the Vite dev server (`bun dev:web`, hot module
-  reloading). Browse the app at <http://localhost:5010/web> — the backend
-  reverse-proxies `/web/*` to Vite in development, so the dev URL matches
-  production.
-
-- Run tests with `bun check:test`, check types with `bun check:types`, and lint
-  with `bun check:lint`.
-
-- New versions can be tagged, released and pushed to Docker Hub by simply
-  changing the version in `package.json` and pushing to GitHub. The CI workflows
-  will take care of the rest.
 
 ## Attribution
 
