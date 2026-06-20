@@ -13,6 +13,8 @@ import { createAppContext } from "../src/backend/context.ts";
 import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
 import { createMamTestServer } from "./mam-test-server.ts";
 
+type TestApp = ReturnType<typeof createApp>;
+
 // Tests must never touch the real network; contexts built without an explicit
 // fetchImpl fail loudly if anything tries.
 const rejectExternalFetch: FetchLike = () =>
@@ -35,7 +37,7 @@ function makeTestContext(
   options: { env?: NodeJS.ProcessEnv; fetchImpl?: FetchLike } = {},
 ): {
   ctx: AppContext;
-  app: ReturnType<typeof createApp>;
+  app: TestApp;
   store: StateStore;
   writeSpy: MockInstance<StateStore["write"]>;
 } {
@@ -55,15 +57,19 @@ function makeTestContext(
   return { ctx, app: createApp(ctx), store, writeSpy };
 }
 
-async function login(
-  app: ReturnType<typeof createApp>,
-  password = "s3cr3t",
-): Promise<string> {
-  const response = await app.request("/login", {
+async function postLogin(
+  app: TestApp,
+  body: Record<string, unknown> | string,
+): Promise<Response> {
+  return app.request("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
+    body: typeof body === "string" ? body : JSON.stringify(body),
   });
+}
+
+async function login(app: TestApp, password = "s3cr3t"): Promise<string> {
+  const response = await postLogin(app, { password });
   if (response.status !== 200) {
     throw new Error(`Login failed with ${response.status}`);
   }
@@ -72,6 +78,30 @@ async function login(
   )?.value;
   if (!cookieValue) throw new Error("Login response missing session cookie");
   return `${SESSION_COOKIE_NAME}=${cookieValue}`;
+}
+
+async function getState(app: TestApp, cookie: string): Promise<Response> {
+  return app.request("/state", { headers: { Cookie: cookie } });
+}
+
+async function postUpdates(app: TestApp, cookie: string): Promise<Response> {
+  return app.request("/updates", {
+    method: "POST",
+    headers: { Cookie: cookie },
+  });
+}
+
+async function logout(app: TestApp, cookie: string): Promise<Response> {
+  return app.request("/logout", {
+    method: "POST",
+    headers: { Cookie: cookie },
+  });
+}
+
+async function expectHealthResult(app: TestApp, result: string): Promise<void> {
+  const response = await app.request("/health");
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ lastMamContactResult: result });
 }
 
 describe("GET / content negotiation", () => {
@@ -132,11 +162,7 @@ describe("error shapes", () => {
       env: { MOUSEHOLE_AUTH_PASSWORD: "", MOUSEHOLE_AUTH_TOKEN: "api-token" },
     });
 
-    const response = await tokenOnlyApp.request("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: "anything" }),
-    });
+    const response = await postLogin(tokenOnlyApp, { password: "anything" });
 
     expect(response.status).toBe(500);
     const body = (await response.json()) as { message?: string };
@@ -327,11 +353,7 @@ describe("route protection matrix", () => {
 describe("login/logout flow", () => {
   test("wrong password is rejected with 401", async () => {
     const { app } = makeTestContext();
-    const response = await app.request("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: "wrong" }),
-    });
+    const response = await postLogin(app, { password: "wrong" });
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual(
       expect.objectContaining({ ok: false }),
@@ -340,11 +362,7 @@ describe("login/logout flow", () => {
 
   test("malformed JSON is rejected with 400", async () => {
     const { app } = makeTestContext();
-    const response = await app.request("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "not json",
-    });
+    const response = await postLogin(app, "not json");
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual(
       expect.objectContaining({ ok: false }),
@@ -353,11 +371,7 @@ describe("login/logout flow", () => {
 
   test("wrong schema is rejected with 400", async () => {
     const { app } = makeTestContext();
-    const response = await app.request("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bad: "schema" }),
-    });
+    const response = await postLogin(app, { bad: "schema" });
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual(
       expect.objectContaining({ ok: false }),
@@ -368,9 +382,7 @@ describe("login/logout flow", () => {
     const { app } = makeTestContext();
     const cookie = await login(app);
 
-    const stateResponse = await app.request("/state", {
-      headers: { Cookie: cookie },
-    });
+    const stateResponse = await getState(app, cookie);
     expect(stateResponse.status).toBe(200);
     const state = (await stateResponse.json()) as {
       hasAuth: boolean;
@@ -379,15 +391,10 @@ describe("login/logout flow", () => {
     expect(state.hasAuth).toBe(true);
     expect(state.hasCookie).toBe(false);
 
-    const logoutResponse = await app.request("/logout", {
-      method: "POST",
-      headers: { Cookie: cookie },
-    });
+    const logoutResponse = await logout(app, cookie);
     expect(logoutResponse.status).toBe(200);
 
-    const afterLogout = await app.request("/state", {
-      headers: { Cookie: cookie },
-    });
+    const afterLogout = await getState(app, cookie);
     expect(afterLogout.status).toBe(401);
   });
 
@@ -426,8 +433,8 @@ describe("login/logout flow", () => {
 
     const cookie = await login(a.app);
 
-    const onA = await a.app.request("/state", { headers: { Cookie: cookie } });
-    const onB = await b.app.request("/state", { headers: { Cookie: cookie } });
+    const onA = await getState(a.app, cookie);
+    const onB = await getState(b.app, cookie);
 
     expect(onA.status).toBe(200);
     expect(onB.status).toBe(401);
@@ -437,12 +444,7 @@ describe("login/logout flow", () => {
 describe("public probes", () => {
   test("with no contact yet, /health answer 200 but report not-ok", async () => {
     const { app } = makeTestContext();
-    const response = await app.request("/health");
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      lastMamContactResult: "pending",
-    });
+    await expectHealthResult(app, "pending");
   });
 });
 
@@ -453,9 +455,7 @@ describe("session lifecycle", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 30));
 
-    const response = await app.request("/state", {
-      headers: { Cookie: cookie },
-    });
+    const response = await getState(app, cookie);
     expect(response.status).toBe(401);
   });
 
@@ -506,10 +506,7 @@ describe("server-sent events", () => {
 
     // Logout closes the session's streams (the dashboard then re-pulls, gets a
     // 401, and shows the login screen).
-    await app.request("/logout", {
-      method: "POST",
-      headers: { Cookie: cookie },
-    });
+    await logout(app, cookie);
     const afterLogout = await reader.read();
     expect(afterLogout.done).toBe(true);
   });
@@ -517,7 +514,7 @@ describe("server-sent events", () => {
 
 // PUT /cookie with the session cookie + a MAM cookie value (the contact flows).
 async function putMamCookie(
-  app: ReturnType<typeof createApp>,
+  app: TestApp,
   sessionCookie: string,
   value = "mam-session-cookie",
 ): Promise<Response> {
@@ -592,16 +589,10 @@ describe("contact flows (simulated MAM)", () => {
     expect(seen?.mamId).toBe("mam-session-cookie");
     expect(seen?.userAgent).toMatch(/^mousehole-by-timtimtim\//);
 
-    const healthResponse = await app.request("/health");
-    expect(healthResponse.status).toBe(200);
-    expect(await healthResponse.json()).toEqual({
-      lastMamContactResult: "ok",
-    });
+    await expectHealthResult(app, "ok");
 
     // GET /state serves the same persisted contact.
-    const stateResponse = await app.request("/state", {
-      headers: { Cookie: cookie },
-    });
+    const stateResponse = await getState(app, cookie);
     const state = (await stateResponse.json()) as {
       lastMamContact: unknown;
     };
@@ -633,11 +624,7 @@ describe("contact flows (simulated MAM)", () => {
       httpStatus: 429,
     });
 
-    const healthResponse = await app.request("/health");
-    expect(healthResponse.status).toBe(200);
-    expect(await healthResponse.json()).toEqual({
-      lastMamContactResult: "throttled",
-    });
+    await expectHealthResult(app, "throttled");
   });
 
   test("a rejected session (403) is persisted and surfaces via /health", async () => {
@@ -656,11 +643,7 @@ describe("contact flows (simulated MAM)", () => {
       expect.objectContaining({ cookie: "mam-session-cookie" }),
     );
 
-    const healthResponse = await app.request("/health");
-    expect(healthResponse.status).toBe(200);
-    expect(await healthResponse.json()).toEqual({
-      lastMamContactResult: "rejected",
-    });
+    await expectHealthResult(app, "rejected");
   });
 
   test("PUT /cookie persists the cookie even when MAM is unreachable", async () => {
@@ -685,9 +668,7 @@ describe("contact flows (simulated MAM)", () => {
     );
 
     // And it survives a re-read from the store.
-    const stateResponse = await app.request("/state", {
-      headers: { Cookie: cookie },
-    });
+    const stateResponse = await getState(app, cookie);
     const state = (await stateResponse.json()) as { hasCookie: boolean };
     expect(state.hasCookie).toBe(true);
   });
@@ -702,10 +683,7 @@ describe("contact flows (simulated MAM)", () => {
 
     // POST /updates contacts again with whatever cookie is on disk — which
     // must now be the rotated one.
-    const updatesResponse = await app.request("/updates", {
-      method: "POST",
-      headers: { Cookie: cookie },
-    });
+    const updatesResponse = await postUpdates(app, cookie);
     expect(updatesResponse.status).toBe(200);
     expect(mamServer.received.at(-1)?.mamId).toBe("rotated-mam-id");
   });
@@ -715,10 +693,7 @@ describe("contact flows (simulated MAM)", () => {
     const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
     const cookie = await login(app);
 
-    const updatesResponse = await app.request("/updates", {
-      method: "POST",
-      headers: { Cookie: cookie },
-    });
+    const updatesResponse = await postUpdates(app, cookie);
     expect(updatesResponse.status).toBe(200);
     const state = (await updatesResponse.json()) as {
       hasCookie: boolean;
@@ -730,11 +705,7 @@ describe("contact flows (simulated MAM)", () => {
     expect(state.lastMamContact.ipUpdate).toBeUndefined();
     expect(mamServer.received.at(-1)?.path).toBe("/json/jsonIp.php");
 
-    const healthResponse = await app.request("/health");
-    expect(healthResponse.status).toBe(200);
-    expect(await healthResponse.json()).toEqual({
-      lastMamContactResult: "no-cookie",
-    });
+    await expectHealthResult(app, "no-cookie");
   });
 
   test("a network failure is recorded as an unreachable contact, not an error", async () => {
@@ -743,10 +714,7 @@ describe("contact flows (simulated MAM)", () => {
     });
     const cookie = await login(app);
 
-    const updatesResponse = await app.request("/updates", {
-      method: "POST",
-      headers: { Cookie: cookie },
-    });
+    const updatesResponse = await postUpdates(app, cookie);
     expect(updatesResponse.status).toBe(200);
     const state = (await updatesResponse.json()) as {
       lastMamContact: { reached: boolean; error: { type: string } };
@@ -754,11 +722,7 @@ describe("contact flows (simulated MAM)", () => {
     expect(state.lastMamContact.reached).toBe(false);
     expect(state.lastMamContact.error.type).toBe("network-error");
 
-    const healthResponse = await app.request("/health");
-    expect(healthResponse.status).toBe(200);
-    expect(await healthResponse.json()).toEqual({
-      lastMamContactResult: "unreachable",
-    });
+    await expectHealthResult(app, "unreachable");
   });
 
   test("a stalled MAM connection times out and is recorded as unreachable", async () => {
@@ -768,10 +732,7 @@ describe("contact flows (simulated MAM)", () => {
     });
     const cookie = await login(app);
 
-    const updatesResponse = await app.request("/updates", {
-      method: "POST",
-      headers: { Cookie: cookie },
-    });
+    const updatesResponse = await postUpdates(app, cookie);
     expect(updatesResponse.status).toBe(200);
     const state = (await updatesResponse.json()) as {
       lastMamContact: { reached: boolean; error: { type: string } };
