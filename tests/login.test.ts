@@ -18,64 +18,62 @@ function loginRequest(body: BodyInit): Request {
   });
 }
 
+function callLogin(
+  body: Record<string, unknown> | string,
+  authConfig: AuthConfig = passwordAuthConfig,
+) {
+  const raw = typeof body === "string" ? body : JSON.stringify(body);
+  return handlePostLogin(loginRequest(raw), authConfig, sessions);
+}
+
 describe("login handler", () => {
   test("correct password returns ok with the created session id", async () => {
-    const result = await handlePostLogin(
-      loginRequest(JSON.stringify({ password: "s3cr3t" })),
-      passwordAuthConfig,
-      sessions,
-    );
+    const result = await callLogin({ password: "s3cr3t" });
 
     expect(result).toEqual(
       expect.objectContaining({ ok: true, sessionId: "test-session-id" }),
     );
   });
 
-  test("wrong password returns not-ok with 401 status", async () => {
-    const result = await handlePostLogin(
-      loginRequest(JSON.stringify({ password: "wrong" })),
-      passwordAuthConfig,
-      sessions,
-    );
-
-    expect(result).toEqual(expect.objectContaining({ ok: false, status: 401 }));
-  });
-
-  test("a body that isn't JSON returns 400", async () => {
-    const result = await handlePostLogin(
-      loginRequest("not json"),
-      passwordAuthConfig,
-      sessions,
-    );
-
-    expect(result).toEqual(expect.objectContaining({ ok: false, status: 400 }));
-  });
-
-  test("a JSON body without a password returns 400", async () => {
-    const result = await handlePostLogin(
-      loginRequest(JSON.stringify({ foo: "bar" })),
-      passwordAuthConfig,
-      sessions,
-    );
-
-    expect(result).toEqual(expect.objectContaining({ ok: false, status: 400 }));
-  });
-
-  test("login is unavailable (500) when no password is configured", async () => {
-    const tokenOnly: AuthConfig = { type: "configured", token: "api-token" };
-    const none: AuthConfig = { type: "none", insecureAllowNoAuth: true };
-
-    for (const authConfig of [tokenOnly, none]) {
-      const result = await handlePostLogin(
-        loginRequest(JSON.stringify({ password: "s3cr3t" })),
-        authConfig,
-        sessions,
-      );
-      // The message keeps the login form from defaulting to "Incorrect
-      // password", which would lie to token-only/no-auth setups.
-      expect(result).toEqual(
-        expect.objectContaining({ ok: false, status: 500 }),
-      );
-    }
+  // Every failure surfaces as { ok: false } with a status the login form maps
+  // to a message. The 500s matter most: with no password configured the form
+  // must not fall back to "Incorrect password", which would lie to
+  // token-only/no-auth setups.
+  test.each<{
+    name: string;
+    body: Record<string, unknown> | string;
+    authConfig?: AuthConfig;
+    status: number;
+  }>([
+    {
+      name: "wrong password returns not-ok with 401",
+      body: { password: "wrong" },
+      status: 401,
+    },
+    {
+      name: "a body that isn't JSON returns 400",
+      body: "not json",
+      status: 400,
+    },
+    {
+      name: "a JSON body without a password returns 400",
+      body: { foo: "bar" },
+      status: 400,
+    },
+    {
+      name: "token-only auth makes login unavailable (500)",
+      body: { password: "s3cr3t" },
+      authConfig: { type: "configured", token: "api-token" },
+      status: 500,
+    },
+    {
+      name: "no-auth makes login unavailable (500)",
+      body: { password: "s3cr3t" },
+      authConfig: { type: "none", insecureAllowNoAuth: true },
+      status: 500,
+    },
+  ])("$name", async ({ body, authConfig, status }) => {
+    const result = await callLogin(body, authConfig);
+    expect(result).toEqual(expect.objectContaining({ ok: false, status }));
   });
 });
