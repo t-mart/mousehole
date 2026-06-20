@@ -6,6 +6,7 @@ import type { AppContext } from "../src/backend/context.ts";
 import type { FetchLike } from "../src/backend/external-api/fetch.ts";
 import type { State } from "../src/backend/state/serde.ts";
 import type { StateStore } from "../src/backend/state/store.ts";
+import type { MamUpdateOutcome } from "./mam-test-server.ts";
 
 import { createApp } from "../src/backend/app.ts";
 import { buildConfig } from "../src/backend/config.ts";
@@ -107,26 +108,29 @@ async function expectHealthResult(app: TestApp, result: string): Promise<void> {
 describe("GET / content negotiation", () => {
   const { app } = makeTestContext();
 
-  test("Accept: application/json redirects to /health", async () => {
-    const response = await app.request("/", {
-      headers: { Accept: "application/json" },
-    });
+  test.each([
+    {
+      name: "Accept: application/json redirects to /health",
+      accept: "application/json",
+      location: "/health",
+    },
+    {
+      name: "Accept: text/html redirects to /web",
+      accept: "text/html",
+      location: "/web",
+    },
+    {
+      name: "no Accept header redirects to /web",
+      accept: undefined,
+      location: "/web",
+    },
+  ])("$name", async ({ accept, location }) => {
+    const response = await app.request(
+      "/",
+      accept ? { headers: { Accept: accept } } : {},
+    );
     expect(response.status).toBe(302);
-    expect(response.headers.get("location")).toBe("/health");
-  });
-
-  test("Accept: text/html redirects to /web", async () => {
-    const response = await app.request("/", {
-      headers: { Accept: "text/html" },
-    });
-    expect(response.status).toBe(302);
-    expect(response.headers.get("location")).toBe("/web");
-  });
-
-  test("no Accept header redirects to /web", async () => {
-    const response = await app.request("/");
-    expect(response.status).toBe(302);
-    expect(response.headers.get("location")).toBe("/web");
+    expect(response.headers.get("location")).toBe(location);
   });
 });
 
@@ -351,28 +355,22 @@ describe("route protection matrix", () => {
 });
 
 describe("login/logout flow", () => {
-  test("wrong password is rejected with 401", async () => {
+  test.each([
+    {
+      name: "wrong password is rejected with 401",
+      body: { password: "wrong" },
+      status: 401,
+    },
+    { name: "malformed JSON is rejected with 400", body: "not json", status: 400 },
+    {
+      name: "wrong schema is rejected with 400",
+      body: { bad: "schema" },
+      status: 400,
+    },
+  ])("$name", async ({ body, status }) => {
     const { app } = makeTestContext();
-    const response = await postLogin(app, { password: "wrong" });
-    expect(response.status).toBe(401);
-    expect(await response.json()).toEqual(
-      expect.objectContaining({ ok: false }),
-    );
-  });
-
-  test("malformed JSON is rejected with 400", async () => {
-    const { app } = makeTestContext();
-    const response = await postLogin(app, "not json");
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual(
-      expect.objectContaining({ ok: false }),
-    );
-  });
-
-  test("wrong schema is rejected with 400", async () => {
-    const { app } = makeTestContext();
-    const response = await postLogin(app, { bad: "schema" });
-    expect(response.status).toBe(400);
+    const response = await postLogin(app, body);
+    expect(response.status).toBe(status);
     expect(await response.json()).toEqual(
       expect.objectContaining({ ok: false }),
     );
@@ -599,8 +597,28 @@ describe("contact flows (simulated MAM)", () => {
     expect(state.lastMamContact).toEqual(putState.lastMamContact);
   });
 
-  test("a throttled update (429) is persisted and surfaces via /health", async () => {
-    const mamServer = createMamTestServer({ outcome: "lastChangeTooRecent" });
+  // Whatever MAM answers, PUT /cookie saves the cookie the user gave us (the
+  // dashboard re-prompts if MAM rejected it) and the verdict surfaces via
+  // /health. `ipUpdate` is asserted only where MAM ran the update.
+  test.each<{
+    name: string;
+    outcome: MamUpdateOutcome;
+    healthResult: string;
+    ipUpdate?: { success: boolean; msg: string; httpStatus: number };
+  }>([
+    {
+      name: "a throttled update (429) is persisted and surfaces via /health",
+      outcome: "lastChangeTooRecent",
+      healthResult: "throttled",
+      ipUpdate: { success: false, msg: "Last change too recent", httpStatus: 429 },
+    },
+    {
+      name: "a rejected session (403) is persisted and surfaces via /health",
+      outcome: "ipMismatch",
+      healthResult: "rejected",
+    },
+  ])("$name", async ({ outcome, healthResult, ipUpdate }) => {
+    const mamServer = createMamTestServer({ outcome });
     const { app, writeSpy } = makeTestContext({
       fetchImpl: mamServer.fetchImpl,
     });
@@ -610,40 +628,17 @@ describe("contact flows (simulated MAM)", () => {
     expect(putResponse.status).toBe(200);
     const putState = (await putResponse.json()) as {
       hasCookie: boolean;
-      lastMamContact: {
-        ipUpdate: { success: boolean; msg: string; httpStatus: number };
-      };
+      lastMamContact: { ipUpdate?: unknown };
     };
     expect(putState.hasCookie).toBe(true);
     expect(writeSpy).toHaveBeenLastCalledWith(
       expect.objectContaining({ cookie: "mam-session-cookie" }),
     );
-    expect(putState.lastMamContact.ipUpdate).toEqual({
-      success: false,
-      msg: "Last change too recent",
-      httpStatus: 429,
-    });
+    if (ipUpdate) {
+      expect(putState.lastMamContact.ipUpdate).toEqual(ipUpdate);
+    }
 
-    await expectHealthResult(app, "throttled");
-  });
-
-  test("a rejected session (403) is persisted and surfaces via /health", async () => {
-    const mamServer = createMamTestServer({ outcome: "ipMismatch" });
-    const { app, writeSpy } = makeTestContext({
-      fetchImpl: mamServer.fetchImpl,
-    });
-    const cookie = await login(app);
-
-    const putResponse = await putMamCookie(app, cookie);
-    expect(putResponse.status).toBe(200);
-
-    // Even a cookie MAM rejects (403) is saved: the contract is to persist what
-    // the user gave us; the dashboard then prompts them to re-enter it.
-    expect(writeSpy).toHaveBeenLastCalledWith(
-      expect.objectContaining({ cookie: "mam-session-cookie" }),
-    );
-
-    await expectHealthResult(app, "rejected");
+    await expectHealthResult(app, healthResult);
   });
 
   test("PUT /cookie persists the cookie even when MAM is unreachable", async () => {
