@@ -27,22 +27,38 @@ const unreachable: SerializedMamContact = {
 };
 
 describe("classify", () => {
-  test("pending when there is no contact", () => {
-    expect(classify()).toBe("pending");
-  });
-  test("unreachable on a transport failure", () => {
-    expect(classify(unreachable)).toBe("unreachable");
-  });
-  test("no-cookie on a lookup (reached, no ipUpdate)", () => {
-    expect(classify(lookup)).toBe("no-cookie");
-  });
-  test("ok on a 200 update", () => {
-    expect(classify(update(200, true))).toBe("ok");
-  });
-  test("throttled on a 429 update", () => {
-    expect(classify(update(429, false))).toBe("throttled");
-  });
-  test("rejected on a 403 update", () => {
-    expect(classify(update(403, false))).toBe("rejected");
+  test.each<{
+    name: string;
+    contact: SerializedMamContact | undefined;
+    expected: ReturnType<typeof classify>;
+  }>([
+    {
+      name: "pending when there is no contact",
+      contact: undefined,
+      expected: "pending",
+    },
+    {
+      name: "unreachable on a transport failure",
+      contact: unreachable,
+      expected: "unreachable",
+    },
+    {
+      name: "no-cookie on a lookup (reached, no ipUpdate)",
+      contact: lookup,
+      expected: "no-cookie",
+    },
+    { name: "ok on a 200 update", contact: update(200, true), expected: "ok" },
+    {
+      name: "throttled on a 429 update",
+      contact: update(429, false),
+      expected: "throttled",
+    },
+    {
+      name: "rejected on a 403 update",
+      contact: update(403, false),
+      expected: "rejected",
+    },
+  ])("$name", ({ contact, expected }) => {
+    expect(classify(contact)).toBe(expected);
   });
 });
