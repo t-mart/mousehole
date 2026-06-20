@@ -6,6 +6,13 @@ import type { AppContext } from "../src/backend/context.ts";
 import type { FetchLike } from "../src/backend/external-api/fetch.ts";
 import type { State } from "../src/backend/state/serde.ts";
 import type { StateStore } from "../src/backend/state/store.ts";
+import type { ErrorResponseBody } from "../src/shared/error-response.ts";
+import type {
+  ContactStatus,
+  IpUpdate,
+  PublicState,
+  SerializedMamContact,
+} from "../src/shared/public-state.ts";
 import type { MamUpdateOutcome } from "./mam-test-server.ts";
 
 import { createApp } from "../src/backend/app.ts";
@@ -58,6 +65,10 @@ function makeTestContext(
   return { ctx, app: createApp(ctx), store, writeSpy };
 }
 
+async function json<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
+
 async function postLogin(
   app: TestApp,
   body: Record<string, unknown> | string,
@@ -99,7 +110,10 @@ async function logout(app: TestApp, cookie: string): Promise<Response> {
   });
 }
 
-async function expectHealthResult(app: TestApp, result: string): Promise<void> {
+async function expectHealthResult(
+  app: TestApp,
+  result: ContactStatus,
+): Promise<void> {
   const response = await app.request("/health");
   expect(response.status).toBe(200);
   expect(await response.json()).toEqual({ lastMamContactResult: result });
@@ -155,7 +169,7 @@ describe("error shapes", () => {
     });
 
     expect(response.status).toBe(403);
-    const body = (await response.json()) as { message: string };
+    const body = await json<ErrorResponseBody>(response);
     expect(body.message).toContain("nas.local:5010");
     expect(body.message).toContain("MOUSEHOLE_ALLOWED_HOSTS");
   });
@@ -169,7 +183,7 @@ describe("error shapes", () => {
     const response = await postLogin(tokenOnlyApp, { password: "anything" });
 
     expect(response.status).toBe(500);
-    const body = (await response.json()) as { message?: string };
+    const body = await json<ErrorResponseBody>(response);
     expect(body.message).toContain("MOUSEHOLE_AUTH_PASSWORD");
   });
 
@@ -323,7 +337,7 @@ describe("route protection matrix", () => {
             buildMatrixRequest(spec, sessionCookie, { violate: protection }),
           );
           expect(response.status).toBe(rejection.status);
-          const body = (await response.json()) as { type: string };
+          const body = await json<ErrorResponseBody>(response);
           expect(body.type).toBe(rejection.type);
           if (protection === "auth") {
             expect(response.headers.get("www-authenticate")).toContain(
@@ -382,10 +396,7 @@ describe("login/logout flow", () => {
 
     const stateResponse = await getState(app, cookie);
     expect(stateResponse.status).toBe(200);
-    const state = (await stateResponse.json()) as {
-      hasAuth: boolean;
-      hasCookie: boolean;
-    };
+    const state = await json<PublicState>(stateResponse);
     expect(state.hasAuth).toBe(true);
     expect(state.hasCookie).toBe(false);
 
@@ -542,6 +553,29 @@ function hangingFetch(_input: URL | RequestInfo, init?: RequestInit) {
   });
 }
 
+// The wire contact is a discriminated union; narrow it to the branch a test
+// asserts on. Each throws if the contact isn't the expected branch.
+type ReachedContact = Extract<SerializedMamContact, { reached: true }>;
+type UnreachedContact = Extract<SerializedMamContact, { reached: false }>;
+
+function reachedContact(state: PublicState): ReachedContact {
+  const contact = state.lastMamContact;
+  if (contact?.reached !== true) {
+    throw new Error(`expected a reached contact, got ${JSON.stringify(contact)}`);
+  }
+  return contact;
+}
+
+function unreachedContact(state: PublicState): UnreachedContact {
+  const contact = state.lastMamContact;
+  if (contact?.reached !== false) {
+    throw new Error(
+      `expected an unreached contact, got ${JSON.stringify(contact)}`,
+    );
+  }
+  return contact;
+}
+
 describe("PUT /cookie validation", () => {
   test("an empty cookie value is rejected with 400", async () => {
     const { app } = makeTestContext();
@@ -569,22 +603,15 @@ describe("contact flows (simulated MAM)", () => {
 
     const putResponse = await putMamCookie(app, cookie);
     expect(putResponse.status).toBe(200);
-    const putState = (await putResponse.json()) as {
-      hasCookie: boolean;
-      lastMamContact: {
-        reached: boolean;
-        ip: string;
-        ipUpdate: { success: boolean; msg: string; httpStatus: number };
-      };
-    };
+    const putState = await json<PublicState>(putResponse);
     expect(putState.hasCookie).toBe(true);
     // The submitted cookie is persisted, not just echoed in the response.
     expect(writeSpy).toHaveBeenLastCalledWith(
       expect.objectContaining({ cookie: "mam-session-cookie" }),
     );
-    expect(putState.lastMamContact.reached).toBe(true);
-    expect(putState.lastMamContact.ip).toBe("203.0.113.7");
-    expect(putState.lastMamContact.ipUpdate).toEqual({
+    const contact = reachedContact(putState);
+    expect(contact.ip).toBe("203.0.113.7");
+    expect(contact.ipUpdate).toEqual({
       success: true,
       msg: "Completed",
       httpStatus: 200,
@@ -600,9 +627,7 @@ describe("contact flows (simulated MAM)", () => {
 
     // GET /state serves the same persisted contact.
     const stateResponse = await getState(app, cookie);
-    const state = (await stateResponse.json()) as {
-      lastMamContact: unknown;
-    };
+    const state = await json<PublicState>(stateResponse);
     expect(state.lastMamContact).toEqual(putState.lastMamContact);
   });
 
@@ -612,8 +637,8 @@ describe("contact flows (simulated MAM)", () => {
   test.each<{
     name: string;
     outcome: MamUpdateOutcome;
-    healthResult: string;
-    ipUpdate?: { success: boolean; msg: string; httpStatus: number };
+    healthResult: ContactStatus;
+    ipUpdate?: IpUpdate;
   }>([
     {
       name: "a throttled update (429) is persisted and surfaces via /health",
@@ -635,16 +660,13 @@ describe("contact flows (simulated MAM)", () => {
 
     const putResponse = await putMamCookie(app, cookie);
     expect(putResponse.status).toBe(200);
-    const putState = (await putResponse.json()) as {
-      hasCookie: boolean;
-      lastMamContact: { ipUpdate?: unknown };
-    };
+    const putState = await json<PublicState>(putResponse);
     expect(putState.hasCookie).toBe(true);
     expect(writeSpy).toHaveBeenLastCalledWith(
       expect.objectContaining({ cookie: "mam-session-cookie" }),
     );
     if (ipUpdate) {
-      expect(putState.lastMamContact.ipUpdate).toEqual(ipUpdate);
+      expect(reachedContact(putState).ipUpdate).toEqual(ipUpdate);
     }
 
     await expectHealthResult(app, healthResult);
@@ -659,12 +681,9 @@ describe("contact flows (simulated MAM)", () => {
 
     const putResponse = await putMamCookie(app, cookie, "persist-me");
     expect(putResponse.status).toBe(200);
-    const putState = (await putResponse.json()) as {
-      hasCookie: boolean;
-      lastMamContact: { reached: boolean };
-    };
+    const putState = await json<PublicState>(putResponse);
     expect(putState.hasCookie).toBe(true);
-    expect(putState.lastMamContact.reached).toBe(false);
+    expect(putState.lastMamContact?.reached).toBe(false);
 
     // The failed contact didn't stop the cookie from being persisted.
     expect(writeSpy).toHaveBeenLastCalledWith(
@@ -673,7 +692,7 @@ describe("contact flows (simulated MAM)", () => {
 
     // And it survives a re-read from the store.
     const stateResponse = await getState(app, cookie);
-    const state = (await stateResponse.json()) as { hasCookie: boolean };
+    const state = await json<PublicState>(stateResponse);
     expect(state.hasCookie).toBe(true);
   });
 
@@ -699,14 +718,11 @@ describe("contact flows (simulated MAM)", () => {
 
     const updatesResponse = await postUpdates(app, cookie);
     expect(updatesResponse.status).toBe(200);
-    const state = (await updatesResponse.json()) as {
-      hasCookie: boolean;
-      lastMamContact: { reached: boolean; ip: string; ipUpdate?: unknown };
-    };
+    const state = await json<PublicState>(updatesResponse);
     expect(state.hasCookie).toBe(false);
-    expect(state.lastMamContact.reached).toBe(true);
-    expect(state.lastMamContact.ip).toBe("203.0.113.7");
-    expect(state.lastMamContact.ipUpdate).toBeUndefined();
+    const contact = reachedContact(state);
+    expect(contact.ip).toBe("203.0.113.7");
+    expect(contact.ipUpdate).toBeUndefined();
     expect(mamServer.received.at(-1)?.path).toBe("/json/jsonIp.php");
 
     await expectHealthResult(app, "no-cookie");
@@ -720,11 +736,8 @@ describe("contact flows (simulated MAM)", () => {
 
     const updatesResponse = await postUpdates(app, cookie);
     expect(updatesResponse.status).toBe(200);
-    const state = (await updatesResponse.json()) as {
-      lastMamContact: { reached: boolean; error: { type: string } };
-    };
-    expect(state.lastMamContact.reached).toBe(false);
-    expect(state.lastMamContact.error.type).toBe("network-error");
+    const state = await json<PublicState>(updatesResponse);
+    expect(unreachedContact(state).error.type).toBe("network-error");
 
     await expectHealthResult(app, "unreachable");
   });
@@ -738,10 +751,7 @@ describe("contact flows (simulated MAM)", () => {
 
     const updatesResponse = await postUpdates(app, cookie);
     expect(updatesResponse.status).toBe(200);
-    const state = (await updatesResponse.json()) as {
-      lastMamContact: { reached: boolean; error: { type: string } };
-    };
-    expect(state.lastMamContact.reached).toBe(false);
-    expect(state.lastMamContact.error.type).toBe("timeout-error");
+    const state = await json<PublicState>(updatesResponse);
+    expect(unreachedContact(state).error.type).toBe("timeout-error");
   });
 });
