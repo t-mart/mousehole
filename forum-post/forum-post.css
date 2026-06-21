@@ -73,31 +73,37 @@ h5,
 h6 {
   font-weight: 700;
   font-size: calc(1em * pow(var(--scale), var(--level)));
-  margin-block-start: 0.75em;
+  line-height: 1.2;
 }
 
 h1 {
   --level: 5;
+  margin-block-start: 1.5em;
 }
 
 h2 {
   --level: 4;
+  margin-block-start: 1.4em;
 }
 
 h3 {
   --level: 3;
+  margin-block-start: 1.3em;
 }
 
 h4 {
   --level: 2;
+  margin-block-start: 1.2em;
 }
 
 h5 {
   --level: 1;
+  margin-block-start: 1.1em;
 }
 
 h6 {
   --level: 0;
+  margin-block-start: 1em;
   opacity: 0.8;
 }
 
