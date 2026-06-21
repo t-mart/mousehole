@@ -1,14 +1,9 @@
 :::center
 
-  <h1 style="
-    margin-bottom: 1.5rem;
-    font-size: 38px;
-    font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-    ">
-    Mousehole
-    <span style="display: block; font-size: 24px; margin-top: 0.5rem;">A Seedbox IP Updater for MAM</span>
-  </h1>
-  
+# Mousehole
+
+**A Seedbox IP Updater for MAM**
+
 :::
 
 A background service to update a seedbox IP for MaM and an HTTP server to manage

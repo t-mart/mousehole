@@ -1,0 +1,239 @@
+/*
+ * forum-post.css
+ *
+ * Styling for the forum-post HTML fragments. gen-html.ts emits plain semantic
+ * HTML annotated with data-md attributes that name the markdown construct each
+ * element came from, then inlines these rules onto every element's style
+ * attribute with juice.
+ *
+ * Structural elements are styled by tag, so raw inline HTML (the escape hatch)
+ * inherits the same defaults. Code and the custom directive constructs are
+ * styled by data-md: data-md="code-inline" vs data-md="code-block", and
+ * data-md="callout" / "callout-title" / "center".
+ *
+ * Notes:
+ *   - No rule sets a text colour unless it also sets a background, so the host
+ *     site theme shows through.
+ *   - Borders and rules derive from the inherited text colour (--hairline)
+ *     rather than assuming one.
+ *   - Unquoted multi-word font names (Segoe UI, Liberation Mono) are valid CSS
+ *     and keep the serializer from escaping quotes inside the style attribute.
+ */
+*,
+::after,
+::before,
+::file-selector-button {
+  box-sizing: border-box; /* 1 */
+  margin: 0; /* 2 */
+  padding: 0; /* 2 */
+  border: 0 solid; /* 3 */
+}
+
+article {
+  /* Design tokens, resolved into descendants by juice. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, Liberation Mono,
+    monospace;
+  --code-bg: oklch(21.6% 0.006 56.043);
+  --code-fg: oklch(97% 0.001 106.424);
+  --code-border: oklch(92.4% 0.12 95.746);
+  --link: oklch(87.9% 0.169 91.605);
+  --hairline: color-mix(in srgb, currentColor 20%, transparent);
+  --scale: 1.2; /* modular scale ratio for heading sizes */
+
+  max-width: 60ch;
+  margin-inline: auto;
+  padding: 1.5rem;
+  font-family: var(--font-sans);
+  font-size: 1.4rem;
+  line-height: 1.5;
+}
+
+/* Zero the leading top margin down the first-child spine (e.g. :::center
+   wrapping an h1) so the document doesn't open with a double gap under the
+   article padding. */
+article > :first-child,
+article > :first-child > :first-child {
+  margin-block-start: 0;
+}
+
+a {
+  color: var(--link);
+  font-size: inherit;
+}
+
+/* Headings sit on a modular scale: each --level is one 1.2x step up from h6,
+   so h6 = 1em (level 0), h5 = 1.2em, h4 = 1.44em, ... h1 = 1.2^5 = ~2.49em. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  font-size: calc(1em * pow(var(--scale), var(--level)));
+  margin-block-start: 0.75em;
+}
+
+h1 {
+  --level: 5;
+}
+
+h2 {
+  --level: 4;
+}
+
+h3 {
+  --level: 3;
+}
+
+h4 {
+  --level: 2;
+}
+
+h5 {
+  --level: 1;
+}
+
+h6 {
+  --level: 0;
+  opacity: 0.8;
+}
+
+/* font-size: inherit makes text track the article base size instead of the
+   host stylesheet's per-tag rules (inline styles beat its selectors). */
+p {
+  margin-block-start: 0.75em;
+  font-size: inherit;
+}
+
+ul,
+ol {
+  margin-block-start: 0.75em;
+  padding-inline-start: 1.5em;
+}
+
+li {
+  margin-block-start: 0.25em;
+  font-size: inherit;
+}
+
+/* A list nested in a list item shouldn't open with a full paragraph-sized gap. */
+li ul,
+li ol {
+  margin-block-start: 0.25em;
+}
+
+/* No background (kill any the host sets); lean on a left rule and mute the text
+   by fading its own (unknown) colour toward the background. */
+blockquote {
+  margin: 1em 0 0;
+  padding-inline-start: 1em;
+  background: transparent;
+  border-inline-start: 0.25rem solid currentColor;
+  font-size: inherit;
+  color: color-mix(in srgb, currentColor 60%, transparent);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-block-start: 1em;
+  border-radius: 0.5rem;
+}
+
+hr {
+  margin-block-start: 2em;
+  border: none;
+  border-block-start: 1px solid var(--hairline);
+}
+
+table {
+  margin-block-start: 1em;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  padding: 0.4em 0.7em;
+  border: 1px solid var(--hairline);
+  font-size: inherit;
+}
+
+th {
+  font-weight: 600;
+  text-align: start;
+}
+
+/* The block surface; long lines scroll horizontally. The only <pre> here comes
+   from a fenced code block. */
+pre {
+  margin-block-start: 1em;
+  padding: 1rem;
+  overflow-x: auto;
+  background-color: var(--code-bg);
+  color: var(--code-fg);
+  border: 1px solid var(--code-border);
+  border-radius: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+[data-md="code-inline"] {
+  padding: 0.15em 0.4em;
+  background-color: var(--code-bg);
+  color: var(--code-fg);
+  border-radius: 0.3em;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Inside <pre>, strip any styling the host puts on <code> so only the block
+   surface shows and it inherits the block's colour and font. */
+[data-md="code-block"] {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Callouts (:::note and family). Each type sets its --accent below; the shared
+   rules derive the border, background tint, and title colour from it. */
+[data-md="callout"] {
+  margin: 1em 0 0;
+  padding: 0.5em 0.8em;
+  border-inline-start: 0.25rem solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+[data-md="callout-title"] {
+  margin: 0;
+  font-weight: 700;
+  font-size: inherit;
+  color: var(--accent);
+}
+
+[data-callout="note"] {
+  --accent: #1f6feb;
+}
+[data-callout="tip"] {
+  --accent: #238636;
+}
+[data-callout="important"] {
+  --accent: #8957e5;
+}
+[data-callout="warning"] {
+  --accent: #9e6a03;
+}
+[data-callout="caution"] {
+  --accent: #da3633;
+}
+
+[data-md="center"] {
+  text-align: center;
+}

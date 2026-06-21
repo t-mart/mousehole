@@ -2,36 +2,50 @@
 
 # Construct Demo
 
-A kitchen-sink document for `gen-html.ts` :::
+A kitchen-sink document for `gen-html.ts`
+
+:::
 
 This top paragraph proves the leading top-margin is zeroed so the document
 doesn't open with an awkward gap. It also shows **bold**, _italic_,
 `inline code`, and a [plain link](https://example.com) that inherits the site's
 own link colour.
 
-## Headings
+# Headings h1
 
-### Third level
+And some text just to force a line break. This paragraph also shows **bold**,
+_italic_, and boots on cats on boots on cats.
 
-#### Fourth level
+And some more just to force a line break. This paragraph also shows **bold**,
+_italic_, and boots on cats on boots on cats.
 
-##### Fifth level
+## Headings h2
 
-###### Sixth level
+And some text
+
+### Headings h3
+
+And some text
+
+#### Headings h4
+
+And some text
+
+##### Headings h5
+
+And some text
+
+###### Headings h6
+
+And some text
 
 ## Lists
 
-A _tight_ unordered list (no blank lines between items, so no `<p>` wrappers):
+An unordered list:
 
 - First point
 - Second point
 - Third point
-
-A _loose_ unordered list (blank lines, so each item gets a `<p>`):
-
-- First point, with room to breathe.
-
-- Second point, likewise.
 
 An ordered list, with a nested list inside:
 
@@ -59,18 +73,27 @@ services:
 
 ## Callouts
 
-:::note The default heading comes from the directive name. :::
-
-:::tip You can write multiple paragraphs in a callout.
-
-Like this one. :::
-
-:::important[Read this part] Pass a label in brackets to override the heading.
+:::note
+The default heading comes from the directive name.
 :::
 
-:::warning Something deserves attention here. :::
+:::tip
+You can write multiple paragraphs in a callout.
 
-:::caution And this is the scariest one. :::
+Like this one.
+:::
+
+:::important[Read this part]
+Pass a label in brackets to override the heading.
+:::
+
+:::warning
+Something deserves attention here.
+:::
+
+:::caution
+And this is the scariest one.
+:::
 
 ## Quotes and rules
 
@@ -95,7 +118,7 @@ When a construct doesn't exist, drop in raw HTML. Anything already carrying a
 </details>
 
 A raw table (its cells get the default table styling, since they carry no inline
-<code>style</code> of their own):
+`style` of their own):
 
 <table>
   <thead>
