@@ -31,10 +31,10 @@
 
 article {
   /* Design tokens, resolved into descendants by juice. */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-    sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, Liberation Mono,
-    monospace;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, Liberation Mono, monospace;
   --code-bg: oklch(21.6% 0.006 56.043);
   --code-fg: oklch(97% 0.001 106.424);
   --code-border: oklch(92.4% 0.12 95.746);

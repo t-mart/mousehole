@@ -73,27 +73,18 @@ services:
 
 ## Callouts
 
-:::note
-The default heading comes from the directive name.
+:::note The default heading comes from the directive name. :::
+
+:::tip You can write multiple paragraphs in a callout.
+
+Like this one. :::
+
+:::important[Read this part] Pass a label in brackets to override the heading.
 :::
 
-:::tip
-You can write multiple paragraphs in a callout.
+:::warning Something deserves attention here. :::
 
-Like this one.
-:::
-
-:::important[Read this part]
-Pass a label in brackets to override the heading.
-:::
-
-:::warning
-Something deserves attention here.
-:::
-
-:::caution
-And this is the scariest one.
-:::
+:::caution And this is the scariest one. :::
 
 ## Quotes and rules
 

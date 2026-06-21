@@ -122,7 +122,9 @@ const decorateDirective = (node: unknown): void => {
 
   if (isContainer && directive.name && CALLOUT_NAMES.has(directive.name)) {
     const children = directive.children ?? [];
-    const labelled = children[0]?.data?.directiveLabel ? children[0] : undefined;
+    const labelled = children[0]?.data?.directiveLabel
+      ? children[0]
+      : undefined;
     if (labelled) {
       // `:::note[My title]` -> mark the supplied label as the heading.
       setHast(labelled, undefined, { "data-md": "callout-title" });
@@ -154,7 +156,9 @@ const decorateDirective = (node: unknown): void => {
 const annotateNode = (node: unknown): void => {
   const typed = node as { type: string };
   if (typed.type === "inlineCode") {
-    setHast(node as { data?: unknown }, undefined, { "data-md": "code-inline" });
+    setHast(node as { data?: unknown }, undefined, {
+      "data-md": "code-inline",
+    });
     return;
   }
   if (typed.type === "code") {
