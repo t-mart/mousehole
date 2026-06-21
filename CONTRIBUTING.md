@@ -113,8 +113,7 @@ parameter.
 1. Create a release announcement forum post markdown document in
    [`forum-post/`](/forum-post/) and build it with `bun run forum:build` or
    `bun run forum:watch`. This forum post should be even higher-level than the
-   changelog, and should be suitable for sharing with non-technical users. It
-   should link to the changelog for more details.
+   changelog. It should link to the changelog for more details.
 1. Make a commit where you update the `version` property in `package.json` to
    the new version, and push it to GitHub. This will trigger the CI workflows to
    build and publish the release.
