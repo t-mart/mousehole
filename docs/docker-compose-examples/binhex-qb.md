@@ -1,8 +1,8 @@
-# binhex/arch-qbittorrentvpn + Mousehole Docker Compose Example
+# binhex/arch-qbittorrentvpn Docker Compose Example
 
 [binhex/arch-qbittorrentvpn](https://github.com/binhex/arch-qbittorrentvpn)
 bundles qBittorrent with an OpenVPN or WireGuard client in a single container.
-Mousehole attaches to its network namespace as a sidecar.
+Mousehole attaches to its network as a sidecar.
 
 > [!IMPORTANT]
 >

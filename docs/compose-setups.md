@@ -34,8 +34,6 @@ services:
   mousehole:
     image: tmmrtn/mousehole:latest
     network_mode: "service:vpn" # Point 1: Use VPN container's network
-    environment:
-      MOUSEHOLE_AUTH_PASSWORD: replace-with-a-long-random-password
 
   vpn:
     image: your-vpn-image:latest
@@ -45,10 +43,9 @@ services:
 
 ## Security Settings
 
-Mousehole defaults to using tight security settings. If your setup needs to
-relax or adjust those settings (reverse proxy, Unraid, etc), the
-[Security Guide](/docs/security-guide.md) covers the environment variables to do
-so.
+If you are serving Mousehole beyond just `localhost`, you must adjust the
+security settings with environment variables. See the
+[Security Guide](/docs/security-guide.md) for more details and common use cases.
 
 ## Reading Documentation
 

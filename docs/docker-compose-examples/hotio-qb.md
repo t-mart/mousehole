@@ -1,9 +1,9 @@
-# hotio/qBittorrent + Mousehole Docker Compose Example
+# hotio/qBittorrent Docker Compose Example
 
 [hotio/qbittorrent](https://hotio.dev/containers/qbittorrent/) bundles a
 WireGuard VPN client directly into the qBittorrent container, so there is no
-separate VPN container. Mousehole attaches to qBittorrent's network namespace as
-a sidecar.
+separate VPN container. Mousehole attaches to qBittorrent's network as a
+sidecar.
 
 > [!IMPORTANT]
 >
