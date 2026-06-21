@@ -27,8 +27,7 @@ To use Mousehole, you need to:
 
 Starter Docker Compose examples:
 
-- ⭐
-  [Gluetun + qBittorrent](/docs/docker-compose-examples/gluetun-qb.md)
+- ⭐ [Gluetun + qBittorrent](/docs/docker-compose-examples/gluetun-qb.md)
 - [Wireguard + qBittorrent](/docs/docker-compose-examples/wireguard-qb.md)
 - [hotio/qBittorrent](/docs/docker-compose-examples/hotio-qb.md)
 - [binhex/arch-qbittorrentvpn](/docs/docker-compose-examples/binhex-qb.md)
