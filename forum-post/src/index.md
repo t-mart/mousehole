@@ -9,7 +9,7 @@
 A background service to update a seedbox IP for MaM and an HTTP server to manage
 it.
 
-![Mousehole Demo](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/demo.webp?cache=2)
+![Mousehole Demo](https://raw.githubusercontent.com/t-mart/mousehole/master/docs/images/demo.webp?cache=1782024717)
 
 This can be helpful if you are using a VPN/seedbox to seed and your IP address
 is not stable.
