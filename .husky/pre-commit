@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+if [ -n "$staged" ]; then
+  echo "[pre-commit] Running Prettier on staged files..."
+  echo "$staged" | xargs bunx --bun prettier --write --ignore-unknown
+  echo "$staged" | xargs git add
+fi
+
+echo "[pre-commit] Running quality checks..."
+# for some reason, unable to run the entire check:* suite with `bun run
+# --sequential check:*`. unfortunate. must now keep in sync with all check
+# scripts in package.json.
+bun run --sequential check:fmt
+bun run --sequential check:lint
+bun run --sequential check:types
+bun run --sequential check:test

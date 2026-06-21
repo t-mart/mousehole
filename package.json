@@ -22,7 +22,8 @@
     "fallow:dupes": "bunx fallow dupes",
     "fallow:health": "bunx fallow health",
     "forum:build": "bun run forum-post/gen-html.ts",
-    "forum:watch": "bun run --watch forum-post/gen-html.ts --watch"
+    "forum:watch": "bun run --watch forum-post/gen-html.ts --watch",
+    "hooks": "bunx husky"
   },
   "imports": {
     "#*": "./src/*"

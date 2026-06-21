@@ -44,7 +44,7 @@ and set your custom values there. This file is ignored by git.
 ### Quality checks
 
 - `bun run check:fmt` checks formatting with Prettier.
-- `bun run check:lint` lints `src` and `tests` with ESLint.
+- `bun run check:lint` lints with ESLint.
 - `bun run check:types` type-checks with `tsc`.
 - `bun run check:test` runs the Vitest suite.
 
@@ -59,6 +59,22 @@ are listed in [`.prettierignore`](/.prettierignore).
 - `bun run check:fmt` reports any files that are not formatted (this is the
   check that runs in CI).
 - `bun run fmt` rewrites those files in place to fix the formatting.
+
+### Git hooks
+
+To prevent failing the repo's GitHub Actions CI checks, you can install git
+hooks that format the project and run quality checks on it. This project uses
+[Husky](https://typicode.github.io/husky/) to manage Git hooks. They are opt-in.
+To install them, run:
+
+```bash
+bun run hooks
+```
+
+If you've installed the hooks and need to bypass them for a particular commit,
+pass `-n` (or `--no-verify`) to `git commit`. See Husky's
+[skipping Git hooks](https://typicode.github.io/husky/how-to.html#skipping-git-hooks)
+for other ways to skip hooks.
 
 ### Code health
 
