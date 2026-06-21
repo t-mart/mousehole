@@ -74,9 +74,8 @@ Again, you can run all three with `bun run --sequential "fallow:*"`.
 ## Demo fixtures
 
 `bun demo <fixture>` runs the real production app against a mocked MAM so you
-can hand-drive a browser through a specific scenario without touching the
-network or a real account. This is useful for recording demos and capturing
-screenshots. Each fixture in
+can hand-drive a browser through a specific scenario. This is useful for
+recording demos and capturing screenshots. Each fixture in
 [`demo-fixtures/fixtures.ts`](/demo-fixtures/fixtures.ts) pins how the mocked
 MAM responds, an optional seed state, and the auth password.
 
@@ -104,18 +103,47 @@ the built HTML into the forum's rich text editor.
 Images in forum posts may need to be cache-busted with an arbitrary query
 parameter.
 
-## Releasing
+## Release Process
 
-New versions are tagged, released, and pushed to Docker Hub by bumping the
-`version` property in `package.json` and pushing to GitHub. The CI workflows
-take care of the rest.
+1. Ensure the [changelog](/CHANGELOG.md) is up to date and stamped with the new
+   version. Link to the release using the URL format, even if the URL does not
+   yet exist.
+1. Run quality checks with `bun run --sequential "check:*"`, and ensure all
+   tests pass.
+1. Create a release announcement forum post markdown document in
+   [`forum-post/`](/forum-post/) and build it with `bun run forum:build` or
+   `bun run forum:watch`. This forum post should be even higher-level than the
+   changelog, and should be suitable for sharing with non-technical users. It
+   should link to the changelog for more details.
+1. Make a commit where you update the `version` property in `package.json` to
+   the new version, and push it to GitHub. This will trigger the CI workflows to
+   build and publish the release.
+1. Post the release announcement in the MAM forum.
+
+There may come a point in time where the current version of the project and that
+depicted in the images in the documentation have diverged far enough. If that
+happens, update them.
 
 ## Changelog
 
-Make sure to have an up-to-date [changelog](/CHANGELOG.md). Use the format
-established.
+The changelog lists changes to the project in a user-facing way (moreso than the
+commit history). [Keep a changelog](https://keepachangelog.com/en/1.1.0/) is
+used as a guide.
 
-Link to the PR or issue that reported or implemented the change if applicable.
+```md
+## [Unreleased]
+
+### Added/Changed/Removed/Deprecated/Fixed/Security
+
+- Item 1 was fixed in [#123](link-to-PR-or-issue)
+- Item 2 was added in [#abc123](link-to-GH-commit-hash)
+- **Breaking**: Item 3 was changed in a way that is not backward-compatible, in
+  [#456](link-to-PR-or-issue)
+
+## [vX.Y.Z](link-to-release) - YYYY-MM-DD
+
+...
+```
 
 ## PR/Commit Checks
 

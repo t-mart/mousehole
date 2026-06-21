@@ -1,12 +1,19 @@
 # Changelog
 
+This document lists the changes made to Mousehole in each version. See more
+about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
+
 ## Unreleased
 
-## [v0.5.0](https://github.com/t-mart/mousehole/releases/tag/v0.5.0) - 2026-06-20
+### Changed
 
-This release reworks how Mousehole talks to MAM and how the web UI stays in
-sync, and flattens the state model. Existing `state.json` files are migrated
-automatically (your cookie is preserved).
+- `style`: Increase word spacing for Commission font in
+  [2e7f1b0](https://github.com/t-mart/mousehole/commit/2e7f1b0)
+- `ui`: Use `required` attribute and `user-invalid` selector for form validation
+  instead of forcing `aria-invalid` in
+  [9a3e4be](https://github.com/t-mart/mousehole/commit/9a3e4be)
+
+## [v0.5.0](https://github.com/t-mart/mousehole/releases/tag/v0.5.0) - 2026-06-20
 
 - **Breaking**: Live updates use Server-Sent Events instead of WebSockets:
   `GET /web/ws` is replaced by `GET /events`, a contentless "re-pull
