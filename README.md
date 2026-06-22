@@ -1,7 +1,6 @@
 # Mousehole, a Seedbox IP Updater for MAM
 
-A background service to update a seedbox IP for MAM and an HTTP server to manage
-it.
+A background service to update a seedbox IP for MAM and web app to manage it.
 
 ![Mousehole Demo](/docs/images/demo.webp)
 
@@ -19,7 +18,7 @@ Features:
 To use Mousehole, you need to:
 
 1. [Run the service](#step-1-run-the-service)
-2. [Set your MAM cookie via the web interface](#step-2-set-your-mam-cookie)
+2. [Set your MAM cookie](#step-2-set-your-mam-cookie)
 
 ### Step 1: Run the service
 
@@ -58,7 +57,7 @@ Navigate to the Mousehole web UI at <http://localhost:5010> and paste in your
 MAM cookie. See [Getting Your Cookie Value](/docs/getting-your-cookie.md) for a
 full walkthrough of how to obtain the cookie from MAM.
 
-## Handling Problems
+## Troubleshooting
 
 Despite following the above steps, things can still go wrong that cannot be
 fixed automatically.
