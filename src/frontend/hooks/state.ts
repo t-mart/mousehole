@@ -25,6 +25,27 @@ class StateRequestError extends Error {
 }
 
 /**
+ * The request never reached a server. `fetch` rejects with a TypeError when the
+ * backend is down, unreachable, or the connection is dropped (the browser's own
+ * message is unhelpful: "NetworkError when attempting to fetch resource" /
+ * "Failed to fetch"). Replace it with something a user can act on.
+ */
+class NetworkError extends Error {
+  constructor(options?: { cause?: unknown }) {
+    super(
+      "Can't reach the server. It may be down or restarting. Check that the backend is running, then retry.",
+      options,
+    );
+    this.name = "NetworkError";
+  }
+}
+
+/** True when `fetch` rejected before getting a response (no server reached). */
+function isFetchNetworkError(error: unknown): boolean {
+  return error instanceof TypeError;
+}
+
+/**
  * The retry policy for the state query. Never retry auth failures (the login
  * screen handles them) or deterministic 4xx rejections (e.g.
  * host-not-allowed — the answer can't change, and endless retries used to
@@ -38,7 +59,13 @@ function retry(failureCount: number, error: Error): boolean {
 }
 
 async function queryFunction(): Promise<PublicState> {
-  const response = await fetch("/state");
+  let response: Response;
+  try {
+    response = await fetch("/state");
+  } catch (error) {
+    if (isFetchNetworkError(error)) throw new NetworkError({ cause: error });
+    throw error;
+  }
   if (response.status === 401) throw new UnauthenticatedError();
   const body = (await response.json().catch(() => undefined)) as
     | ErrorResponseBody
