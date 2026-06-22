@@ -26,8 +26,15 @@ export function App() {
   // query observer mounted *inside* it would be torn down and restarted on
   // every swap — an endless pending→error→remount loop. Keep it in this stable
   // parent and feed the result down as already-resolved content.
-  const { isPending, isError, error, isAuthError, refetch, data } =
-    useStateQuery();
+  const {
+    isPending,
+    isError,
+    error,
+    isAuthError,
+    refetch,
+    data,
+    isRefetching,
+  } = useStateQuery();
 
   let content: ReactNode;
   if (isPending) {
@@ -36,7 +43,14 @@ export function App() {
     content = isAuthError ? (
       <LoginForm key="login" />
     ) : (
-      <StateQueryErrorDisplay key="error" error={error} refetch={refetch} />
+      <StateQueryErrorDisplay
+        key="error"
+        error={error}
+        onRetry={() => {
+          void refetch();
+        }}
+        isRetrying={isRefetching}
+      />
     );
   } else {
     content = <Dashboard key="dashboard" state={data} />;
@@ -63,23 +77,22 @@ export function App() {
 
 function StateQueryErrorDisplay({
   error,
-  refetch,
+  onRetry,
+  isRetrying,
   ref,
 }: {
   error: Error;
-  refetch: () => Promise<unknown>;
+  onRetry: () => void;
+  isRetrying: boolean;
   ref?: Ref<HTMLElement>;
 }) {
+  if (isRetrying) {
+    return <Loading key="loading" spinnerClassName="size-32" />;
+  }
   return (
     <Section ref={ref} className="flex-col items-center gap-4">
       <p className="text-destructive">{error.message}</p>
-      <Button
-        onClick={() => {
-          void refetch();
-        }}
-      >
-        Retry
-      </Button>
+      <Button onClick={onRetry}>Retry</Button>
     </Section>
   );
 }
