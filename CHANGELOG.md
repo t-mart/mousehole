@@ -7,7 +7,7 @@ about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
 
 ### Changed
 
-- `style`: Increase word spacing for Commission font in
+- `style`: Increase word spacing for Commissioner font in
   [2e7f1b0](https://github.com/t-mart/mousehole/commit/2e7f1b0)
 - `ui`: Use `required` attribute and `user-invalid` selector for form validation
   instead of forcing `aria-invalid` in
