@@ -224,4 +224,22 @@ work, maintained on a best-effort basis.
 If my project has helped you out, you can ensure it stays maintained.
 
 - Sponsor me on [GitHub](https://github.com/sponsors/t-mart)
-- Send BTC to `3NbDsq9mhLAf7mRQ5UqnC5z1UXS8YGJBok`.
+- Send BTC to `3NbDsq9mhLAf7mRQ5UqnC5z1UXS8YGJBok`
+- Sign up for
+  [AirVPN with my referral link](https://airvpn.org/?referred_by=763806)
+
+### AirVPN
+
+Are you looking for a VPN? I use and recommend
+[AirVPN](https://airvpn.org/?referred_by=763806), which is compatible with
+[Gluetun](https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/airvpn.md).
+(AirVPN did **not** contact to me to say this, I just like them!)
+
+- Fast servers in many locations
+- Diverse payment options
+- Port forwards (for other providers, this isn't guaranteed!)
+- No rotating exit-IP nonsense, less chance of hitting "Last Change Too Recent"
+  error
+
+If you use my [referral link](https://airvpn.org/?referred_by=763806), I get a
+commission which supports the project.
