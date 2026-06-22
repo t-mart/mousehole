@@ -24,7 +24,7 @@ export interface Fixture {
   initialState?: State;
 }
 
-const HOST = { ip: "12.34.56.78", asn: 12_345, as: "MegaCorp Networks" };
+const HOST = { ip: "12.34.56.78", asn: 12_345, as: "MagiKarp Networks" };
 
 export const fixtures: Fixture[] = [
   {
