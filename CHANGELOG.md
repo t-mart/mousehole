@@ -14,6 +14,8 @@ about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
   [9a3e4be](https://github.com/t-mart/mousehole/commit/9a3e4be)
 - `ui`: Autofocus the password input on the login form and the cookie input on
   the cookie form. Fixes [#157](https://github.com/t-mart/mousehole/issues/157)
+- `ui`: Show a more descriptive error in the frontend when the backend server is
+  down in [2b115a5](https://github.com/t-mart/mousehole/commit/2b115a5)
 
 ## [v0.5.0](https://github.com/t-mart/mousehole/releases/tag/v0.5.0) - 2026-06-20
 
