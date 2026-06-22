@@ -120,8 +120,9 @@ You can trigger an immediate update from the web UI with **Update Now**.
 
 - `MOUSEHOLE_AUTH_PASSWORD`: Enables browser login via the web UI login page.
   Set this to a strong password. Supports the
-  [`_FILE` variant](#docker-secrets).
-- `TZ`: _(Default `Etc/UTC`)_ The timezone identifier for displaying localized
+  [`_FILE` variant](#docker-secrets). See
+  [Authentication](/docs/security-guide.md#authentication).
+- `TZ`: _(Default `Etc/UTC`)_ The timezone identifier for displaying local
   times. Use the "TZ identifier" column from this
   [list of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
   for valid values. (Not every city is listed! Use one that follows the same
@@ -129,27 +130,16 @@ You can trigger an immediate update from the web UI with **Update Now**.
 
 ### When hosting beyond localhost
 
-- `MOUSEHOLE_ALLOWED_HOSTS`: Comma-separated allowlist of
-  [`Host` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host)
-  values for protected routes. Defaults to `localhost,127.0.0.1,[::1]`. If an
-  entry in this list does not have a port, then any port is allowed for that
-  host. But, if a port is specified (`localhost:5010`), only that port is
-  allowed. As an opt-out, set to `*` to allow any host. See
-  [Host Allowlist](/docs/security-guide.md#host-allowlist) for more details.
-- `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of
-  [`Origin` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin)
-  values permitted to make cross-origin requests to mutating routes and the
-  live-update stream. Defaults to same-origin only, which only allows the origin
-  that matches the host of the request. Values must be exact origins with no
-  path, such as `https://mousehole.example.com` or `http://nas.local:5010`. As
-  an opt-out, set to `*` to allow any origin. See
-  [Origin Allowlist](/docs/security-guide.md#origin-allowlist) for more details.
+- `MOUSEHOLE_ALLOWED_HOSTS`: Comma-separated allowlist of `Host` header values.
+  Defaults to `localhost,127.0.0.1,[::1]`. See
+  [Host Allowlist](/docs/security-guide.md#host-allowlist).
+- `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of `Origin` header
+  values. Defaults to same-origin only. See
+  [Origin Allowlist](/docs/security-guide.md#origin-allowlist).
 - `MOUSEHOLE_HTTPS_ONLY_COOKIES`: _(Default `false`)_ Set to `true` to add the
   `Secure` flag to session cookies, preventing browsers from sending them over
-  plain HTTP. Enable this when Mousehole is accessed exclusively via HTTPS (e.g.
-  behind a reverse proxy). HTTP sessions will not work when this is enabled. See
-  [HTTPS-Only Cookies](/docs/security-guide.md#https-only-cookies) for more
-  details.
+  plain HTTP. See
+  [HTTPS-Only Cookies](/docs/security-guide.md#https-only-cookies).
 
 ### Occasional tuning
 
@@ -162,13 +152,14 @@ You can trigger an immediate update from the web UI with **Update Now**.
   Only needed if you're writing/integrating code against the API. Clients can
   send HTTP headers in the format `Authorization: Bearer <token>` when accessing
   [API endpoints](/docs/API.md). Supports the
-  [`_FILE` variant](#docker-secrets).
+  [`_FILE` variant](#docker-secrets). See
+  [Authentication](/docs/security-guide.md#authentication).
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
   a response from MAM before aborting the request. Prevents Mousehole from
   hanging when the connection silently stalls (e.g. before the VPN is up).
 - `MOUSEHOLE_SESSION_DURATION_SECONDS`: _(Default `604800` (1 week))_ How long a
   browser login session remains valid before expiring. See
-  [Session Duration](/docs/security-guide.md#session-duration) for more details.
+  [Session Duration](/docs/security-guide.md#session-duration).
 - `MOUSEHOLE_LOG_LEVEL`: _(Default `info`)_ Log verbosity. Valid values:
   `error`, `warn`, `info`, `debug`.
 - `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory
@@ -182,10 +173,10 @@ You can trigger an immediate update from the web UI with **Update Now**.
 ### Docker Secrets
 
 As an alternative to placing a credential in an environment variable, you can
-specify a file that contains it with the `_FILE` form. This enables use of
+specify a file that contains it with the `_FILE` variant. This enables use of
 [Docker secrets](https://docs.docker.com/compose/how-tos/use-secrets/). The
-contents are whitespace-trimmed, and the `_FILE` form takes precedence when both
-are set. If the file can't be read, Mousehole fails to start.
+contents are whitespace-trimmed, and the `_FILE` variant takes precedence when
+both are set. If the file can't be read, Mousehole fails to start.
 
 Supported for `MOUSEHOLE_AUTH_PASSWORD` and `MOUSEHOLE_AUTH_TOKEN`:
 

@@ -1,15 +1,11 @@
 # MAM Errors
 
-<figure align="center">
-  <img src="/docs/images/last-change-too-recent.png" alt="Last change too recent error on Mousehole dashboard" width="600">
-  <figcaption><em>Example MAM error</em></figcaption>
-</figure>
+![Example MAM error](/docs/images/mam-errors-tiled.png)
 
-Mousehole communicates with MyAnonamouse's
-[Dynamic Seedbox IP API endpoint](https://www.myanonamouse.net/api/endpoint.php/3/json/dynamicSeedbox.php).
-If you see a status error in Mousehole, it's a relay of an error response from
-MAM. This page will help you understand what those errors mean and how to fix
-them.
+MyAnonamouse's
+[Dynamic Seedbox IP API endpoint](https://www.myanonamouse.net/api/endpoint.php/3/json/dynamicSeedbox.php)
+may error in various ways against the cookie value you provide. This page will
+help you understand what those errors mean and how to fix them.
 
 - [429 Last Change Too Recent](#429-last-change-too-recent)
 - [403 Invalid Session](#403-invalid-session)

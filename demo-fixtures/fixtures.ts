@@ -43,7 +43,7 @@ export const fixtures: Fixture[] = [
     name: "invalid-session-invalid-cookie",
     description: "MAM rejects the cookie with an invalid session or cookie.",
     password: "password",
-    mam: { outcome: "invalidSession", ...HOST },
+    mam: { outcome: "invalidCookie", ...HOST },
   },
   {
     name: "last-change-too-recent",
