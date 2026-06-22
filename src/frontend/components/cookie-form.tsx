@@ -44,6 +44,8 @@ export function CookieForm({
           className="font-mono"
           spellCheck="false"
           autoComplete="off"
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
           required
         />
         <Button type="submit" disabled={!isCookieValid} loading={isPending}>

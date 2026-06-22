@@ -12,6 +12,8 @@ about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
 - `ui`: Use `required` attribute and `user-invalid` selector for form validation
   instead of forcing `aria-invalid` in
   [9a3e4be](https://github.com/t-mart/mousehole/commit/9a3e4be)
+- `ui`: Autofocus the password input on the login form and the cookie input on
+  the cookie form. Fixes [#157](https://github.com/t-mart/mousehole/issues/157)
 
 ## [v0.5.0](https://github.com/t-mart/mousehole/releases/tag/v0.5.0) - 2026-06-20
 
