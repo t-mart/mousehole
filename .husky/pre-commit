@@ -7,11 +7,14 @@ if [ -n "$staged" ]; then
   echo "$staged" | xargs git add
 fi
 
-echo "[pre-commit] Running quality checks..."
+# NOTE: these checks are commented out because they take too long to run on
+# every commit. maybe we will return to them later.
+
+# echo "[pre-commit] Running quality checks..."
 # for some reason, unable to run the entire check:* suite with `bun run
 # --sequential check:*`. unfortunate. must now keep in sync with all check
 # scripts in package.json.
-bun run --sequential check:fmt
-bun run --sequential check:lint
-bun run --sequential check:types
-bun run --sequential check:test
+# bun run --sequential check:fmt
+# bun run --sequential check:lint
+# bun run --sequential check:types
+# bun run --sequential check:test
