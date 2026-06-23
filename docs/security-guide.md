@@ -6,9 +6,8 @@ in which you should use them.
 
 - [Quick Start](#quick-start)
   - [Localhost Only](#localhost-only)
-  - [Beyond Localhost](#beyond-localhost)
-    - [LAN Access](#lan-access)
-    - [Custom Domain Access](#custom-domain-access)
+  - [LAN Access](#lan-access)
+  - [Reverse Proxy Access](#reverse-proxy-access)
   - [Backwards Compatibility Mode](#backwards-compatibility-mode)
 - [Cookie Storage](#cookie-storage)
 - [Port Binding](#port-binding)
@@ -37,17 +36,11 @@ environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
 ```
 
-### Beyond Localhost
-
-The scenarios below are just variations of the same technique: add the place
-where you access Mousehole to the host and origin allowlists, and set a
-password. See the [Host Allowlist](#host-allowlist) and
-[Origin Allowlist](#origin-allowlist) sections below for more details.
-
 #### LAN Access
 
 If you access Mousehole through your local network (for example,
-`192.168.0.2:5010`), add that host to the Host allowlist:
+`192.168.0.2:5010`) or a custom domain, add that host to
+[Host Allowlist](#host-allowlist):
 
 ```yaml
 # mousehole service definition in compose.yml
@@ -59,9 +52,10 @@ environment:
 #### Reverse Proxy Access
 
 If you access Mousehole through a reverse proxy (like Caddy, Traefik, or some
-Unraid configurations), you must configure _both_ the Host and Origin
-allowlists. For example, to access on `https://mousehole.myhomelab.lan` (where
-this host is a reverse proxy), you would configure:
+Unraid configurations), you must configure _both_ the
+[Host Allowlist](#host-allowlist) and [Origin Allowlist](#origin-allowlist). For
+example, to access on `https://mousehole.myhomelab.lan` (where this host is a
+reverse proxy), you would configure:
 
 ```yaml
 # mousehole service definition in compose.yml
@@ -73,7 +67,7 @@ environment:
 
 ### Backwards Compatibility Mode
 
-Before v0.4.0, Mousehole had no authentication nor host/origin checks. To
+Before v0.4.0, Mousehole had no authentication nor Host/Origin checks. To
 restore that behavior, disable authentication and allow all hosts and origins.
 
 > [!WARNING]
