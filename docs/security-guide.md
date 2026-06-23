@@ -47,21 +47,21 @@ password. See the [Host Allowlist](#host-allowlist) and
 #### LAN Access
 
 If you access Mousehole through your local network (for example,
-`192.168.0.2:5010`), use something like this:
+`192.168.0.2:5010`), add that host to the Host allowlist:
 
 ```yaml
 # mousehole service definition in compose.yml
 environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
   MOUSEHOLE_ALLOWED_HOSTS: "localhost,127.0.0.1,192.168.0.2"
-  MOUSEHOLE_ALLOWED_ORIGINS: "http://localhost:5010,http://127.0.0.1:5010,http://192.168.0.2:5010"
 ```
 
-#### Custom Domain Access
+#### Reverse Proxy Access
 
-If you access Mousehole on a custom domain (such as with a reverse proxy like
-Caddy, Traefik, or Unraid), add it to the lists. For example, to access on
-`https://mousehole.myhomelab.lan`, you would configure:
+If you access Mousehole through a reverse proxy (like Caddy, Traefik, or some
+Unraid configurations), you must configure _both_ the Host and Origin
+allowlists. For example, to access on `https://mousehole.myhomelab.lan` (where
+this host is a reverse proxy), you would configure:
 
 ```yaml
 # mousehole service definition in compose.yml
@@ -178,9 +178,8 @@ Here are some examples of valid host values given a URL:
 | `http://localhost:5010`               | `localhost:5010` or `localhost`                             |
 
 **When to configure this:** any time you access Mousehole at a hostname or IP
-address other than localhost addresses, such as a LAN IP or a reverse proxy
-domain. (You will likely need to configure the
-[allowed origins](#origin-allowlist) too.)
+address other than localhost addresses, such as a LAN IP or a custom domain.
+(You might need to configure the [allowed origins](#origin-allowlist) too.)
 
 ```
 MOUSEHOLE_ALLOWED_HOSTS: mousehole.myhomelab.lan,192.168.1.10
@@ -207,8 +206,7 @@ host, and optional port, no path.
 
 The default policy is
 [same-origin](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Same-origin_policy):
-the browser's origin (as seen in the address bar) must match the origin that the
-Mousehole server is on.
+the Origin header must match the request's Host header, scheme, and port.
 
 Here are some examples of valid origin values given a URL:
 
@@ -218,10 +216,10 @@ Here are some examples of valid origin values given a URL:
 | `http://192.168.1.10:5010`                 | `http://192.168.1.10:5010`             |
 | `http://localhost:5010`                    | `http://localhost:5010`                |
 
-**When to configure this:** if you use a reverse proxy (Caddy, Traefik, Unraid,
-etc.), you will likely need to add the the proxy's origin to this list because
-proxies rewrite headers. (You will likely need to configure the
-[host allowlist](#host-allowlist) too.)
+**When to configure this:** any time there is network infrastructure between
+your browser and Mousehole that changes the host of requests, such as a reverse
+proxy. (You will likely need to configure the [host allowlist](#host-allowlist)
+too.)
 
 ```
 MOUSEHOLE_ALLOWED_ORIGINS: https://mousehole.myhomelab.lan,http://localhost:5010
