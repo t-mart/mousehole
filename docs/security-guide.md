@@ -6,7 +6,9 @@ in which you should use them.
 
 - [Quick Start](#quick-start)
   - [Localhost Only](#localhost-only)
-  - [LAN or Reverse Proxy Access](#reverse-proxy-access)
+  - [Beyond Localhost](#beyond-localhost)
+    - [LAN Access](#lan-access)
+    - [Custom Domain Access](#custom-domain-access)
   - [Backwards Compatibility Mode](#backwards-compatibility-mode)
 - [Cookie Storage](#cookie-storage)
 - [Port Binding](#port-binding)
@@ -35,23 +37,39 @@ environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
 ```
 
-### Reverse Proxy Access
+### Beyond Localhost
 
-If you access Mousehole through a reverse proxy (Caddy, Traefik, Unraid, etc.),
-add the appropriate entries to the host and origin allowlists. For example, if
-you want access Mousehole at `https://mousehole.myhomelab.lan` and
-`http://localhost:5010`.
+The scenarios below are just variations of the same technique: add the place
+where you access Mousehole to the host and origin allowlists, and set a
+password. See the [Host Allowlist](#host-allowlist) and
+[Origin Allowlist](#origin-allowlist) sections below for more details.
+
+#### LAN Access
+
+If you access Mousehole through your local network (for example,
+`192.168.0.2:5010`), use something like this:
 
 ```yaml
 # mousehole service definition in compose.yml
 environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
-  MOUSEHOLE_ALLOWED_HOSTS: "mousehole.myhomelab.lan,localhost"
-  MOUSEHOLE_ALLOWED_ORIGINS: "https://mousehole.myhomelab.lan,http://localhost:5010"
+  MOUSEHOLE_ALLOWED_HOSTS: "localhost,127.0.0.1,192.168.0.2"
+  MOUSEHOLE_ALLOWED_ORIGINS: "http://localhost:5010,http://127.0.0.1:5010,http://192.168.0.2:5010"
 ```
 
-See the [Host Allowlist](#host-allowlist) and
-[Origin Allowlist](#origin-allowlist) sections below for more details.
+#### Custom Domain Access
+
+If you access Mousehole on a custom domain (such as with a reverse proxy like
+Caddy, Traefik, or Unraid), add it to the lists. For example, to access on
+`https://mousehole.myhomelab.lan`, you would configure:
+
+```yaml
+# mousehole service definition in compose.yml
+environment:
+  MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
+  MOUSEHOLE_ALLOWED_HOSTS: "localhost,127.0.0.1,mousehole.myhomelab.lan"
+  MOUSEHOLE_ALLOWED_ORIGINS: "http://localhost:5010,http://127.0.0.1:5010,https://mousehole.myhomelab.lan"
+```
 
 ### Backwards Compatibility Mode
 
@@ -111,38 +129,40 @@ for details.
 Mousehole v0.4.0 introduced two authentication mechanisms, which can be used
 independently or together.
 
-**Browser login** (`MOUSEHOLE_AUTH_PASSWORD`): Enables a login page on the web
-UI. Sessions persist for one week by default (see
-[Session Duration](#session-duration)).
+**Browser login password** (`MOUSEHOLE_AUTH_PASSWORD` environment variable):
+Enables a login page on the web UI. Sessions persist for one week by default
+(see [Session Duration](#session-duration)).
 
 ```
 MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
 ```
 
-**API token** (`MOUSEHOLE_AUTH_TOKEN`): Enables Bearer token authentication for
-API clients. Clients send `Authorization: Bearer <token>` with each request.
-Useful for scripts or tools that access the [API](/docs/API.md).
+**API token** (`MOUSEHOLE_AUTH_TOKEN` environment variable): Enables Bearer
+token authentication for API clients. Clients send
+`Authorization: Bearer <token>` with each request. Useful for scripts or tools
+that access the [API](/docs/API.md).
 
 ```
 MOUSEHOLE_AUTH_TOKEN: "replace-with-a-long-random-token"
 ```
 
-Both credentials support a `_FILE` form that reads the value from a file (for
-example a Docker secret under `/run/secrets/`) instead of an environment
-variable. See [Docker Secrets](/README.md#docker-secrets).
+Both credentials support a `_FILE` environment variable form that reads the
+value from a file (for example a Docker secret under `/run/secrets/`) instead of
+an environment variable. See [Docker Secrets](/README.md#docker-secrets).
 
 To disable all authentication (not recommended outside of a trusted localhost
-setup), set `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true`.
+setup), set environment variable `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true`.
 
 ## Host Allowlist
 
-`MOUSEHOLE_ALLOWED_HOSTS` ensures Mousehole is only hosted on the names you
-intend for it to be. Mousehole rejects requests with a
+The Host allowlist ensures Mousehole is only hosted on the names you intend for
+it to be. Mousehole rejects requests with a
 [`Host` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host)
 that isn't on this list. This prevents
 [Host header injection](https://portswigger.net/web-security/host-header)
 attacks.
 
+This list is set using the `MOUSEHOLE_ALLOWED_HOSTS` environment variable.
 Separate multiple values with commas. Valid values are hostnames or IP
 addresses, with optional ports. If a port is provided, _only_ that port is
 allowed for that host. Without a port, _any_ port is allowed for that host.
@@ -174,14 +194,14 @@ MOUSEHOLE_ALLOWED_HOSTS: "*"
 
 ## Origin Allowlist
 
-`MOUSEHOLE_ALLOWED_ORIGINS` ensures that the Mousehole server only interacts
-with the web pages (including its own web UI) that you intend to use it from.
-Mousehole rejects
-[origins](https://developer.mozilla.org/en-US/docs/Glossary/Origin) that are not
-on this list from making mutating requests (e.g., `POST /login`). Tightening
-this down prevents
+The Origin allowlist ensures that the Mousehole server only interacts with the
+web pages (including its own web UI) that you intend to use it from. Mousehole
+rejects [origins](https://developer.mozilla.org/en-US/docs/Glossary/Origin) that
+are not on this list from making mutating requests (e.g., `POST /login`).
+Tightening this down prevents
 [Cross-Origin Request Forgery (CSRF)](https://portswigger.net/web-security/csrf).
 
+This list is set using the `MOUSEHOLE_ALLOWED_ORIGINS` environment variable.
 Separate multiple values with commas. Valid values are full origins: scheme,
 host, and optional port, no path.
 
@@ -215,14 +235,16 @@ MOUSEHOLE_ALLOWED_ORIGINS: "*"
 
 ## HTTPS-Only Cookies
 
-`MOUSEHOLE_HTTPS_ONLY_COOKIES` (default `false`) adds the
+In HTTPS-only envirionments, you can instruct Mousehole to add the
 [`Secure` flag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#secure)
-to session cookies, so browsers only send them over HTTPS connections.
+to session cookies, which prevents browsers from sending them over plain HTTP.
+This is done with the `MOUSEHOLE_HTTPS_ONLY_COOKIES` environment variable set to
+`true` or `false` (default `false`).
 
-**When to configure this:** Enable this when Mousehole is behind an HTTPS
-reverse proxy and you will **only be accessing it over HTTPS**. Do not enable it
-for plain HTTP or split HTTP/HTTPS setups, or else the browser will refuse to
-send the cookie and logins will break.
+**When to configure this:** Enable this if you will **only be accessing
+Mousehole over HTTPS**. Do not enable it for plain HTTP or split HTTP/HTTPS
+setups, or else the browser will refuse to send the cookie and logins will
+break.
 
 ```
 MOUSEHOLE_HTTPS_ONLY_COOKIES: "true"
@@ -230,8 +252,9 @@ MOUSEHOLE_HTTPS_ONLY_COOKIES: "true"
 
 ## Session Duration
 
-`MOUSEHOLE_SESSION_DURATION_SECONDS` (default `604800`, one week) sets how long
-a browser login session stays valid before requiring re-authentication.
+The `MOUSEHOLE_SESSION_DURATION_SECONDS` environment variable (default `604800`,
+one week) sets how long a browser login session stays valid before requiring
+re-authentication.
 
 **When to configure this:** Shorten it on shared or less-trusted devices.
 

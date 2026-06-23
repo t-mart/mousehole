@@ -135,15 +135,19 @@ You can trigger an immediate update from the web UI with **Update Now**.
 - `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of `Origin` header
   values. Defaults to same-origin only. See
   [Origin Allowlist](/docs/security-guide.md#origin-allowlist).
+
+### Other tuning
+
+- `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
+  listen.
+- `MOUSEHOLE_LOG_LEVEL`: _(Default `info`)_ Log verbosity. Valid values:
+  `error`, `warn`, `info`, `debug`.
 - `MOUSEHOLE_HTTPS_ONLY_COOKIES`: _(Default `false`)_ Set to `true` to add the
   `Secure` flag to session cookies, preventing browsers from sending them over
   plain HTTP. See
   [HTTPS-Only Cookies](/docs/security-guide.md#https-only-cookies).
-
-### Occasional tuning
-
-- `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
-  listen.
+- `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH`: Set to `true` to turn off all
+  authentication. Do not use in mixed-trust environments.
 - `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The
   interval in seconds between automatic updates.
 - `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
@@ -153,20 +157,13 @@ You can trigger an immediate update from the web UI with **Update Now**.
   [`_FILE` variant](#docker-secrets). See
   [Authentication](/docs/security-guide.md#authentication).
 - `MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS`: _(Default `10`)_ How long to wait for
-  a response from MAM before aborting the request. Prevents Mousehole from
-  hanging when the connection silently stalls (e.g. before the VPN is up).
+  a response from MAM before aborting the request. Can prevent Mousehole from
+  waiting too long in certain situations (e.g. before the VPN is up).
 - `MOUSEHOLE_SESSION_DURATION_SECONDS`: _(Default `604800` (1 week))_ How long a
   browser login session remains valid before expiring. See
   [Session Duration](/docs/security-guide.md#session-duration).
-- `MOUSEHOLE_LOG_LEVEL`: _(Default `info`)_ Log verbosity. Valid values:
-  `error`, `warn`, `info`, `debug`.
 - `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory
   where the service will store its internal data.
-
-### Rarely needed
-
-- `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH`: Set to `true` to turn off all
-  authentication. Do not use in mixed-trust environments.
 
 ### Docker Secrets
 
