@@ -145,8 +145,7 @@ You can trigger an immediate update from the web UI with **Update Now**.
 - `MOUSEHOLE_PORT`: _(Default `5010`)_ The port on which the HTTP server will
   listen.
 - `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The
-  interval in seconds between automatic updates. If your IP is unchanged, MAM
-  simply replies "No change", so there's no harm in a short interval.
+  interval in seconds between automatic updates.
 - `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.
   Only needed if you're writing/integrating code against the API. Clients can
   send HTTP headers in the format `Authorization: Bearer <token>` when accessing
