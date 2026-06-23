@@ -179,7 +179,7 @@ Here are some examples of valid host values given a URL:
 
 **When to configure this:** any time you access Mousehole at a hostname or IP
 address other than localhost addresses, such as a LAN IP or a custom domain.
-(You might need to configure the [allowed origins](#origin-allowlist) too.)
+(You might need to configure the [Origin allowlist](#origin-allowlist) too.)
 
 ```
 MOUSEHOLE_ALLOWED_HOSTS: mousehole.myhomelab.lan,192.168.1.10
@@ -217,9 +217,9 @@ Here are some examples of valid origin values given a URL:
 | `http://localhost:5010`                    | `http://localhost:5010`                |
 
 **When to configure this:** any time there is network infrastructure between
-your browser and Mousehole that changes the host of requests, such as a reverse
-proxy. (You will likely need to configure the [host allowlist](#host-allowlist)
-too.)
+your browser and Mousehole that changes the Host header of requests, such as a
+reverse proxy. (You will likely need to configure the
+[Host allowlist](#host-allowlist) too.)
 
 ```
 MOUSEHOLE_ALLOWED_ORIGINS: https://mousehole.myhomelab.lan,http://localhost:5010
