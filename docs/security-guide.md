@@ -169,14 +169,6 @@ allowed for that host. Without a port, _any_ port is allowed for that host.
 
 The default is `localhost,127.0.0.1,[::1]`.
 
-Here are some examples of valid host values given a URL:
-
-| URL                                   | Host Value                                                  |
-| ------------------------------------- | ----------------------------------------------------------- |
-| `http://mousehole.myhomelab.lan:5010` | `mousehole.myhomelab.lan:5010` or `mousehole.myhomelab.lan` |
-| `http://192.168.1.10:5010`            | `192.168.1.10:5010` or `192.168.1.10`                       |
-| `http://localhost:5010`               | `localhost:5010` or `localhost`                             |
-
 **When to configure this:** any time you access Mousehole at a hostname or IP
 address other than localhost addresses, such as a LAN IP or a custom domain.
 (You might need to configure the [Origin allowlist](#origin-allowlist) too.)
@@ -184,6 +176,14 @@ address other than localhost addresses, such as a LAN IP or a custom domain.
 ```
 MOUSEHOLE_ALLOWED_HOSTS: mousehole.myhomelab.lan,192.168.1.10
 ```
+
+Here are some examples of valid host values given a URL:
+
+| URL                                    | Host Value                                                  |
+| -------------------------------------- | ----------------------------------------------------------- |
+| `http://localhost:5010`                | `localhost:5010` or `localhost`                             |
+| `http://192.168.1.10:5010`             | `192.168.1.10:5010` or `192.168.1.10`                       |
+| `https://mousehole.myhomelab.lan:5010` | `mousehole.myhomelab.lan:5010` or `mousehole.myhomelab.lan` |
 
 You can also opt-out and allow any host.
 
@@ -208,14 +208,6 @@ The default policy is
 [same-origin](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Same-origin_policy):
 the Origin header must match the request's Host header, scheme, and port.
 
-Here are some examples of valid origin values given a URL:
-
-| URL                                        | Origin Value                           |
-| ------------------------------------------ | -------------------------------------- |
-| `https://mousehole.myhomelab.lan:5010/web` | `https://mousehole.myhomelab.lan:5010` |
-| `http://192.168.1.10:5010`                 | `http://192.168.1.10:5010`             |
-| `http://localhost:5010`                    | `http://localhost:5010`                |
-
 **When to configure this:** any time there is network infrastructure between
 your browser and Mousehole that changes the Host header of requests, such as a
 reverse proxy. (You will likely need to configure the
@@ -224,6 +216,14 @@ reverse proxy. (You will likely need to configure the
 ```
 MOUSEHOLE_ALLOWED_ORIGINS: https://mousehole.myhomelab.lan,http://localhost:5010
 ```
+
+Here are some examples of valid origin values given a URL:
+
+| URL                                        | Origin Value                           |
+| ------------------------------------------ | -------------------------------------- |
+| `http://localhost:5010`                    | `http://localhost:5010`                |
+| `http://192.168.1.10:5010`                 | `http://192.168.1.10:5010`             |
+| `https://mousehole.myhomelab.lan:5010/web` | `https://mousehole.myhomelab.lan:5010` |
 
 You can also opt-out and allow any origin.
 
