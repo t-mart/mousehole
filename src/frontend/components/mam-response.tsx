@@ -1,7 +1,15 @@
 import { Check, Copy } from "lucide-react";
-import { type ComponentPropsWithRef, type Ref, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import {
+  type ComponentPropsWithRef,
+  type Ref,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Temporal } from "temporal-polyfill";
 
+import { useDashedIdent } from "#frontend/hooks/dashed-ident.ts";
 import { cn } from "#frontend/lib/cn.ts";
 import {
   classify,
@@ -9,6 +17,8 @@ import {
   type PublicState,
 } from "#shared/public-state.ts";
 
+import { Button } from "./lib/button";
+import { bounceProps } from "./lib/motion";
 import { Section } from "./lib/section";
 import { NextUpdate } from "./next-update";
 
@@ -84,30 +94,97 @@ export function MamResponse({
 
 function CopyableIP({ ip }: Readonly<{ ip: string }>) {
   const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(false);
+  const copyText = copied ? "Copied!" : "Copy IP address";
 
-  function handleCopy() {
+  const anchorName = useDashedIdent("copy-ip");
+
+  // Each copy restarts the "Copied!" window. Clear any pending reset first, or
+  // an earlier press's timer fires mid-spam and flips the label back too soon.
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  useEffect(() => () => clearTimeout(resetTimerRef.current), []);
+
+  function copy() {
     void navigator.clipboard.writeText(ip).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = setTimeout(() => setCopied(false), 2000);
     });
   }
 
+  // Hand-rolled tooltip (no native popover): `open` drives the mount,
+  // AnimatePresence runs the bounce, and CSS anchor positioning pins it to the
+  // button. Show on hover/focus, hide on leave/blur/Escape. The tooltip is
+  // aria-hidden (its text only echoes the button's label); the button's
+  // aria-label names it, and a visually hidden live region announces "Copied!".
   return (
     <span className="inline-flex items-center gap-2">
       <span className="font-mono">{ip}</span>
-      <button
+      <Button
         type="button"
-        onClick={handleCopy}
-        aria-label={copied ? "Copied!" : "Copy IP address"}
-        className={cn(
-          "cursor-pointer focus-ring",
-          copied
-            ? "text-success"
-            : "text-muted-text hover:text-primary-background-dark",
-        )}
+        variant="ghost"
+        size="icon"
+        onClick={copy}
+        onPointerEnter={() => setOpen(true)}
+        onPointerLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") setOpen(false);
+        }}
+        aria-label="Copy IP address"
+        style={{ anchorName }}
+        className={cn(copied && "text-success hover:text-success")}
       >
-        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-      </button>
+        <span className="grid place-items-center">
+          <AnimatePresence initial={false}>
+            <motion.span
+              key={copied ? "check" : "copy"}
+              {...bounceProps}
+              className="col-start-1 row-start-1"
+            >
+              {copied ? (
+                <Check className="size-4" />
+              ) : (
+                <Copy className="size-4" />
+              )}
+            </motion.span>
+          </AnimatePresence>
+        </span>
+      </Button>
+      <span role="status" className="sr-only">
+        {copied ? "Copied!" : ""}
+      </span>
+      <AnimatePresence mode="wait">
+        {open && (
+          <motion.div
+            key={copyText}
+            aria-hidden
+            {...bounceProps}
+            style={{
+              positionAnchor: anchorName,
+              position: "absolute",
+
+              // BUG: overflow is measured against the containing block, not the
+              // viewport; so, with flip-inline, the fallback always engages. I
+              // like the right-side toolip though, so we just omit fallback
+              // behavior and accept that it may clip on small screens.
+              //
+              // positionTryFallbacks: "flip-inline",
+
+              left: "calc(anchor(right) + 0.5rem)",
+              top: "anchor(center)",
+              translate: "0 -50%",
+              transformOrigin: "left center",
+            }}
+            className="z-10 rounded-md bg-background px-2 py-1 text-sm font-normal whitespace-nowrap shadow-md"
+          >
+            {copyText}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </span>
   );
 }

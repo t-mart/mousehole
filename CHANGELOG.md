@@ -20,6 +20,9 @@ about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
   animations. Fixes [#161](https://github.com/t-mart/mousehole/issues/161)
 - `ui`: Link the version in the footer to the changelog. Fixes
   [#162](https://github.com/t-mart/mousehole/issues/162)
+- `ui`: Copying the Host IP now confirms with a tooltip. Closes
+  [#155](https://github.com/t-mart/mousehole/issues/155) and
+  [#160](https://github.com/t-mart/mousehole/issues/160)
 
 ## [v0.5.0](https://github.com/t-mart/mousehole/releases/tag/v0.5.0) - 2026-06-20
 
