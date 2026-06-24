@@ -36,7 +36,7 @@ environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
 ```
 
-#### LAN Access
+### LAN Access
 
 If you access Mousehole through your local network (for example,
 `192.168.0.2:5010`) or a custom domain, add that host to
@@ -49,7 +49,7 @@ environment:
   MOUSEHOLE_ALLOWED_HOSTS: "localhost,127.0.0.1,192.168.0.2"
 ```
 
-#### Reverse Proxy Access
+### Reverse Proxy Access
 
 If you access Mousehole through a reverse proxy (like Caddy, Traefik, or some
 Unraid configurations), you must configure _both_ the
