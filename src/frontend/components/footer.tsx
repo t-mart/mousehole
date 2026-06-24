@@ -10,7 +10,7 @@ export function Footer() {
   return (
     // `layout` so the footer glides as content above it changes height (the page
     // stays vertically centered — see motion memory).
-    <motion.footer layout className="@container space-y-2 text-sm">
+    <motion.footer layout className="@container space-y-2">
       <ol className="flex justify-center flex-col @xs:flex-row flex-wrap gap-x-8 gap-y-2">
         <li>
           <Link
