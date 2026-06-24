@@ -6,8 +6,8 @@ in which you should use them.
 
 - [Quick Start](#quick-start)
   - [Localhost Only](#localhost-only)
-  - [LAN Access](#lan-access)
-  - [Reverse Proxy Access](#reverse-proxy-access)
+  - [LAN or Custom Domain](#lan-or-custom-domain)
+  - [Reverse Proxy](#reverse-proxy)
   - [Backwards Compatibility Mode](#backwards-compatibility-mode)
 - [Cookie Storage](#cookie-storage)
 - [Port Binding](#port-binding)
@@ -35,10 +35,10 @@ environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
 ```
 
-### LAN Access
+### LAN or Custom Domain
 
-If you access Mousehole through your local network (for example,
-`192.168.0.2:5010`) or a custom domain, add that host to
+If you access Mousehole on a _non-localhost_ host, such as one on your network
+(for example, `192.168.0.2:5010`) or on a custom domain, add that host to
 [Host Allowlist](#host-allowlist):
 
 ```yaml
@@ -47,7 +47,7 @@ environment:
   MOUSEHOLE_ALLOWED_HOSTS: "localhost,127.0.0.1,192.168.0.2"
 ```
 
-### Reverse Proxy Access
+### Reverse Proxy
 
 If you access Mousehole through a reverse proxy (like Caddy, Traefik, or some
 Unraid configurations), you must configure _both_ the
