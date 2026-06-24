@@ -31,7 +31,6 @@ If you access Mousehole only from the machine it runs on
 (`http://localhost:5010`), set a password and you're done.
 
 ```yaml
-# mousehole service definition in compose.yml
 environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
 ```
@@ -43,7 +42,6 @@ If you access Mousehole through your local network (for example,
 [Host Allowlist](#host-allowlist):
 
 ```yaml
-# mousehole service definition in compose.yml
 environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
   MOUSEHOLE_ALLOWED_HOSTS: "localhost,127.0.0.1,192.168.0.2"
@@ -58,7 +56,6 @@ example, to access on `https://mousehole.myhomelab.lan` (where this host is a
 reverse proxy), you would configure:
 
 ```yaml
-# mousehole service definition in compose.yml
 environment:
   MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
   MOUSEHOLE_ALLOWED_HOSTS: "localhost,127.0.0.1,mousehole.myhomelab.lan"
@@ -75,7 +72,6 @@ restore that behavior, disable authentication and allow all hosts and origins.
 > Only use this on a private, trusted network.
 
 ```yaml
-# mousehole service definition in compose.yml
 environment:
   MOUSEHOLE_INSECURE_ALLOW_NO_AUTH: "true"
   MOUSEHOLE_ALLOWED_HOSTS: "*"
@@ -127,8 +123,9 @@ independently or together.
 Enables a login page on the web UI. Sessions persist for one week by default
 (see [Session Duration](#session-duration)).
 
-```
-MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
+```yaml
+environment:
+  MOUSEHOLE_AUTH_PASSWORD: "replace-with-a-long-random-password"
 ```
 
 **API token** (`MOUSEHOLE_AUTH_TOKEN` environment variable): Enables Bearer
@@ -136,8 +133,9 @@ token authentication for API clients. Clients send
 `Authorization: Bearer <token>` with each request. Useful for scripts or tools
 that access the [API](/docs/API.md).
 
-```
-MOUSEHOLE_AUTH_TOKEN: "replace-with-a-long-random-token"
+```yaml
+environment:
+  MOUSEHOLE_AUTH_TOKEN: "replace-with-a-long-random-token"
 ```
 
 Both credentials support a `_FILE` environment variable form that reads the
@@ -167,8 +165,9 @@ The default is `localhost,127.0.0.1,[::1]`.
 address other than localhost addresses, such as a LAN IP or a custom domain.
 (You might need to configure the [Origin allowlist](#origin-allowlist) too.)
 
-```
-MOUSEHOLE_ALLOWED_HOSTS: mousehole.myhomelab.lan,192.168.1.10
+```yaml
+environment:
+  MOUSEHOLE_ALLOWED_HOSTS: mousehole.myhomelab.lan,192.168.1.10
 ```
 
 Here are some examples of valid host values given a URL:
@@ -181,8 +180,9 @@ Here are some examples of valid host values given a URL:
 
 You can also opt-out and allow any host.
 
-```
-MOUSEHOLE_ALLOWED_HOSTS: "*"
+```yaml
+environment:
+  MOUSEHOLE_ALLOWED_HOSTS: "*"
 ```
 
 ## Origin Allowlist
@@ -207,8 +207,9 @@ your browser and Mousehole that changes the Host header of requests, such as a
 reverse proxy. (You will likely need to configure the
 [Host allowlist](#host-allowlist) too.)
 
-```
-MOUSEHOLE_ALLOWED_ORIGINS: https://mousehole.myhomelab.lan,http://localhost:5010
+```yaml
+environment:
+  MOUSEHOLE_ALLOWED_ORIGINS: https://mousehole.myhomelab.lan,http://localhost:5010
 ```
 
 Here are some examples of valid origin values given a URL:
@@ -221,8 +222,9 @@ Here are some examples of valid origin values given a URL:
 
 You can also opt-out and allow any origin.
 
-```
-MOUSEHOLE_ALLOWED_ORIGINS: "*"
+```yaml
+environment:
+  MOUSEHOLE_ALLOWED_ORIGINS: "*"
 ```
 
 ## HTTPS-Only Cookies
@@ -238,8 +240,9 @@ Mousehole over HTTPS**. Do not enable it for plain HTTP or split HTTP/HTTPS
 setups, or else the browser will refuse to send the cookie and logins will
 break.
 
-```
-MOUSEHOLE_HTTPS_ONLY_COOKIES: "true"
+```yaml
+environment:
+  MOUSEHOLE_HTTPS_ONLY_COOKIES: "true"
 ```
 
 ## Session Duration
@@ -250,6 +253,7 @@ re-authentication.
 
 **When to configure this:** Shorten it on shared or less-trusted devices.
 
-```
-MOUSEHOLE_SESSION_DURATION_SECONDS: "86400"  # one day
+```yaml
+environment:
+  MOUSEHOLE_SESSION_DURATION_SECONDS: "86400" # one day
 ```
