@@ -1,6 +1,6 @@
 import type { Ref } from "react";
 
-import { docsBaseUrl } from "#shared/docs-base-url.ts";
+import { docsUrl } from "#frontend/lib/repo-url.ts";
 
 import { Link } from "./lib/link";
 import { Section } from "./lib/section";
@@ -12,7 +12,7 @@ export function NeedHelp({ ref }: Readonly<{ ref?: Ref<HTMLElement> }>) {
 
       <p className="text-center w-full">
         Need help? Check the{" "}
-        <Link href={`${docsBaseUrl}/mam-errors.md`} target="_blank">
+        <Link href={docsUrl("mam-errors.md")} target="_blank">
           MAM error documentation
         </Link>
         .

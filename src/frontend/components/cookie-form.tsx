@@ -1,7 +1,7 @@
 import { useId, useState, type Ref } from "react";
 
 import { useCookie } from "#frontend/hooks/cookie.ts";
-import { docsBaseUrl } from "#shared/docs-base-url.ts";
+import { docsUrl } from "#frontend/lib/repo-url.ts";
 
 import { Button } from "./lib/button";
 import { Input } from "./lib/input";
@@ -59,7 +59,7 @@ export function CookieForm({
       </form>
 
       <Link
-        href={`${docsBaseUrl}/getting-your-cookie.md`}
+        href={docsUrl("getting-your-cookie.md")}
         target="_blank"
         className="text-sm text-muted-text text-center mx-auto"
       >

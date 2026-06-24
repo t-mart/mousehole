@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 
+import { changelogUrl } from "#frontend/lib/repo-url.ts";
 import { gitHash } from "#shared/git-hash.ts";
 
 import { version } from "../../../package.json";
@@ -9,7 +10,7 @@ export function Footer() {
   return (
     // `layout` so the footer glides as content above it changes height (the page
     // stays vertically centered — see motion memory).
-    <motion.footer layout className="@container space-y-2">
+    <motion.footer layout className="@container space-y-2 text-sm">
       <ol className="flex justify-center flex-col @xs:flex-row flex-wrap gap-x-8 gap-y-2">
         <li>
           <Link
@@ -35,7 +36,11 @@ export function Footer() {
         </li>
       </ol>
       <div>
-        Mousehole v{version} <GitHashSpan /> by{" "}
+        Mousehole{" "}
+        <Link href={changelogUrl} target="_blank">
+          v{version}
+        </Link>{" "}
+        <GitHashSpan /> by{" "}
         <Link href="https://www.myanonamouse.net/u/252061" target="_blank">
           timtimtim
         </Link>
