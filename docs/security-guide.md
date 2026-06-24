@@ -229,7 +229,7 @@ environment:
 
 ## HTTPS-Only Cookies
 
-In HTTPS-only envirionments, you can instruct Mousehole to add the
+In HTTPS-only envirionments, you can control whether Mousehole adds the
 [`Secure` flag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#secure)
 to session cookies, which prevents browsers from sending them over plain HTTP.
 This is done with the `MOUSEHOLE_HTTPS_ONLY_COOKIES` environment variable set to
@@ -247,9 +247,9 @@ environment:
 
 ## Session Duration
 
-The `MOUSEHOLE_SESSION_DURATION_SECONDS` environment variable (default `604800`,
-one week) sets how long a browser login session stays valid before requiring
-re-authentication.
+The `MOUSEHOLE_SESSION_DURATION_SECONDS` environment variable sets how long a
+browser login session stays valid before requiring re-authentication (default
+`604800`, one week).
 
 **When to configure this:** Shorten it on shared or less-trusted devices.
 
