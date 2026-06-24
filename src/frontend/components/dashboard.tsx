@@ -7,6 +7,7 @@ import { useUpdate } from "#frontend/hooks/update.ts";
 import { classify, type PublicState } from "#shared/public-state.ts";
 
 import { CookieForm } from "./cookie-form";
+import { IpHistory } from "./ip-history";
 import { Button } from "./lib/button";
 import { MamResponse } from "./mam-response";
 import { NeedHelp } from "./need-help";
@@ -43,6 +44,8 @@ export function Dashboard({ state }: { state: PublicState }) {
   return (
     <AnimatePresence mode="popLayout">
       <MamResponse key={state.nextContactAt ?? "mam-response"} state={state} />
+
+      <IpHistory key="ip-history" history={state.history} />
 
       {showNeedHelp && <NeedHelp key="need-help" />}
 

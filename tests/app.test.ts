@@ -1,6 +1,7 @@
 import type { MockInstance } from "vitest";
 
 import { parseSetCookie } from "set-cookie-parser";
+import { Temporal } from "temporal-polyfill";
 
 import type { AppContext } from "../src/backend/context.ts";
 import type { FetchLike } from "../src/backend/external-api/fetch.ts";
@@ -18,6 +19,7 @@ import type { MamUpdateOutcome } from "./lib/mam-test-server.ts";
 import { createApp } from "../src/backend/app.ts";
 import { buildConfig } from "../src/backend/config.ts";
 import { createAppContext } from "../src/backend/context.ts";
+import { logger } from "../src/backend/logger.ts";
 import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
 import { json } from "./lib/helpers.ts";
 import { createMamTestServer } from "./lib/mam-test-server.ts";
@@ -43,7 +45,11 @@ function createInMemoryStateStore(initial?: State): StateStore {
 }
 
 function makeTestContext(
-  options: { env?: NodeJS.ProcessEnv; fetchImpl?: FetchLike } = {},
+  options: {
+    env?: NodeJS.ProcessEnv;
+    fetchImpl?: FetchLike;
+    initialState?: State;
+  } = {},
 ): {
   ctx: AppContext;
   app: TestApp;
@@ -55,7 +61,7 @@ function makeTestContext(
     MOUSEHOLE_UPDATE_INTERVAL_SECONDS: "3600",
     ...options.env,
   });
-  const store = createInMemoryStateStore();
+  const store = createInMemoryStateStore(options.initialState);
   // Spy on write so tests can assert what got persisted. restoreMocks
   // (vitest.config.ts) puts it back after each test.
   const writeSpy = vi.spyOn(store, "write");
@@ -760,5 +766,95 @@ describe("contact flows (simulated MAM)", () => {
     expect(updatesResponse.status).toBe(200);
     const state = await json<PublicState>(updatesResponse);
     expect(unreachedContact(state).error.type).toBe("timeout-error");
+  });
+});
+
+describe("IP history", () => {
+  // A prior history whose latest identity differs from the test MAM server's
+  // (203.0.113.7 / 64496), so the next contact records a change.
+  const priorIdentity = {
+    at: Temporal.ZonedDateTime.from("2025-01-01T00:00:00+00:00[UTC]"),
+    ip: "9.9.9.9",
+    asn: 999,
+    as: "OldAS",
+  };
+
+  test("the first contact seeds a baseline entry without logging a change", async () => {
+    const mamServer = createMamTestServer();
+    const infoSpy = vi.spyOn(logger, "info");
+    const { app } = makeTestContext({ fetchImpl: mamServer.fetchImpl });
+    const cookie = await login(app);
+
+    const state = await json<PublicState>(await putMamCookie(app, cookie));
+    expect(state.history).toEqual([
+      expect.objectContaining({ ip: "203.0.113.7", asn: 64_496 }),
+    ]);
+    expect(infoSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining("Network change"),
+    );
+  });
+
+  test("a changed identity appends an entry and logs the change", async () => {
+    const mamServer = createMamTestServer();
+    const infoSpy = vi.spyOn(logger, "info");
+    const { app } = makeTestContext({
+      fetchImpl: mamServer.fetchImpl,
+      initialState: { cookie: "mam-session-cookie", history: [priorIdentity] },
+    });
+    const cookie = await login(app);
+
+    const state = await json<PublicState>(await postUpdates(app, cookie));
+    expect(state.history).toEqual([
+      expect.objectContaining({ ip: "9.9.9.9", asn: 999 }),
+      expect.objectContaining({ ip: "203.0.113.7", asn: 64_496 }),
+    ]);
+    expect(infoSpy).toHaveBeenCalledWith(
+      "Network change: IP 9.9.9.9 -> 203.0.113.7, ASN 999 -> 64496",
+    );
+  });
+
+  test("an unchanged identity does not append", async () => {
+    const mamServer = createMamTestServer();
+    const { app } = makeTestContext({
+      fetchImpl: mamServer.fetchImpl,
+      initialState: {
+        cookie: "mam-session-cookie",
+        history: [
+          {
+            at: Temporal.ZonedDateTime.from("2025-01-01T00:00:00+00:00[UTC]"),
+            ip: "203.0.113.7",
+            asn: 64_496,
+            as: "TEST-AS (RFC 5737)",
+          },
+        ],
+      },
+    });
+    const cookie = await login(app);
+
+    const state = await json<PublicState>(await postUpdates(app, cookie));
+    expect(state.history).toHaveLength(1);
+  });
+
+  test("PUT /cookie preserves existing history (does not clear it)", async () => {
+    // Same identity as the server so the cookie set doesn't itself append.
+    const existing = {
+      at: Temporal.ZonedDateTime.from("2025-01-01T00:00:00+00:00[UTC]"),
+      ip: "203.0.113.7",
+      asn: 64_496,
+      as: "TEST-AS (RFC 5737)",
+    };
+    const mamServer = createMamTestServer();
+    const { app } = makeTestContext({
+      fetchImpl: mamServer.fetchImpl,
+      initialState: { cookie: "old-cookie", history: [existing] },
+    });
+    const cookie = await login(app);
+
+    const state = await json<PublicState>(
+      await putMamCookie(app, cookie, "new-cookie"),
+    );
+    expect(state.history).toEqual([
+      expect.objectContaining({ ip: "203.0.113.7", asn: 64_496 }),
+    ]);
   });
 });

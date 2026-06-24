@@ -47,6 +47,23 @@ the contact performs an IP **update** (the `ipUpdate` field below).
     // Present only when a cookie drove an update (the dynamicSeedbox call).
     "ipUpdate": { "success": true, "msg": "No change", "httpStatus": 200 },
   },
+  // Recent IP/AS changes, oldest first, capped at the few most recent. Omitted
+  // until the first contact. Informational only: timestamps are when Mousehole
+  // sampled the change, not necessarily when it happened.
+  "history": [
+    {
+      "at": "2025-06-20T09:10:00.000-05:00[America/Chicago]",
+      "ip": "120.120.120.120",
+      "asn": 6789,
+      "as": "OldCorp",
+    },
+    {
+      "at": "2025-06-21T14:22:28.111-05:00[America/Chicago]",
+      "ip": "123.123.123.123",
+      "asn": 12345,
+      "as": "MegaCorp",
+    },
+  ],
 }
 ```
 

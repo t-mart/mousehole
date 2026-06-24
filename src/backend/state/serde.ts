@@ -4,6 +4,7 @@ import * as z from "zod";
 import type {
   PublicState,
   SerializedMamContact,
+  SerializedNetworkChange,
 } from "#shared/public-state.ts";
 
 // This module owns the persistence of our state: the in-memory domain types,
@@ -30,9 +31,20 @@ export type MamContact = { at: Temporal.ZonedDateTime } & (
     }
 );
 
+// A network identity observed at a moment in time. One is recorded per detected
+// IP/ASN change (plus a baseline on first contact); see contact.ts.
+export type NetworkChange = {
+  at: Temporal.ZonedDateTime;
+  ip: string;
+  asn: number;
+  as: string;
+};
+
 export type State = {
   cookie?: string;
   lastMamContact?: MamContact;
+  // Oldest first, bounded. Optional so states written before this field parse.
+  history?: NetworkChange[];
 };
 
 // ── serialized form (disk): `at` is an RFC 9557 string ──────────────────────
@@ -66,10 +78,21 @@ const serializedMamContactSchema: z.ZodType<SerializedMamContact> =
     }),
   ]);
 
+// Typed against the shared wire contract, same as the contact schema above.
+const serializedNetworkChangeSchema: z.ZodType<SerializedNetworkChange> =
+  z.object({
+    at: z.string(),
+    ip: z.string(),
+    asn: z.number(),
+    as: z.string(),
+  });
+
 export const serializedStateSchema = z.object({
   version: z.literal(STATE_VERSION),
   cookie: z.string().optional(),
   lastMamContact: serializedMamContactSchema.optional(),
+  // Optional: states written before history existed simply omit it.
+  history: z.array(serializedNetworkChangeSchema).optional(),
 });
 export type SerializedState = z.infer<typeof serializedStateSchema>;
 
@@ -104,12 +127,35 @@ function deserializeMamContact(contact: SerializedMamContact): MamContact {
   };
 }
 
+function serializeNetworkChange(
+  change: NetworkChange,
+): SerializedNetworkChange {
+  return {
+    at: change.at.toString(),
+    ip: change.ip,
+    asn: change.asn,
+    as: change.as,
+  };
+}
+
+function deserializeNetworkChange(
+  change: SerializedNetworkChange,
+): NetworkChange {
+  return {
+    at: Temporal.ZonedDateTime.from(change.at),
+    ip: change.ip,
+    asn: change.asn,
+    as: change.as,
+  };
+}
+
 export function serializeState(state: State): SerializedState {
   return {
     version: STATE_VERSION,
     cookie: state.cookie,
     lastMamContact:
       state.lastMamContact && serializeMamContact(state.lastMamContact),
+    history: state.history?.map(serializeNetworkChange),
   };
 }
 
@@ -119,6 +165,7 @@ export function deserializeState(serialized: SerializedState): State {
     lastMamContact:
       serialized.lastMamContact &&
       deserializeMamContact(serialized.lastMamContact),
+    history: serialized.history?.map(deserializeNetworkChange),
   };
 }
 
@@ -132,5 +179,6 @@ export function toPublicState(
     nextContactAt: derived.nextContactAt,
     lastMamContact:
       state?.lastMamContact && serializeMamContact(state.lastMamContact),
+    history: state?.history?.map(serializeNetworkChange),
   };
 }
