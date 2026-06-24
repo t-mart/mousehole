@@ -57,7 +57,7 @@ export function App() {
   }
 
   return (
-    <MotionConfig transition={layoutTransition}>
+    <MotionConfig transition={layoutTransition} reducedMotion="user">
       <LayoutGroup>
         <motion.div
           layout

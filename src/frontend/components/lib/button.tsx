@@ -7,7 +7,7 @@ import { cn } from "#frontend/lib/cn.ts";
 import { Spinner } from "./spinner";
 
 const button = cva(
-  "flex items-center justify-center rounded-md font-bold transition-[transform,color,box-shadow] hover:scale-95 aria-invalid:hover:scale-none cursor-pointer aria-invalid:cursor-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-none outline-none focus-visible:ring-ring/50 focus-visible:ring-3",
+  "flex items-center justify-center rounded-md font-bold transition-[transform,color,box-shadow] motion-safe:hover:scale-95 aria-invalid:hover:scale-none cursor-pointer aria-invalid:cursor-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-none outline-none focus-visible:ring-ring/50 focus-visible:ring-3",
   {
     variants: {
       variant: {

@@ -25,7 +25,11 @@ function Donut({ atMs, nextMs }: Readonly<{ atMs: number; nextMs: number }>) {
   const depleting = total > 0;
 
   return (
-    <svg viewBox="0 0 24 24" className="size-6 -rotate-90 shrink-0" aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      className="donut size-6 -rotate-90 shrink-0"
+      aria-hidden
+    >
       <circle
         cx="12"
         cy="12"

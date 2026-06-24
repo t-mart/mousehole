@@ -189,6 +189,17 @@
   }
 }
 
+/* Reduced-motion stand-in for the spinner: no rotation, just a gentle fade. */
+@keyframes spinner-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
 @keyframes logo-slide {
   from {
     background-position: 0 0;
@@ -232,4 +243,35 @@
 
 @utility focus-ring {
   @apply rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:ring-offset-4 focus-visible:ring-offset-background transition-[color,box-shadow];
+}
+
+/* ---------- Reduced motion ---------- */
+
+/* These cover the hand-rolled CSS animations. The Motion library's animations
+   (bounce, layout reflow) are handled separately by reducedMotion="user" on the
+   MotionConfig in app.tsx, which keeps opacity fades but drops transforms. */
+@media (prefers-reduced-motion: reduce) {
+  /* Hold the drifting background logo still. */
+  body::before {
+    animation: none;
+  }
+
+  /* Keep the disco gradient, stop the shimmer. */
+  .disco-text-hover:hover {
+    animation: none;
+  }
+
+  /* Swap the spin and dash for an opacity pulse on a full, still ring. */
+  .spinner-group {
+    animation: spinner-pulse 1.5s ease-in-out infinite;
+  }
+  .spinner-circle {
+    animation: none;
+  }
+
+  /* The countdown ring only conveys meaning by depleting; the numeric countdown
+     beside it says the same thing, so drop the ring. */
+  .donut {
+    display: none;
+  }
 }

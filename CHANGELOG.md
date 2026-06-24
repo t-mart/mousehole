@@ -16,6 +16,11 @@ about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
   the cookie form. Fixes [#157](https://github.com/t-mart/mousehole/issues/157)
 - `ui`: Show a more descriptive error in the frontend when the backend server is
   down in [2b115a5](https://github.com/t-mart/mousehole/commit/2b115a5)
+- `ui`: Respect the browser's `prefers-reduced-motion` setting. Motion-based
+  animations (the section bounce, layout glides, background logo drift, and
+  spinner rotation) are turned off or replaced with a plain fade, and the
+  animated countdown ring is hidden in favor of its numeric counterpart. Fixes
+  [#161](https://github.com/t-mart/mousehole/issues/161)
 
 ## [v0.5.0](https://github.com/t-mart/mousehole/releases/tag/v0.5.0) - 2026-06-20
 
