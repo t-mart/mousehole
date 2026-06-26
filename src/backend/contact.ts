@@ -7,10 +7,20 @@ import type { StateStore } from "./state/store.ts";
 
 import { toErrorResponseArgs } from "./error.ts";
 import { getHostInfo, type HostInfo } from "./external-api/host-info.ts";
-import { updateMamIp, type MamUpdateResult } from "./external-api/mam.ts";
+import { updateMamIp } from "./external-api/mam.ts";
 import { logger } from "./logger.ts";
 import { Mutex } from "./mutex.ts";
-import { type MamContact, type State } from "./state/serde.ts";
+import {
+  type MamContact,
+  type NetworkChange,
+  type State,
+} from "./state/serde.ts";
+
+/** Most recent network changes retained in state (and shown in the UI). */
+export const MAX_HISTORY = 5;
+
+/** A network identity, independent of when it was observed. */
+type Identity = { ip: string; asn: number; as: string };
 
 type BackgroundTask = {
   nextContactTimeoutId: ReturnType<typeof setTimeout>;
@@ -36,30 +46,55 @@ function handleBackgroundContactError(error: unknown) {
   logger.error(error);
 }
 
-function logIPASNChange(
-  prevState: State | undefined,
-  mamUpdateResult: MamUpdateResult,
-) {
-  const prevIp = prevState?.lastMamContact?.reached
-    ? prevState.lastMamContact.ip
-    : undefined;
-  const newIp = mamUpdateResult.ip;
-
-  const prevAsn = prevState?.lastMamContact?.reached
-    ? prevState.lastMamContact.asn
-    : undefined;
-  const newAsn = mamUpdateResult.asn;
-
-  const ipChanged = prevIp !== undefined && prevIp !== newIp;
-  const asnChanged = prevAsn !== undefined && prevAsn !== newAsn;
-  if (!ipChanged && !asnChanged) return;
+/**
+ * Describe an IP/ASN change between the previously recorded identity and a newly
+ * observed one, or `undefined` when nothing changed — including the first-ever
+ * observation, where there's no prior to compare. The single source of truth for
+ * both the log line and whether a history entry is recorded.
+ */
+export function describeIdentityChange(
+  prev: NetworkChange | undefined,
+  next: Identity,
+): string | undefined {
+  if (!prev) return undefined;
+  const ipChanged = prev.ip !== next.ip;
+  const asnChanged = prev.asn !== next.asn;
+  if (!ipChanged && !asnChanged) return undefined;
 
   const changes = [
-    ipChanged ? `IP ${prevIp} -> ${newIp}` : undefined,
-    asnChanged ? `ASN ${prevAsn} -> ${newAsn}` : undefined,
+    ipChanged ? `IP ${prev.ip} -> ${next.ip}` : undefined,
+    asnChanged ? `ASN ${prev.asn} -> ${next.asn}` : undefined,
   ].filter((change) => change !== undefined);
+  return changes.join(", ");
+}
 
-  logger.info(`Network change: ${changes.join(", ")}`);
+/**
+ * The next history given a fresh observation: appends `{ at, ...observed }` when
+ * the identity changed or when history is empty (seeding a baseline), otherwise
+ * returns the prior history unchanged. Bounded to the most recent `MAX_HISTORY`.
+ */
+export function appendHistory(
+  history: readonly NetworkChange[] | undefined,
+  observed: Identity,
+  at: Temporal.ZonedDateTime,
+): NetworkChange[] {
+  const prev = history?.at(-1);
+  const base = history ? [...history] : [];
+  const changed = !prev || describeIdentityChange(prev, observed) !== undefined;
+  if (!changed) return base;
+  base.push({ at, ...observed });
+  return base.slice(-MAX_HISTORY);
+}
+
+/** Log a `Network change` line and return the updated history for an observation. */
+function recordObservation(
+  prevHistory: readonly NetworkChange[] | undefined,
+  observed: Identity,
+  at: Temporal.ZonedDateTime,
+): NetworkChange[] {
+  const change = describeIdentityChange(prevHistory?.at(-1), observed);
+  if (change) logger.info(`Network change: ${change}`);
+  return appendHistory(prevHistory, observed, at);
 }
 
 /**
@@ -90,19 +125,16 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
       if (!cookie) {
         const host: HostInfo = await getHostInfo(fetchOptions);
         logger.info("No cookie set yet. Visit the web UI to configure.");
+        const observed = { ip: host.ip, asn: host.asn, as: host.as };
         return {
-          lastMamContact: {
-            at,
-            reached: true,
-            ip: host.ip,
-            asn: host.asn,
-            as: host.as,
-          },
+          lastMamContact: { at, reached: true, ...observed },
+          history: recordObservation(prevState?.history, observed, at),
         };
       }
 
       const result = await updateMamIp(cookie, fetchOptions);
-      logIPASNChange(prevState, result);
+      const observed = { ip: result.ip, asn: result.asn, as: result.as };
+      const history = recordObservation(prevState?.history, observed, at);
       if (result.success) {
         logger.info(`MAM update: ${result.msg}`);
       } else {
@@ -114,9 +146,7 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
       const contact: MamContact = {
         at,
         reached: true,
-        ip: result.ip,
-        asn: result.asn,
-        as: result.as,
+        ...observed,
         ipUpdate: {
           success: result.success,
           msg: result.msg,
@@ -126,6 +156,7 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
       return {
         cookie: result.rotatedCookie ?? cookie,
         lastMamContact: contact,
+        history,
       };
     } catch (error) {
       const { type, message } = toErrorResponseArgs(error).body;
@@ -133,6 +164,8 @@ export function createContactScheduler(options: ContactSchedulerOptions) {
       return {
         cookie,
         lastMamContact: { at, reached: false, error: { type, message } },
+        // Identity unknown on an unreachable contact; carry history forward.
+        history: prevState?.history,
       };
     }
   }

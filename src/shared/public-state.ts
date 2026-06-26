@@ -26,12 +26,25 @@ export type SerializedMamContact = { at: string } & (
     }
 );
 
+/**
+ * A network identity observed at a point in time, as JSON: `at` is RFC 9557.
+ * A history entry is recorded each time the observed identity changes.
+ */
+export type SerializedNetworkChange = {
+  at: string;
+  ip: string;
+  asn: number;
+  as: string;
+};
+
 /** The public view of state. Never contains the cookie — only its presence. */
 export type PublicState = {
   hasCookie: boolean;
   hasAuth: boolean;
   nextContactAt?: string;
   lastMamContact?: SerializedMamContact;
+  /** Recent IP/AS changes, oldest first. Informational only. */
+  history?: SerializedNetworkChange[];
 };
 
 // ── classification ──────────────────────────────────────────────────────────

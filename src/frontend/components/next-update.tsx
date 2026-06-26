@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useState } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { formatMillisecondsAsDuration } from "#frontend/lib/format.ts";
+import { formatMillisecondsAsDuration } from "#frontend/lib/date.ts";
 
 // Fixed ring geometry. The dash is the full circumference, so a
 // stroke-dashoffset of 0 shows the whole ring and `CIRCUMFERENCE` hides it —

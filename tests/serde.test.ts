@@ -19,9 +19,20 @@ const contact: MamContact = {
   ipUpdate: { success: true, msg: "some message", httpStatus: 200 },
 };
 
+const history = [
+  {
+    at: Temporal.ZonedDateTime.from("2025-06-20T10:00:00+00:00[UTC]"),
+    ip: "9.9.9.9",
+    asn: 999,
+    as: "OldAS",
+  },
+  { at, ip: "1.2.3.4", asn: 12_345, as: "TestAS" },
+];
+
 const state: State = {
   cookie: "secret-cookie",
   lastMamContact: contact,
+  history,
 };
 
 describe("serialize / deserialize", () => {
@@ -34,6 +45,34 @@ describe("serialize / deserialize", () => {
     const serialized = serializeState(state);
     expect(serialized.version).toBe(2);
     expect(serialized.cookie).toBe("secret-cookie");
+  });
+
+  test("round-trips the history, with `at` as an RFC 9557 string on disk", () => {
+    const serialized = serializeState(state);
+    expect(serialized.history).toEqual([
+      {
+        at: "2025-06-20T10:00:00+00:00[UTC]",
+        ip: "9.9.9.9",
+        asn: 999,
+        as: "OldAS",
+      },
+      {
+        at: "2025-06-21T13:26:50.536+00:00[UTC]",
+        ip: "1.2.3.4",
+        asn: 12_345,
+        as: "TestAS",
+      },
+    ]);
+    expect(deserializeState(serialized).history).toEqual(history);
+  });
+
+  test("deserializes a state written before history existed", () => {
+    // A v2 disk blob that omits the optional `history` field stays readable.
+    const withoutHistory = serializeState(state);
+    delete withoutHistory.history;
+    const restored = deserializeState(withoutHistory);
+    expect(restored.history).toBeUndefined();
+    expect(restored.cookie).toBe("secret-cookie");
   });
 });
 
@@ -49,6 +88,20 @@ describe("toPublicState", () => {
     expect(JSON.stringify(pub)).not.toContain("secret-cookie");
     expect(pub.hasAuth).toBe(true);
     expect(pub.lastMamContact).toBeDefined();
+    expect(pub.history).toEqual([
+      {
+        at: "2025-06-20T10:00:00+00:00[UTC]",
+        ip: "9.9.9.9",
+        asn: 999,
+        as: "OldAS",
+      },
+      {
+        at: "2025-06-21T13:26:50.536+00:00[UTC]",
+        ip: "1.2.3.4",
+        asn: 12_345,
+        as: "TestAS",
+      },
+    ]);
   });
 
   test("reports no cookie and no contact without state", () => {
