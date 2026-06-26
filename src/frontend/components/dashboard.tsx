@@ -7,7 +7,6 @@ import { useUpdate } from "#frontend/hooks/update.ts";
 import { classify, type PublicState } from "#shared/public-state.ts";
 
 import { CookieForm } from "./cookie-form";
-import { IpHistory } from "./ip-history";
 import { Button } from "./lib/button";
 import { MamResponse } from "./mam-response";
 import { NeedHelp } from "./need-help";
@@ -30,6 +29,9 @@ function getDashboardState(data: PublicState, userWantsInputCookie: boolean) {
 
 export function Dashboard({ state }: { state: PublicState }) {
   const [userWantsCookieInput, setUserWantsCookieInput] = useState(false);
+  // Lives here, above the keyed MamResponse, so the disclosure's open state
+  // survives the remount on each server update.
+  const [ipHistoryOpen, setIpHistoryOpen] = useState(false);
   useServerEvents();
   const { mutate: update, isPending: isUpdatePending } = useUpdate();
   const { mutate: logout, isPending: isLogoutPending } = useLogout();
@@ -43,9 +45,12 @@ export function Dashboard({ state }: { state: PublicState }) {
 
   return (
     <AnimatePresence mode="popLayout">
-      <MamResponse key={state.nextContactAt ?? "mam-response"} state={state} />
-
-      <IpHistory key="ip-history" history={state.history} />
+      <MamResponse
+        key={state.nextContactAt ?? "mam-response"}
+        state={state}
+        ipHistoryOpen={ipHistoryOpen}
+        onIpHistoryOpenChange={setIpHistoryOpen}
+      />
 
       {showNeedHelp && <NeedHelp key="need-help" />}
 

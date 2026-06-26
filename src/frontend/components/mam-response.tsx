@@ -17,6 +17,7 @@ import {
   type PublicState,
 } from "#shared/public-state.ts";
 
+import { IpHistory } from "./ip-history";
 import { Button } from "./lib/button";
 import { bounceProps } from "./lib/motion";
 import { Section } from "./lib/section";
@@ -32,9 +33,13 @@ function getHostInfo(state: PublicState) {
 export function MamResponse({
   state,
   ref,
+  ipHistoryOpen,
+  onIpHistoryOpenChange,
 }: Readonly<{
   state: PublicState;
   ref?: Ref<HTMLElement>;
+  ipHistoryOpen: boolean;
+  onIpHistoryOpenChange: (open: boolean) => void;
 }>) {
   const hostInfo = getHostInfo(state);
 
@@ -88,6 +93,11 @@ export function MamResponse({
           </DescListGroup>
         )}
       </dl>
+      <IpHistory
+        history={state.history}
+        open={ipHistoryOpen}
+        onOpenChange={onIpHistoryOpenChange}
+      />
     </Section>
   );
 }

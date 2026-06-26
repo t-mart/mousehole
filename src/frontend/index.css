@@ -245,6 +245,55 @@
   @apply rounded-md outline-none focus-visible:ring-ring/50 focus-visible:ring-3 focus-visible:ring-offset-4 focus-visible:ring-offset-background transition-[color,box-shadow];
 }
 
+/* A quick scale-and-fade for a [popover] tooltip, in CSS (no Motion). The
+   discrete display/overlay changes are transitioned via allow-discrete, and
+   @starting-style supplies the entry-from values, so both show and hide animate. */
+@utility tooltip-pop {
+  opacity: 0;
+  scale: 0.65;
+  transition:
+    opacity 100ms ease-out,
+    scale 100ms ease-out,
+    display 100ms allow-discrete,
+    overlay 100ms allow-discrete;
+
+  &:popover-open {
+    opacity: 1;
+    scale: 1;
+  }
+
+  @starting-style {
+    &:popover-open {
+      opacity: 0;
+      scale: 0.65;
+    }
+  }
+}
+
+/* Animate a <details> open/close in CSS via its ::details-content wrapper.
+   We transition grid-template-rows 0fr -> 1fr (with the content in a
+   min-height:0/overflow:hidden child) rather than block-size to `auto`, because
+   `auto` only interpolates with interpolate-size/calc-size(). Once those are
+   Baseline this can collapse to a plain `block-size: auto` transition.
+   content-visibility rides along (allow-discrete) so content stays present while
+   collapsing, then hides. */
+@utility details-reveal {
+  &::details-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 200ms ease-out,
+      opacity 200ms ease-out,
+      content-visibility 200ms allow-discrete;
+  }
+
+  &[open]::details-content {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
 /* ---------- Reduced motion ---------- */
 
 /* These cover the hand-rolled CSS animations. The Motion library's animations
@@ -273,5 +322,16 @@
      beside it says the same thing, so drop the ring. */
   .donut {
     display: none;
+  }
+
+  /* Keep the tooltip's opacity fade, drop the scale (a transform). */
+  .tooltip-pop,
+  .tooltip-pop:popover-open {
+    scale: 1;
+  }
+
+  /* Snap the disclosure open/closed instead of sliding it. */
+  .details-reveal::details-content {
+    transition: none;
   }
 }
