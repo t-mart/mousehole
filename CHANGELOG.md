@@ -5,6 +5,14 @@ about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
 
 ## Unreleased
 
+### Fixed
+
+- `config`: `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH` is now exclusive with
+  (`MOUSEHOLE_AUTH_PASSWORD` or `MOUSEHOLE_AUTH_TOKEN`, including their `_FILE`
+  forms). Mousehole now refuses to start if both are set. Previously, the
+  credential flags would win silently and ambiguously. Fixes
+  [#170](https://github.com/t-mart/mousehole/issues/170).
+
 ### Changed
 
 - `style`: Increase word spacing for Commissioner font in

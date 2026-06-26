@@ -145,6 +145,13 @@ an environment variable. See [Docker Secrets](/README.md#docker-secrets).
 To disable all authentication (not recommended outside of a trusted localhost
 setup), set environment variable `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true`.
 
+> [!NOTE]
+>
+> `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH` is mutually exclusive with the credential
+> variables. If you set it to `true` while `MOUSEHOLE_AUTH_PASSWORD` or
+> `MOUSEHOLE_AUTH_TOKEN` (or their `_FILE` forms) is also set, Mousehole refuses
+> to start. Choose one: configure a credential, or turn authentication off.
+
 ## Host Allowlist
 
 The Host allowlist ensures Mousehole is only hosted on the names you intend for

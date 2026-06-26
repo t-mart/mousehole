@@ -147,7 +147,9 @@ You can trigger an immediate update from the web UI with **Update Now**.
   plain HTTP. See
   [HTTPS-Only Cookies](/docs/security-guide.md#https-only-cookies).
 - `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH`: Set to `true` to turn off all
-  authentication. Do not use in mixed-trust environments.
+  authentication. Do not use in mixed-trust environments. Mutually exclusive
+  with `MOUSEHOLE_AUTH_PASSWORD` and `MOUSEHOLE_AUTH_TOKEN`; setting it
+  alongside either makes Mousehole refuse to start.
 - `MOUSEHOLE_UPDATE_INTERVAL_SECONDS`: _(Default `300` (5 minutes))_ The
   interval in seconds between automatic updates.
 - `MOUSEHOLE_AUTH_TOKEN`: Enables Bearer token authentication for API clients.

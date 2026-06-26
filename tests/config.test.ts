@@ -308,6 +308,56 @@ describe("MOUSEHOLE_AUTH_PASSWORD / MOUSEHOLE_AUTH_TOKEN", () => {
   });
 });
 
+describe("MOUSEHOLE_INSECURE_ALLOW_NO_AUTH is exclusive with credentials", () => {
+  test("password + allow-no-auth throws, naming the conflict", () => {
+    expect(() =>
+      buildConfig({
+        MOUSEHOLE_AUTH_PASSWORD: "s3cr3t",
+        MOUSEHOLE_INSECURE_ALLOW_NO_AUTH: "true",
+      }),
+    ).toThrow("MOUSEHOLE_INSECURE_ALLOW_NO_AUTH");
+  });
+
+  test("token + allow-no-auth throws, naming the conflict", () => {
+    expect(() =>
+      buildConfig({
+        MOUSEHOLE_AUTH_TOKEN: "tok",
+        MOUSEHOLE_INSECURE_ALLOW_NO_AUTH: "true",
+      }),
+    ).toThrow("MOUSEHOLE_INSECURE_ALLOW_NO_AUTH");
+  });
+
+  test("password _FILE credential + allow-no-auth throws too", () => {
+    expect(() =>
+      buildConfig(
+        {
+          MOUSEHOLE_AUTH_PASSWORD_FILE: "/run/secrets/pw",
+          MOUSEHOLE_INSECURE_ALLOW_NO_AUTH: "true",
+        },
+        fakeReader({ "/run/secrets/pw": "s3cr3t" }),
+      ),
+    ).toThrow("MOUSEHOLE_INSECURE_ALLOW_NO_AUTH");
+  });
+
+  test("token _FILE credential + allow-no-auth throws too", () => {
+    expect(() =>
+      buildConfig(
+        {
+          MOUSEHOLE_AUTH_TOKEN_FILE: "/run/secrets/token",
+          MOUSEHOLE_INSECURE_ALLOW_NO_AUTH: "true",
+        },
+        fakeReader({ "/run/secrets/token": "tok" }),
+      ),
+    ).toThrow("MOUSEHOLE_INSECURE_ALLOW_NO_AUTH");
+  });
+
+  test("allow-no-auth alone is still fine", () => {
+    expect(
+      buildConfig({ MOUSEHOLE_INSECURE_ALLOW_NO_AUTH: "true" }).auth,
+    ).toEqual({ type: "none", insecureAllowNoAuth: true });
+  });
+});
+
 describe("MOUSEHOLE_ALLOWED_HOSTS", () => {
   test("* yields type all", () => {
     expect(buildConfig({ MOUSEHOLE_ALLOWED_HOSTS: "*" }).allowedHosts).toEqual({

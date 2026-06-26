@@ -140,6 +140,16 @@ function resolveAuthConfig(
     "MOUSEHOLE_INSECURE_ALLOW_NO_AUTH",
   );
 
+  if (insecureAllowNoAuth && (password !== undefined || token !== undefined)) {
+    const credential =
+      password === undefined
+        ? "MOUSEHOLE_AUTH_TOKEN"
+        : "MOUSEHOLE_AUTH_PASSWORD";
+    throw new Error(
+      `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH=true cannot be combined with ${credential}: turning off authentication and configuring a credential are mutually exclusive. Unset one of them.`,
+    );
+  }
+
   if (password !== undefined) {
     return { type: "configured", password, token };
   }
