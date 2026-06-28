@@ -39,6 +39,8 @@ Any Docker Compose setup can be adapted to include
 
 See the [Unraid Installation Guide](/contrib/unraid/README.md) for instructions.
 
+(Mousehole has **no** affiliated app in the Community Apps catalog of Unraid.)
+
 #### From Source
 
 Mousehole runs on [Bun](https://bun.sh/). After installing `bun` and cloning the
