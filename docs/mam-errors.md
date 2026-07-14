@@ -50,9 +50,9 @@ selected for "IP vs ASN locked session".
 
 ## 403 Invalid Session - ASN Mismatch
 
-**Cause**: Mousehole is running on a network that MAM does not expect. The ASN
-(Autonomous System Number, which groups sets of IP addresses) of Mousehole's IP
-is not in the list of allowed ASNs for the session.
+**Cause**: Mousehole is running on an IP that MAM does not expect. MAM expects
+that your IP is in a known AS (a block of IP addresses numbered by an ASN). If
+your IP is not in the expected AS, MAM will reject the request.
 
 **Fix**: Add Mousehole's IP address to the session's allowed ASNs:
 
@@ -82,6 +82,13 @@ is not in the list of allowed ASNs for the session.
    ![Mousehole Update Now Button](/docs/images/update-now-button.png)
 
 6. You should now see an OK status.
+
+> [!NOTE]
+>
+> It is normal to have to fix this issue a handful of times if your VPN
+> connection is configured for a **geographic area**, such as a particular city.
+> VPN operators may have have multiple ASNs in a given area, and therefore you
+> may need to add multiple ASNs to your session over time.
 
 ## 403 Invalid Session - Invalid Cookie
 
