@@ -8,6 +8,11 @@ be able to support them.
 
 ## What's here
 
+- [Incoming Connectivity Check](./connectivity-check/)
+  - Inspect shared VPN namespaces, forwarded ports, and current NAT-PMP
+    addresses
+  - Verify incoming BitTorrent handshakes from a separate external machine
+
 - [Homepage Integration](./homepage/)
   - Display network info, API status, and timing data
   - Custom widgets and API integration

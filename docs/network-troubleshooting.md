@@ -4,6 +4,7 @@ Mousehole is often placed in configuration-heavy network setups. If that network
 configuration is broken, then so is Mousehole. Use the steps below to find out
 where the problem actually is before filing an issue.
 
+- [Updates Succeed but Incoming Connections Fail](#updates-succeed-but-incoming-connections-fail)
 - [Failed Network Requests](#failed-network-requests)
 - [Failed Network Requests at Startup](#failed-network-requests-at-startup)
 - [Failed Network Requests after Restarting VPN Container](#failed-network-requests-after-restarting-vpn-container)
@@ -15,6 +16,29 @@ where the problem actually is before filing an issue.
 > For MAM-specific errors (`ASN mismatch` or `Last Change Too Recent`), see the
 > [MAM error documentation](/docs/mam-errors.md). For errors related to `Host`
 > and `Origin` headers, see the [security guide](/docs/security-guide.md).
+
+## Updates Succeed but Incoming Connections Fail
+
+**Symptom**: Mousehole reports a successful update (including `No change`) and
+trackers respond, but incoming BitTorrent connections still fail.
+
+A successful update confirms that MAM accepted the update. It does not test the
+client's forwarded port. The IP used for outbound requests can also differ from
+the VPN's incoming forwarding IP. An IP difference alone is not proof of a
+fault.
+
+Check that the torrent client listens on the current forwarded port and uses the
+intended VPN network. Then test that port from outside the VPN using a torrent
+that is already actively seeding. A valid BitTorrent handshake is stronger
+evidence than a successful TCP connection. Do not assume that waiting for the
+next Mousehole update will fix an incoming forwarding problem.
+
+For Linux Docker stacks using NAT-PMP, the community-contributed
+[incoming connectivity check](/contrib/connectivity-check/) collects the current
+addresses, ports, namespace identities, and redacted tracker status, and
+supports an external handshake test. It does not change Mousehole's healthcheck
+or perform VPN recovery. MAM's connectable status still requires confirmation on
+the site.
 
 ## Failed Network Requests
 

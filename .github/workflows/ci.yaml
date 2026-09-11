@@ -18,6 +18,10 @@ jobs:
       - run: bun check:types
       - run: bun check:lint
       - run: bun check:test
+      - name: Test contributed incoming connectivity checker
+        run:
+          python3 -m unittest discover -s contrib/connectivity-check -p
+          "test_*.py"
 
       # Informational only for now — failures here must not fail the build.
       - run: bun fallow:dead-code
