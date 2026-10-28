@@ -7,7 +7,6 @@ import type { AppContext } from "../src/backend/context.ts";
 import { createAppContext } from "../src/backend/context.ts";
 import type { FetchLike } from "../src/backend/external-api/fetch.ts";
 import { SESSION_COOKIE_NAME } from "../src/backend/session.ts";
-import type { State } from "../src/backend/state/serde.ts";
 import type { StateStore } from "../src/backend/state/store.ts";
 import type { ErrorResponseBody } from "../src/shared/error-response.ts";
 import type {
@@ -16,29 +15,15 @@ import type {
   PublicState,
   SerializedMamContact,
 } from "../src/shared/public-state.ts";
-import { json } from "./lib/helpers.ts";
+import {
+  createInMemoryStateStore,
+  json,
+  rejectExternalFetch,
+} from "./lib/helpers.ts";
 import type { MamUpdateOutcome } from "./lib/mam-test-server.ts";
 import { createMamTestServer } from "./lib/mam-test-server.ts";
 
 type TestApp = ReturnType<typeof createApp>;
-
-// Tests must never touch the real network; contexts built without an explicit
-// fetchImpl fail loudly if anything tries.
-const rejectExternalFetch: FetchLike = () =>
-  Promise.reject(new Error("unexpected external fetch in test"));
-
-// An in-memory StateStore for tests: no disk, so contexts stay hermetic and
-// isolated. The real on-disk StateFileStore is exercised in store.test.ts.
-function createInMemoryStateStore(initial?: State): StateStore {
-  let state = initial;
-  return {
-    readIfExists: () => Promise.resolve(state),
-    write: (next) => {
-      state = next;
-      return Promise.resolve();
-    },
-  };
-}
 
 function makeTestContext(
   options: { env?: NodeJS.ProcessEnv; fetchImpl?: FetchLike } = {},

@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+import { apiUrl } from "#frontend/lib/api-url.ts";
+
 import { useStateActions } from "./state";
 
 /**
@@ -18,7 +20,7 @@ export function useServerEvents() {
   const { invalidate } = useStateActions();
 
   useEffect(() => {
-    const eventSource = new EventSource("/events");
+    const eventSource = new EventSource(apiUrl("events"));
     const handleEvent = () => void invalidate();
     eventSource.addEventListener("open", handleEvent);
     eventSource.addEventListener("message", handleEvent);

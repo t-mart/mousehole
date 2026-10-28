@@ -1,9 +1,12 @@
+import { readFileSync } from "node:fs";
+
 import { Hono, type Context } from "hono";
 import { accepts } from "hono/accepts";
 import { bodyLimit } from "hono/body-limit";
 import { serveStatic } from "hono/bun";
 import { proxy } from "hono/proxy";
 
+import { webBaseFor } from "#backend/base-path.ts";
 import type { AppContext } from "#backend/context.ts";
 import { toErrorResponseArgs } from "#backend/error.ts";
 import { handlePutCookie } from "#backend/handlers/cookie.ts";
@@ -19,14 +22,15 @@ import {
 } from "#backend/http-boundary.ts";
 import { logger } from "#backend/logger.ts";
 import { extractSessionId } from "#backend/session.ts";
+import { WEB_BASE_URL_PLACEHOLDER } from "#shared/web-base-url.ts";
 
 const healthEndpointPath = "/health";
 
 const maxJsonRequestBodyBytes = 8 * 1024;
 
 /**
- * How the web UI is served under /web. Dev reverse-proxies to the Vite dev
- * server (single origin: no CORS, no cookie config, dev URL == prod URL);
+ * How the web UI is served under `<base>/web`. Dev reverse-proxies to the Vite
+ * dev server (single origin: no CORS, no cookie config, dev URL == prod URL);
  * prod serves the `vite build` output. Tests omit it to mount nothing.
  */
 export type WebMount =
@@ -44,11 +48,18 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
   // The boundary middlewares, bound once to this context's config. Each route
   // below lists its requirements varargs-style in host → auth → origin → json
   // order; the first failing check logs and responds (see http-boundary.ts).
+  // They check the Host header and Origin value only — a URL prefix never
+  // reaches them, and the allowlists stay host-only.
   const host = hostAllowed(ctx.config.allowedHosts);
   const auth = requireAuth(ctx.config.auth, ctx.sessions.isSessionValid);
   const origin = originAllowed(ctx.config.allowedOrigins);
 
-  const app = new Hono();
+  // Every route is mounted under the configured prefix, "" being the origin
+  // root: Hono applies it to each registration on this instance, so no route
+  // template below names the mount, and `strict: false` makes the two
+  // trailing-slash forms one route. Replies still name the prefix themselves.
+  const configuredBasePath = ctx.config.basePath;
+  const app = new Hono({ strict: false }).basePath(configuredBasePath);
 
   app.use(async (c, next) => {
     await next();
@@ -76,14 +87,23 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
 
   app.notFound((c) => c.json({ type: "not-found", message: "Not Found" }, 404));
 
-  app.get("/", (c) => {
+  // `/` (or the bare prefix) sends a browser to the UI and anything else to
+  // the health endpoint. Both targets carry the prefix of this deployment.
+  const rootHandler = (c: Context) => {
     const mediaType = accepts(c, {
       header: "Accept",
       supports: ["text/html", "application/json"],
       default: "text/html",
     });
-    return c.redirect(mediaType === "text/html" ? "/web" : healthEndpointPath);
-  });
+    const prefix = configuredBasePath;
+    return c.redirect(
+      mediaType === "text/html"
+        ? `${prefix}/web`
+        : `${prefix}${healthEndpointPath}`,
+    );
+  };
+  // Answers the prefix root with or without its trailing slash.
+  app.get("/", rootHandler);
 
   app.post("/login", host, origin, requireJsonBody, async (c) => {
     const result = await handlePostLogin(
@@ -94,6 +114,7 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
     if (!result.ok) {
       return c.json({ ok: false, message: result.message }, result.status);
     }
+    // Scoped to the deployment, so it is only sent where the app lives.
     ctx.sessions.applyCookie(c, result.sessionId);
     return c.json({ ok: true });
   });
@@ -138,13 +159,22 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
   });
 
   // The web UI. Not protected: the login page itself needs these assets.
+  //
+  // The document's own <base> is what makes the UI work at `<prefix>/web` and
+  // `<prefix>/web/` alike: it resolves the app's assets and API calls against
+  // `<prefix>/web/` rather than against the path the request arrived on.
+
   if (webMount?.mode === "vite-dev-server-proxy") {
     const proxyToVite = async (c: Context) => {
-      const { pathname, search } = new URL(c.req.url);
-      // Vite serves the page at the trailing-slash base (/web/).
-      const path = pathname === "/web" ? "/web/" : pathname;
+      const { search } = new URL(c.req.url);
+      // The backend route carries the configured prefix; Vite always serves the
+      // UI from its own /web/ base. It answers the slash-less /web with a
+      // redirect to /web/, an origin-root URL this deployment does not serve,
+      // so ask for the directory form on the caller's behalf.
+      const path = c.req.path.slice(configuredBasePath.length);
+      const vitePath = path === "/web" ? "/web/" : path;
       try {
-        return await proxy(`${webMount.target}${path}${search}`, {
+        return await proxy(`${webMount.target}${vitePath}${search}`, {
           headers: c.req.header(),
         });
       } catch {
@@ -155,17 +185,54 @@ export function createApp(ctx: AppContext, webMount?: WebMount): Hono {
         );
       }
     };
+    // The first answers /web and /web/; the wildcard answers everything below.
     app.get("/web", proxyToVite);
     app.get("/web/*", proxyToVite);
   } else if (webMount?.mode === "serve-static") {
+    // The shell is served from memory with its <base> filled in, rather than
+    // handed over as a file: relative asset URLs then resolve against the base
+    // the document declares instead of the request path.
+    const shellPath = `${webMount.root}/index.html`;
+    const shellSource = readFileSync(shellPath, "utf8");
+    // A document that lost the marker has no base to declare, so its relative
+    // asset URLs resolve against the request path — a blank page whose only
+    // server-side trace is the 200. Fail at assembly instead.
+    if (!shellSource.includes(WEB_BASE_URL_PLACEHOLDER)) {
+      throw new Error(
+        `${shellPath} has no ${WEB_BASE_URL_PLACEHOLDER} marker, so the shell cannot declare its base. Rebuild it with \`bun run build\`.`,
+      );
+    }
+    // The mount is fixed for the life of the process, so the document is
+    // substituted once, here.
+    const shell = shellSource.replaceAll(
+      WEB_BASE_URL_PLACEHOLDER,
+      webBaseFor(configuredBasePath),
+    );
+
+    // Registered before the static mount, which would otherwise answer these
+    // from the file on disk: a directory resolves to its own index.html, and
+    // /web/index.html is the document itself, the one copy still carrying the
+    // placeholder. The first route answers /web and /web/.
+    app.get("/web", (c) => c.html(shell));
+    app.get("/web/index.html", (c) => c.html(shell));
     app.use(
       "/web/*",
       serveStatic({
         root: webMount.root,
-        rewriteRequestPath: (requestPath) => requestPath.replace(/^\/web/, ""),
+        rewriteRequestPath: (requestPath) => {
+          // Strip the mount first, then the UI's own segment, in that order.
+          // serveStatic rejects "."/".." segments, "//", and backslashes in
+          // the decoded path before this runs, and a validated prefix carries
+          // none of them, so the remainder cannot climb out of `root`.
+          const withoutBase = configuredBasePath
+            ? requestPath.slice(configuredBasePath.length)
+            : requestPath;
+          return withoutBase.replace(/^\/web/, "");
+        },
       }),
     );
-    app.get("/web", serveStatic({ path: `${webMount.root}/index.html` }));
+    // serveStatic falls through when it finds no file, which leaves the request
+    // to the app's 404.
   }
 
   return app;

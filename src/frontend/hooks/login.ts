@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 import { useErrors } from "#frontend/contexts/error.tsx";
+import { apiUrl } from "#frontend/lib/api-url.ts";
 
 import { useStateActions } from "./state";
 
@@ -10,7 +11,7 @@ export function useLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (value: string) => {
-      const response = await fetch("/login", {
+      const response = await fetch(apiUrl("login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: value }),

@@ -5,6 +5,16 @@ about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
 
 ## Unreleased
 
+### Added
+
+- `web`: `MOUSEHOLE_BASE_PATH` serves the whole app — UI and API — under a URL
+  path prefix such as `/mousehole`, so Mousehole can share a hostname with other
+  apps behind a reverse proxy. Redirects, the UI's base URL, and the session
+  cookie's scope all follow the prefix, and the bundle is built with relative
+  asset URLs with the deployment's base written into the document the server
+  serves, so one build works at the origin root and under any prefix. See
+  [Hosting Under a Subpath](/docs/hosting-under-a-subpath.md).
+
 ### Fixed
 
 - `config`: `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH` is now exclusive with

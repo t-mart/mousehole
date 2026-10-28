@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 import { useErrors } from "#frontend/contexts/error.tsx";
+import { apiUrl } from "#frontend/lib/api-url.ts";
 import type { PublicState } from "#shared/public-state.ts";
 
 import { useStateActions } from "./state";
@@ -11,7 +12,7 @@ export function useUpdate() {
 
   const updateNowMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/updates", { method: "POST" });
+      const response = await fetch(apiUrl("updates"), { method: "POST" });
       if (!response.ok) {
         const body = (await response.json().catch(() => undefined)) as
           | { message?: string }

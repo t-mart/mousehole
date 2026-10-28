@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 import { useErrors } from "#frontend/contexts/error.tsx";
+import { apiUrl } from "#frontend/lib/api-url.ts";
 import type { PublicState } from "#shared/public-state.ts";
 
 import { useStateActions } from "./state";
@@ -13,7 +14,7 @@ export function useCookie({ onSetSuccess }: { onSetSuccess: () => void }) {
     // PUT /cookie sets the credential and contacts MAM in one shot, returning the
     // resulting state — so the status (incl. a bad-cookie rejection) shows at once.
     mutationFn: async (cookie: string) => {
-      const response = await fetch("/cookie", {
+      const response = await fetch(apiUrl("cookie"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ value: cookie }),

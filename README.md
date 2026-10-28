@@ -101,6 +101,9 @@ The Dockerfile includes a default healthcheck that hits the
 service is live, and therefore, it is suitable for use in container
 orchestration.
 
+If you set `MOUSEHOLE_BASE_PATH`, the healthcheck probes `<base>/health`
+instead, read from the environment at run time.
+
 If you change the port on which Mousehole listens with the `MOUSEHOLE_PORT`
 environment variable, make sure to override the
 [healthcheck command](/Dockerfile) accordingly.
@@ -137,6 +140,9 @@ You can trigger an immediate update from the web UI with **Update Now**.
 - `MOUSEHOLE_ALLOWED_ORIGINS`: Comma-separated allowlist of `Origin` header
   values. Defaults to same-origin only. See
   [Origin Allowlist](/docs/security-guide.md#origin-allowlist).
+- Sharing one hostname with other apps? To serve Mousehole under a subpath such
+  as `https://host/mousehole/`, see
+  [Hosting Under a Subpath](/docs/hosting-under-a-subpath.md).
 
 ### Other tuning
 
@@ -168,6 +174,9 @@ You can trigger an immediate update from the web UI with **Update Now**.
   [Session Duration](/docs/security-guide.md#session-duration).
 - `MOUSEHOLE_STATE_DIR_PATH`: _(Default `/var/lib/mousehole`)_ The directory
   where the service will store its internal data.
+- `MOUSEHOLE_BASE_PATH`: _(Default unset: the origin root)_ Serve the whole app
+  under this URL path prefix, e.g. `/mousehole`. See
+  [Hosting Under a Subpath](/docs/hosting-under-a-subpath.md).
 
 ### Docker Secrets
 

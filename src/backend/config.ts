@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import type { RequireAtLeastOne } from "type-fest";
 import * as z from "zod";
 
+import { normalizeBasePath } from "#backend/base-path.ts";
 import type { LogLevelName } from "#backend/logger.ts";
 import { DEFAULT_LOG_LEVEL, LOG_LEVEL_NAMES } from "#backend/logger.ts";
 
@@ -47,6 +48,20 @@ const positiveNumberSchema = z.coerce.number().positive();
 const positiveIntSchema = z.coerce.number().int().positive();
 const portSchema = z.coerce.number().int().min(1).max(65_535);
 const boolFlagSchema = z.enum(["true", "false"]).transform((v) => v === "true");
+// Normalises as it validates, so the resolved config is already canonical (no
+// trailing slash, leading slash present) and every consumer can concatenate.
+const basePathSchema = z.string().transform((value, ctx) => {
+  const normalized = normalizeBasePath(value);
+  if (normalized === undefined) {
+    ctx.addIssue({
+      code: "custom",
+      message:
+        'must be a URL path prefix such as "/mousehole" (no scheme, host, query, fragment, "//", dot segments, whitespace, or backslashes)',
+    });
+    return z.NEVER;
+  }
+  return normalized;
+});
 
 function getEnv(env: NodeJS.ProcessEnv, name: string): string | undefined {
   return env[name]?.trim() || undefined;
@@ -158,6 +173,12 @@ function resolveAuthConfig(
   return { type: "none", insecureAllowNoAuth };
 }
 
+function resolveConfiguredBasePath(env: NodeJS.ProcessEnv): string {
+  const raw = getEnv(env, "MOUSEHOLE_BASE_PATH");
+  if (raw === undefined) return "";
+  return parseEnvVar("MOUSEHOLE_BASE_PATH", basePathSchema, raw);
+}
+
 function resolveAllowedHosts(env: NodeJS.ProcessEnv): AllowedHostsConfig {
   const value = getEnv(env, "MOUSEHOLE_ALLOWED_HOSTS");
   if (value === undefined)
@@ -250,6 +271,19 @@ export function buildConfig(
      * Defaults to 5010.
      */
     port: resolveNumber(env, "MOUSEHOLE_PORT", portSchema, 5010),
+
+    /**
+     * The URL path prefix the whole app is served under, for hosting behind a
+     * reverse proxy at e.g. https://host/mousehole/.
+     *
+     * Controlled by MOUSEHOLE_BASE_PATH. Defaults to "" (the origin root). A
+     * non-empty value such as "/mousehole" must be a path: it carries no
+     * scheme, host, query, fragment, "//", dot segments, or whitespace, and
+     * surrounding whitespace and trailing slashes are normalised away.
+     *
+     * Unrelated to the Host/Origin allowlists, which stay host-only.
+     */
+    basePath: resolveConfiguredBasePath(env),
 
     /**
      * Whether to set the "Secure" flag on authentication cookies.

@@ -14,6 +14,12 @@ export type SessionStoreOptions = {
   durationSeconds: number;
   /** Whether to set the "Secure" flag on the session cookie. */
   httpsOnlyCookies: boolean;
+  /**
+   * The cookie's Path: the app's mount prefix, so the browser sends the session
+   * only where the app lives. Clearing targets the same path, or the browser
+   * keeps a cookie it was told to drop.
+   */
+  cookiePath: string;
   /** Fired after a known session is removed (expiry, logout, or manual). */
   onSessionDeleted?: (sessionId: string) => void;
 };
@@ -74,8 +80,12 @@ export function createSessionStore(options: SessionStoreOptions) {
       httpOnly: true,
       sameSite: "lax",
       secure: options.httpsOnlyCookies,
-      path: "/",
+      path: options.cookiePath,
     });
+  }
+
+  function clearCookie(c: Context): void {
+    deleteCookie(c, SESSION_COOKIE_NAME, { path: options.cookiePath });
   }
 
   return {
@@ -86,12 +96,6 @@ export function createSessionStore(options: SessionStoreOptions) {
     applyCookie,
     clearCookie,
   };
-}
-
-// Clearing the cookie needs no per-store state, but lives on the store's API
-// next to applyCookie, its counterpart.
-function clearCookie(c: Context): void {
-  deleteCookie(c, SESSION_COOKIE_NAME, { path: "/" });
 }
 
 export function extractSessionId(request: Request): string | undefined {

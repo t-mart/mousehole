@@ -53,7 +53,9 @@ export function startServer(
   });
 
   const appUrl =
-    env.NODE_ENV === "production" ? "" : ` at ${new URL("/web", server.url)}`;
+    env.NODE_ENV === "production"
+      ? ""
+      : ` at ${new URL(`${config.basePath}/web`, server.url)}`;
   logger.info(`Mousehole v${version} (${gitHash}) started${appUrl}`);
   validateRuntimeSecurityConfig(
     config.auth,

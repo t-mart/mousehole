@@ -178,6 +178,43 @@ describe("MOUSEHOLE_PORT", () => {
   );
 });
 
+describe("MOUSEHOLE_BASE_PATH", () => {
+  test("defaults to the origin root", () => {
+    expect(buildConfig({}).basePath).toBe("");
+  });
+
+  test.each<[string, string]>([
+    ["mousehole", "/mousehole"],
+    ["mousehole/", "/mousehole"],
+    ["/mousehole", "/mousehole"],
+    ["/mousehole/", "/mousehole"],
+    ["/apps/mousehole", "/apps/mousehole"],
+    ["/", ""],
+  ])("normalises %j to %j", (value, expected) => {
+    expect(buildConfig({ MOUSEHOLE_BASE_PATH: value }).basePath).toBe(expected);
+  });
+
+  test.each([
+    "//evil.example",
+    "/a//b",
+    "/a/../b",
+    "/a/./b",
+    "/a b",
+    "/a?b",
+    "/a#b",
+    String.raw`/a\b`,
+    "a;b",
+    "https://evil.example",
+  ])("rejects %j, naming the variable and the reason", (value) => {
+    expect(() => buildConfig({ MOUSEHOLE_BASE_PATH: value })).toThrow(
+      "MOUSEHOLE_BASE_PATH",
+    );
+    expect(() => buildConfig({ MOUSEHOLE_BASE_PATH: value })).toThrow(
+      "path prefix",
+    );
+  });
+});
+
 // MOUSEHOLE_UPDATE_INTERVAL_SECONDS and MOUSEHOLE_MAM_REQUEST_TIMEOUT_SECONDS
 // are the same "positive number" validator: any finite value above zero
 // (fractions allowed) is accepted, anything else throws naming the variable.

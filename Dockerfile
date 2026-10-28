@@ -45,6 +45,6 @@ COPY src ./src
 COPY --from=build-web ${BUN_BUILD_DIR}/dist ./dist
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD bun -e "process.exit((await fetch('http://localhost:5010/health')).ok ? 0 : 1)"
+  CMD bun -e "const base = (process.env.MOUSEHOLE_BASE_PATH ?? '').trim().replace(/^\\/+|\\/+$/g, ''); const url = ['http://localhost:5010', base, 'health'].filter(Boolean).join('/'); process.exit((await fetch(url)).ok ? 0 : 1)"
 
 CMD ["bun", "run", "src/index.ts"]

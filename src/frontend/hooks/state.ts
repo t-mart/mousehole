@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+import { apiUrl } from "#frontend/lib/api-url.ts";
 import type { ErrorResponseBody } from "#shared/error-response.ts";
 import type { PublicState } from "#shared/public-state.ts";
 
@@ -61,7 +62,7 @@ function retry(failureCount: number, error: Error): boolean {
 async function queryFunction(): Promise<PublicState> {
   let response: Response;
   try {
-    response = await fetch("/state");
+    response = await fetch(apiUrl("state"));
   } catch (error) {
     if (isFetchNetworkError(error)) throw new NetworkError({ cause: error });
     throw error;

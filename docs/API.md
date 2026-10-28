@@ -2,6 +2,10 @@
 
 Mousehole provides an API for programmatic access to its functionality.
 
+Endpoint paths below are relative to Mousehole's mount point: `/state` at the
+origin root, and `/mousehole/state` when
+[`MOUSEHOLE_BASE_PATH`](/docs/hosting-under-a-subpath.md) is `/mousehole`.
+
 ## Authentication
 
 Protected endpoints accept a Bearer token. Set the `MOUSEHOLE_AUTH_TOKEN`
@@ -17,6 +21,10 @@ Example with curl:
 ```sh
 curl -H "Authorization: Bearer mytoken" http://localhost:5010/state
 ```
+
+Behind a reverse proxy serving Mousehole under a prefix, the URL is
+`http://host/mousehole/state` (see
+[Hosting Under a Subpath](/docs/hosting-under-a-subpath.md)).
 
 A request with a missing or invalid credential is rejected with `401` and a
 `WWW-Authenticate` header (see [Errors](#errors)).

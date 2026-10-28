@@ -36,6 +36,7 @@ export function createAppContext(
   const sessions = createSessionStore({
     durationSeconds: config.sessionDurationSeconds,
     httpsOnlyCookies: config.httpsOnlyCookies,
+    cookiePath: config.basePath || "/",
     // Closing a deleted session's streams makes the client re-pull GET /state,
     // get a 401, and land on the login screen.
     onSessionDeleted: (sessionId) => sse.closeSessionStreams(sessionId),

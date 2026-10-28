@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 import { useErrors } from "#frontend/contexts/error.tsx";
+import { apiUrl } from "#frontend/lib/api-url.ts";
 
 import { useStateActions } from "./state";
 
@@ -10,7 +11,7 @@ export function useLogout() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/logout", { method: "POST" });
+      const response = await fetch(apiUrl("logout"), { method: "POST" });
       if (!response.ok) throw new Error("Logout failed.");
     },
     onSuccess: async () => {

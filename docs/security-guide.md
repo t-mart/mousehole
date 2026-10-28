@@ -62,6 +62,12 @@ environment:
   MOUSEHOLE_ALLOWED_ORIGINS: "http://localhost:5010,http://127.0.0.1:5010,https://mousehole.myhomelab.lan"
 ```
 
+If Mousehole is reachable at a subpath such as `https://host/mousehole/` rather
+than the origin root, see
+[Hosting Under a Subpath](/docs/hosting-under-a-subpath.md). A base path never
+enters either allowlist: both stay host-only (scheme + host + optional port, no
+path).
+
 ### Backwards Compatibility Mode
 
 Before v0.4.0, Mousehole had no authentication nor Host/Origin checks. To
@@ -164,7 +170,9 @@ attacks.
 This list is set using the `MOUSEHOLE_ALLOWED_HOSTS` environment variable.
 Separate multiple values with commas. Valid values are hostnames or IP
 addresses, with optional ports. If a port is provided, _only_ that port is
-allowed for that host. Without a port, _any_ port is allowed for that host.
+allowed for that host. Without a port, _any_ port is allowed for that host. A
+value carries no path, regardless of any
+[base path](/docs/hosting-under-a-subpath.md) Mousehole is served under.
 
 The default is `localhost,127.0.0.1,[::1]`.
 
@@ -203,7 +211,8 @@ Tightening this down prevents
 
 This list is set using the `MOUSEHOLE_ALLOWED_ORIGINS` environment variable.
 Separate multiple values with commas. Valid values are full origins: scheme,
-host, and optional port, no path.
+host, and optional port, no path (including any
+[base path](/docs/hosting-under-a-subpath.md) Mousehole is served under).
 
 The default policy is
 [same-origin](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Same-origin_policy):
