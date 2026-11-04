@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { Temporal } from "temporal-polyfill";
 
 import { useDashedIdent } from "#frontend/hooks/dashed-ident.ts";
 import { cn } from "#frontend/lib/cn.ts";
@@ -16,6 +15,7 @@ import {
   type ContactStatus,
   type PublicState,
 } from "#shared/public-state.ts";
+import { parseZonedDateTime } from "#shared/time.ts";
 
 import { Button } from "./lib/button";
 import { bounceProps } from "./lib/motion";
@@ -45,8 +45,8 @@ export function MamResponse({
   const nextUpdate =
     state.nextContactAt && state.lastMamContact?.at
       ? {
-          at: Temporal.ZonedDateTime.from(state.lastMamContact.at),
-          nextContactAt: Temporal.ZonedDateTime.from(state.nextContactAt),
+          at: parseZonedDateTime(state.lastMamContact.at),
+          nextContactAt: parseZonedDateTime(state.nextContactAt),
         }
       : undefined;
 

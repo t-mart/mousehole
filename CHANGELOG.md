@@ -7,6 +7,9 @@ about how to read this document in [CONTRIBUTING.md](/CONTRIBUTING.md).
 
 ### Fixed
 
+- `time`: Preserve recorded instants when server and browser timezone rules
+  differ (for example, Vancouver's permanent daylight saving time). This fixes
+  a blank web UI and failures reading saved state after timezone-data updates.
 - `config`: `MOUSEHOLE_INSECURE_ALLOW_NO_AUTH` is now exclusive with
   (`MOUSEHOLE_AUTH_PASSWORD` or `MOUSEHOLE_AUTH_TOKEN`, including their `_FILE`
   forms). Mousehole now refuses to start if both are set. Previously, the
