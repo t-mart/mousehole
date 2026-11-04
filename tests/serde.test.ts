@@ -35,6 +35,30 @@ describe("serialize / deserialize", () => {
     expect(serialized.version).toBe(2);
     expect(serialized.cookie).toBe("secret-cookie");
   });
+
+  test.each([
+    "2026-11-04T12:09:17.461+01:00[UTC]",
+    "2026-11-04T12:09:17.461-08:00[America/Vancouver]",
+    "2026-11-04T12:09:17.461-07:00[America/Vancouver]",
+  ])(
+    "restores the recorded instant despite timezone rule differences: %s",
+    (timestamp) => {
+      const serialized = serializeState(state);
+      serialized.lastMamContact = { ...contact, at: timestamp };
+
+      const restored = deserializeState(serialized);
+
+      expect(restored.cookie).toBe(state.cookie);
+      expect(restored.lastMamContact?.at.epochMilliseconds).toBe(
+        Temporal.Instant.from(timestamp).epochMilliseconds,
+      );
+      expect(restored.lastMamContact?.reached).toBe(true);
+      expect(
+        deserializeState(serializeState(restored)).lastMamContact?.at
+          .epochMilliseconds,
+      ).toBe(restored.lastMamContact?.at.epochMilliseconds);
+    },
+  );
 });
 
 describe("toPublicState", () => {

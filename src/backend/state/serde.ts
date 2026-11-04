@@ -1,10 +1,11 @@
-import { Temporal } from "temporal-polyfill";
+import type { Temporal } from "temporal-polyfill";
 import * as z from "zod";
 
 import type {
   PublicState,
   SerializedMamContact,
 } from "#shared/public-state.ts";
+import { parseZonedDateTime } from "#shared/time.ts";
 
 // This module owns the persistence of our state: the in-memory domain types,
 // their on-disk serialized forms, and the conversions between them. The wire
@@ -90,7 +91,7 @@ function serializeMamContact(contact: MamContact): SerializedMamContact {
 }
 
 function deserializeMamContact(contact: SerializedMamContact): MamContact {
-  const at = Temporal.ZonedDateTime.from(contact.at);
+  const at = parseZonedDateTime(contact.at);
   if (!contact.reached) {
     return { at, reached: false, error: contact.error };
   }
